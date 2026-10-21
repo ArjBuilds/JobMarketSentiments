@@ -1,0 +1,141 @@
+skill,type,synonym
+Python,tool,Python
+SQL,tool,SQL
+SQL,tool,SQL queries
+SQL,tool,MS SQL
+SQL,tool,MSSQL
+SQL,tool,SQL Server
+SQL,tool,MySQL
+SQL,tool,PostgreSQL
+SQL,tool,SQLite
+SQL,tool,T-SQL
+SQL,tool,TSQL
+SQL,tool,PL/SQL
+SQL,tool,PLSQL
+R,tool,R
+R,tool,R programming
+R,tool,RStudio
+Java,tool,Java
+JavaScript,tool,JavaScript
+Scala,tool,Scala
+C,tool,C
+C++,tool,C++
+C#,tool,C#
+Go,tool,Golang
+Go,tool,Go programming
+Go,tool,Go language
+SAS,tool,SAS
+SAS,tool,SAS programming
+MATLAB,tool,MATLAB
+SPSS,tool,SPSS
+Excel,tool,Excel
+Excel,tool,Advanced Excel
+Excel,tool,MS Excel
+Excel,tool,Microsoft Excel
+VBA,tool,VBA
+Power BI,tool,Power BI
+Power BI,tool,PowerBI
+Power BI,tool,Microsoft Power BI
+Tableau,tool,Tableau
+Qlik,tool,Qlik
+Qlik,tool,QlikView
+Qlik,tool,Qlik Sense
+Looker,tool,Looker
+Looker,tool,LookML
+Alteryx,tool,Alteryx
+Spark,tool,Spark
+Spark,tool,Apache Spark
+Spark,tool,PySpark
+Hadoop,tool,Hadoop
+Hadoop,tool,HDFS
+Hadoop,tool,MapReduce
+Hive,tool,Hive
+Kafka,tool,Kafka
+Kafka,tool,Apache Kafka
+Airflow,tool,Airflow
+Airflow,tool,Apache Airflow
+Databricks,tool,Databricks
+Snowflake,tool,Snowflake
+AWS,tool,AWS
+AWS,tool,Amazon Web Services
+AWS,tool,AWS Glue
+AWS,tool,Redshift
+AWS,tool,SageMaker
+Azure,tool,Azure
+Azure,tool,Microsoft Azure
+Azure,tool,Azure Data Factory
+GCP,tool,GCP
+GCP,tool,Google Cloud
+GCP,tool,Google Cloud Platform
+GCP,tool,BigQuery
+TensorFlow,tool,TensorFlow
+PyTorch,tool,PyTorch
+Keras,tool,Keras
+Scikit-learn,tool,scikit-learn
+Scikit-learn,tool,scikit learn
+Scikit-learn,tool,sklearn
+Pandas,tool,Pandas
+NumPy,tool,NumPy
+Docker,tool,Docker
+Kubernetes,tool,Kubernetes
+Git,tool,Git
+Git,tool,GitHub
+Linux,tool,Linux
+Linux,tool,Unix
+Linux,tool,Shell scripting
+NoSQL,tool,NoSQL
+MongoDB,tool,MongoDB
+Cassandra,tool,Cassandra
+Oracle,tool,Oracle
+Oracle,tool,Oracle Database
+SAP,tool,SAP
+Google Analytics,tool,Google Analytics
+Informatica,tool,Informatica
+SSIS,tool,SSIS
+Data Analysis,method,Data analysis
+Data Analysis,method,Data analytics
+Data Visualization,method,Data visualization
+Data Visualization,method,Data visualisation
+Data Modeling,method,Data modeling
+Data Modeling,method,Data modelling
+Data Mining,method,Data mining
+Text Mining,method,Text mining
+Data Quality,method,Data quality
+Data Cleaning,method,Data cleaning
+Data Cleaning,method,Data cleansing
+Machine Learning,method,Machine learning
+Machine Learning,method,ML
+Deep Learning,method,Deep learning
+Neural Networks,method,Neural networks
+Neural Networks,method,Neural network
+Artificial Intelligence,method,Artificial intelligence
+Artificial Intelligence,method,AI
+Generative AI,method,Generative AI
+Generative AI,method,GenAI
+Generative AI,method,Large language models
+Generative AI,method,LLM
+Generative AI,method,LLMs
+Natural Language Processing,method,Natural language processing
+Natural Language Processing,method,NLP
+Computer Vision,method,Computer vision
+Image Processing,method,Image processing
+Statistics,method,Statistics
+Statistics,method,Statistical analysis
+Statistics,method,Statistical modeling
+Statistics,method,Statistical modelling
+Predictive Modeling,method,Predictive modeling
+Predictive Modeling,method,Predictive modelling
+Predictive Modeling,method,Predictive analytics
+Forecasting,method,Forecasting
+Time Series,method,Time series
+Time Series,method,Time series analysis
+Big Data,method,Big data
+Data Warehousing,method,Data warehousing
+Data Warehousing,method,Data warehouse
+ETL,method,ETL
+Data Engineering,method,Data engineering
+Business Intelligence,method,Business intelligence
+Operations Research,method,Operations research
+MLOps,method,MLOps
+MLOps,method,ML Ops
+A/B Testing,method,A/B testing

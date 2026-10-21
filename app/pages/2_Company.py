@@ -4,7 +4,8 @@ Reads only from SQLite. Review sentiment (F4) comes from review_summary,
 filled by process.review_sentiment; the rules for when a figure is hidden or
 "not available" live in jmsa.sentiment.read_summary, not here. Data roles
 (F8) come from jobs, filled by ingest.load_jobs, through jmsa.jobs.read_roles.
-Turnover, skills and news arrive in later milestones.
+Skills (F7) are market-wide, so this page only points to the Market skills
+page. Turnover and news arrive in later milestones.
 """
 
 import sys
@@ -19,6 +20,7 @@ from jmsa.db import get_conn  # noqa: E402
 from jmsa.display import NOT_AVAILABLE, show  # noqa: E402
 from jmsa.jobs import DATA_ROLES_NOTE, LOWER_BOUND_NOTE, ROLES_INTRO, read_roles  # noqa: E402
 from jmsa.sentiment import MIN_REVIEWS, read_summary  # noqa: E402
+from jmsa.skills import COMPANY_SKILLS_NOTE  # noqa: E402
 
 st.set_page_config(page_title="Company · Job Market Analyser", page_icon="📊", layout="wide")
 
@@ -134,6 +136,8 @@ else:
     st.dataframe(posted["rows"], hide_index=True)
 st.caption(DATA_ROLES_NOTE)
 
+st.subheader("Data-role skills")
+st.markdown(COMPANY_SKILLS_NOTE)
+
 st.subheader("Coming in later milestones")
-st.caption("Data-role skills (F7: milestone 6, stage B) · News coverage (F6: milestone 7) · "
-           "Turnover (F5: milestone 8)")
+st.caption("News coverage (F6: milestone 7) · Turnover (F5: milestone 8)")

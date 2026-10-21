@@ -5,7 +5,8 @@ import pytest
 from jmsa.db import TABLES, apply_schema
 
 # job_skills reaches companies through jobs, so it carries job_id instead.
-COMPANY_KEYED = tuple(t for t in TABLES if t != "job_skills")
+# skill_counts is market-wide: the source doesn't tie skills to a company.
+COMPANY_KEYED = tuple(t for t in TABLES if t not in ("job_skills", "skill_counts"))
 
 
 def table_names(db):

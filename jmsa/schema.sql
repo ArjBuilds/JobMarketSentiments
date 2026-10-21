@@ -1,5 +1,6 @@
 -- Job Market Analyser schema. Six source tables, all reachable from
--- companies, plus review_summary, which is derived from reviews.
+-- companies, plus two derived tables: review_summary, derived from reviews,
+-- and skill_counts, market-wide skill counts that reach no company.
 --
 -- Conventions (see PRD.md "Data dictionary"):
 --   company_id        lowercase slug, e.g. tata-consultancy-services
@@ -117,8 +118,10 @@ CREATE TABLE IF NOT EXISTS jobs (
 );
 
 CREATE TABLE IF NOT EXISTS job_skills (
-    -- Reaches companies through jobs, not directly. Filled by matching
-    -- skills.csv against jobs.skills_raw with the spaCy PhraseMatcher.
+    -- Reaches companies through jobs, not directly. Always empty: the
+    -- postings' skills belong to other rows, so no skill can be tied to a
+    -- posting (jobs.skills_raw is always NULL too). Market-wide counts are in
+    -- skill_counts instead.
     job_id  TEXT NOT NULL REFERENCES jobs(job_id),
     skill   TEXT NOT NULL,
     PRIMARY KEY (job_id, skill)
@@ -149,6 +152,21 @@ CREATE TABLE IF NOT EXISTS review_summary (
     management_compound REAL,
     pre_merger_count    INTEGER NOT NULL,
     PRIMARY KEY (company_id, period)
+);
+
+CREATE TABLE IF NOT EXISTS skill_counts (
+    -- Derived, not a source: market-wide data-role skills (F7), counted by
+    -- process.skill_counts from naukri_jobs_merged.csv's skills_raw. Not keyed
+    -- on company_id, because the source doesn't tie skills to an employer.
+    -- Each distinct skills_raw string counts once (rows were copied when the
+    -- listings were scraped repeatedly), so counts are a lower bound.
+    scope           TEXT NOT NULL,     -- 'data-science' (the two data-science exports pooled) or one export's source_file
+    skill           TEXT NOT NULL,     -- display name from data/skills.csv
+    type            TEXT NOT NULL CHECK (type IN ('tool', 'method')),
+    postings        INTEGER NOT NULL,  -- distinct skill lists in the scope that list the skill
+    share           REAL NOT NULL,     -- postings / scope_postings
+    scope_postings  INTEGER NOT NULL,  -- distinct non-empty skill lists scored in the scope
+    PRIMARY KEY (scope, skill)
 );
 
 -- Per-company lookups. The F2 filters don't use these: they read

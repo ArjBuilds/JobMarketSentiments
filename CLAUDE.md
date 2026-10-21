@@ -13,7 +13,8 @@ Milestones 1 (skeleton), 2 (company library), 3 (Glassdoor ratings), 4 (reviews 
 Milestone 6 is split in two. Stage A (data roles, F8) is built:
 - `python -m ingest.load_jobs` filters titles, matches employers, verifies links and replaces `jobs`; it writes `data/raw/naukri_match_report.txt`. The Company page shows F8 through [jmsa/jobs.py](jmsa/jobs.py), and the Library page has the data-roles column, filter and sort.
 
-Stage B (market-wide skills, F7) is next.
+Stage B (market-wide skills, F7) is built:
+- `python -m process.skill_counts` matches data/skills.csv against skills_raw and replaces `skill_counts`; it writes `data/raw/skill_counts_report.txt`, and `--check N` writes a hand-check sample instead. The Market skills page shows F7 through [jmsa/skills.py](jmsa/skills.py); the Company page shows "not available" with a pointer.
 
 Five files are on disk, and none of them is a live job API:
 
@@ -41,9 +42,10 @@ Layout: `data/` (CSV inputs, the SQLite file, and `raw/` for the source CSVs and
 
 `jmsa/` is not in the PRD's original four-directory sketch. It exists because the loaders, the process steps and the app all need the same connection and the same sentiment cut-offs; put anything cross-cutting there rather than duplicating it.
 
-Seven tables:
+Eight tables:
 - Six source tables: `companies`, `reviews`, `turnover`, `articles`, `jobs` and `job_skills`. All are keyed on `company_id` except `job_skills`, which reaches companies through `jobs`.
-- One derived table, `review_summary`, with per-company review figures for `all` and `2020-2023`. Pages read sentiment from it, never by aggregating `reviews` live.
+- Two derived tables: `review_summary`, with per-company review figures for `all` and `2020-2023` (pages read sentiment from it, never by aggregating `reviews` live), and `skill_counts`, market-wide skill counts per scope, keyed on no company.
+- `job_skills` is always empty: no skill can be tied to a posting.
 
 The Glassdoor ratings are columns on `companies`, not a table of their own. Column lists are in the PRD's data dictionary; the DDL is [jmsa/schema.sql](jmsa/schema.sql).
 
@@ -72,6 +74,8 @@ python -m ingest.load_reviews [--resume]       # ~1.8M rows, 50k per transaction
 python -m process.review_sentiment [--rescore] # --rescore after editing themes.csv
 python -m ingest.load_jobs                     # full replace of jobs; rerun after editing
                                                # data_role_keywords.csv or naukri aliases
+python -m process.skill_counts [--check 50]    # full replace of skill_counts; rerun after
+                                               # editing skills.csv. --check writes a sample only
 
 pytest
 pytest tests/test_schema.py::test_six_tables_created   # a single test
@@ -96,7 +100,8 @@ pytest tests/test_schema.py::test_six_tables_created   # a single test
 - Naukri columns: only `job_title` and `company_name` reliably belong together. A row's `url`, `posted_relative` and `city` are kept only when its link's slug starts with the title and then names the employer; `city` is read from that slug. `url` and `posted_relative` drive verification and dedup but are never displayed: the 2023 links have expired and "1 Day Ago" would read as current. F8 shows title, employer (as posted) and city only. Never store `locations`, `experience_required`, `package` or `skills_raw` against a posting.
 - A posting is a data role only if its title passes the include/exclude keywords in [data/data_role_keywords.csv](data/data_role_keywords.csv). "business analyst" is excluded unless the title also has a data-specific include keyword (`OVERRIDABLE_EXCLUDES` and `GENERIC_INCLUDES` in the loader).
 - `jobs` holds distinct listings, not rows: matched rows are deduplicated at load time, verified rows by Naukri job ID and unverified rows by (employer as posted, title), with an unverified row dropped when a verified row has the same pair. Same-title listings without a verified link count once, so every count is a lower bound and is shown with that note.
-- `skills_raw` concatenates skills with no separator (`Text miningCareer developmentdata science`), so it cannot be split on a delimiter. Match known skills from skills.csv against the string with the spaCy PhraseMatcher. Its skills belong to other rows' postings, so count them only per export (the two data-science exports), never per company.
+- `skills_raw` concatenates skills with no separator (`Text miningCareer developmentdata science`), so it cannot be split on a delimiter. Match known skills from skills.csv against the string with the spaCy PhraseMatcher on `spacy.blank("en")`. Its skills belong to other rows' postings, so count them only per export, never per company; the headline pools the two data-science exports. Count each distinct skills_raw string once: lists were copied when listings were rescraped, and the two data-science exports overlap (86%).
+- data/skills.csv is `skill,type,synonym`; only the synonym is matched. Every skill has exactly one type, `tool` (a named product or language) or `method` (a technique). Never list `go` or `bi` as a synonym: they match ordinary words.
 
 ## Rules the data layer must hold to
 
