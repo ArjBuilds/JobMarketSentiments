@@ -10,10 +10,11 @@ than text, and a missing value is None until it becomes "not available".
 Milestone 6 added data roles: a count per company, the "has data roles"
 filter and a sort. There is no "required skill" filter: the postings' skills
 can't be tied to an employer (see PRD.md, "The postings snapshot").
-Milestone 8 adds the turnover proxy as two display-only columns, the total
-and its split. It is deliberately not a sort key: a share of reviews must
-never be ranked as if it were attrition. Published attrition (stage B) adds
-the SORT_KEYS entry.
+Milestone 8 adds turnover. The proxy is two display-only columns, the total
+and its split, and deliberately not a sort key: a share of reviews must never
+be ranked as if it were attrition. Published attrition (each company's latest
+figure) is a column and a sort key, shown with its basis and scope, and the
+basis and scope filters let a ranking compare like with like.
 """
 
 from __future__ import annotations
@@ -25,7 +26,7 @@ from dataclasses import dataclass
 from jmsa.display import NOT_AVAILABLE, show
 from jmsa.jobs import cities_text
 from jmsa.sentiment import MIN_REVIEWS, PERIOD_TITLES, hidden, is_shown, score_text
-from jmsa.turnover import WINDOW_TITLE, proxy_parts
+from jmsa.turnover import BASIS_NAMES, SCOPE_NAMES, WINDOW_TITLE, proxy_parts
 
 # Choices for the minimum-reviews filter. The first is the 20-review rule
 # itself, which already hides small samples, so it filters nothing further.
@@ -42,6 +43,10 @@ class Filters:
     min_sentiment: float | None = None
     min_reviews: int = MIN_REVIEWS
     has_data_roles: bool = False        # True keeps only companies with postings in the dataset
+    # Keep only companies whose latest published attrition has this basis /
+    # scope (None means any, and keeps companies with no figure too).
+    attrition_basis: str | None = None
+    attrition_scope: str | None = None
     # When a minimum is set, may a company with no value for it stay in?
     include_missing: bool = False
 
@@ -61,10 +66,15 @@ def load_library(conn: sqlite3.Connection) -> list[dict]:
         SELECT c.company_id, c.name, c.sector, c.hq_country, c.india_cities, c.size_band,
                c.glassdoor_rating, c.glassdoor_review_count, j.roles,
                s.period, s.review_count, s.avg_compound, s.pre_merger_count,
-               t.reviews_in_window, t.reviews_matched, t.reviews_leaving, t.reviews_layoffs
+               t.reviews_in_window, t.reviews_matched, t.reviews_leaving, t.reviews_layoffs,
+               p.attrition_pct, p.attrition_text, p.basis, p.scope, p.period AS attrition_period
         FROM companies c
         LEFT JOIN review_summary s ON s.company_id = c.company_id
         LEFT JOIN turnover t ON t.company_id = c.company_id AND t.is_proxy = 1
+        -- Only the latest published figure; older rows are for the proxy comparison.
+        LEFT JOIN turnover p ON p.company_id = c.company_id AND p.is_proxy = 0
+               AND p.period_end = (SELECT MAX(period_end) FROM turnover
+                                   WHERE company_id = c.company_id AND is_proxy = 0)
         LEFT JOIN (SELECT company_id, COUNT(*) AS roles FROM jobs GROUP BY company_id) j
                ON j.company_id = c.company_id
         ORDER BY c.name COLLATE NOCASE, c.company_id
@@ -84,6 +94,12 @@ def load_library(conn: sqlite3.Connection) -> list[dict]:
             "data_roles": row["roles"],
             # Display text for the turnover proxy, or None with no reviews in its window.
             "proxy": proxy_parts(row) if row["reviews_in_window"] is not None else None,
+            # Latest published attrition, None when the company publishes none.
+            "attrition": row["attrition_pct"],
+            "attrition_text": row["attrition_text"],
+            "attrition_basis": row["basis"],
+            "attrition_scope": row["scope"],
+            "attrition_period": row["attrition_period"],
             "reviews": {},       # period -> scored review count
             "sentiment": {},     # period -> average compound, None if hidden
             "pre_merger": {},    # period -> True if any of the reviews are pre-merger
@@ -113,6 +129,8 @@ SORT_KEYS = {
     "sentiment": sentiment,
     "reviews": reviews,
     "data_roles": lambda record, period: record["data_roles"],
+    # Published figures only: the proxy never enters this ranking.
+    "attrition": lambda record, period: record["attrition"],
 }
 SORT_LABELS = {
     "name": "Name",
@@ -120,6 +138,7 @@ SORT_LABELS = {
     "sentiment": "Review sentiment",
     "reviews": "Reviews scored",
     "data_roles": "Data-role listings",
+    "attrition": "Published attrition",
 }
 
 
@@ -145,6 +164,8 @@ def matches(record: dict, filters: Filters) -> bool:
         and meets(sentiment(record, period), filters.min_sentiment, filters.include_missing)
         and meets(reviews(record, period), min_reviews, filters.include_missing)
         and (not filters.has_data_roles or record["data_roles"] is not None)
+        and (filters.attrition_basis is None or record["attrition_basis"] == filters.attrition_basis)
+        and (filters.attrition_scope is None or record["attrition_scope"] == filters.attrition_scope)
     )
 
 
@@ -196,9 +217,19 @@ def column_headers(period: str) -> dict[str, str]:
         "sentiment": f"Review sentiment ({title})",
         "reviews": f"Reviews scored ({title})",
         "data_roles": "Data-role listings (dataset snapshot)",
+        "attrition": "Published attrition (latest: value · basis · scope · period)",
         "proxy": f"Turnover proxy: leaving mentions per 100 reviews ({WINDOW_TITLE})",
         "proxy_split": "Proxy split per 100 reviews",
     }
+
+
+def attrition_text(record: dict) -> str | None:
+    """'12.8% · voluntary · segment · LTM to Sep 2026 (Q2 FY27)', so a figure is never read
+    without its definition. None when the company publishes none."""
+    if record["attrition"] is None:
+        return None
+    return " · ".join([f"{record['attrition_text']}%", BASIS_NAMES[record["attrition_basis"]],
+                       SCOPE_NAMES[record["attrition_scope"]], record["attrition_period"]])
 
 
 def display_row(record: dict, period: str) -> dict[str, str]:
@@ -226,6 +257,7 @@ def display_row(record: dict, period: str) -> dict[str, str]:
         "sentiment": score,
         "reviews": f"{count:,}" if count is not None else None,
         "data_roles": f"{roles:,}" if roles is not None else None,
+        "attrition": attrition_text(record),
         "proxy": record["proxy"]["total"] if record["proxy"] else None,
         "proxy_split": record["proxy"]["split"] if record["proxy"] else None,
     }

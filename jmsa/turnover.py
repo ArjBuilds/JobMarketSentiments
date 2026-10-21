@@ -12,6 +12,10 @@ Two kinds of figure live in the turnover table and are never mixed:
 
 The proxy counts reviews, not people, so it is always shown "per 100
 reviews", never with a % sign, and always labelled "proxy".
+
+A company can have several published rows (data/turnover.csv): its latest
+figure, which is the one shown, and older rows whose period overlaps the
+proxy window, kept only to compare the proxy against published attrition.
 """
 
 from __future__ import annotations
@@ -45,6 +49,22 @@ PROXY_NOTE = (
     "coverage in the review dataset, and searches the headline and cons only (keywords in "
     "data/turnover_keywords.csv). A review can mention both kinds, so the two parts can add "
     "up to more than the total."
+)
+
+# What a published figure measures, as its document says. "not-stated" when
+# the document doesn't say voluntary or total; never inferred.
+BASES = ("voluntary", "total", "not-stated")
+BASIS_NAMES = {"voluntary": "voluntary", "total": "total", "not-stated": "basis not stated"}
+
+# Whose figure it is: the library company as a whole, one segment of it
+# (e.g. IT services), or its listed India subsidiary.
+SCOPES = ("group", "segment", "india-subsidiary")
+SCOPE_NAMES = {"group": "group", "segment": "segment", "india-subsidiary": "India subsidiary"}
+
+PUBLISHED_NOTE = (
+    "Published attrition is copied from the company's own report, with its period, definition and "
+    "entity. Definitions differ: some count only voluntary exits, some all exits, and some don't say. "
+    "Some cover one segment (e.g. IT services) or the listed India subsidiary rather than the group."
 )
 
 PRE_MERGER_NOTE = ("These reviews are of Mindtree, before its 2022 merger into LTIMindtree, "
@@ -85,31 +105,50 @@ def proxy_text(parts: dict[str, str] | None) -> str:
             f"dated {WINDOW_TITLE}")
 
 
+def overlaps_window(start: str | None, end: str | None) -> bool:
+    """Does a period overlap the proxy window? Both ends are needed to say."""
+    return bool(start and end) and start <= WINDOW_END and end >= WINDOW_START
+
+
 def published_text(row) -> dict[str, str]:
-    """A published figure as display text."""
+    """A published figure as display text. The value is shown as printed:
+    Accenture's '13' stays '13%', not '13.0%'."""
     return {
-        "value": f"{row['attrition_pct']:.1f}%",
+        "value": f"{row['attrition_text']}%",
         "period": show(row["period"]),
+        "basis": BASIS_NAMES.get(row["basis"], NOT_AVAILABLE),
+        "scope": SCOPE_NAMES.get(row["scope"], NOT_AVAILABLE),
         "definition": show(row["definition"]),
         "entity": show(row["entity"]),
         "source_url": row["source_url"],
         "source_ref": show(row["source_ref"]),
+        "retrieved_on": show(row["retrieved_on"]),
+        "note": row["method_note"] or None,
     }
+
+
+def latest_published(conn: sqlite3.Connection, company_id: str):
+    """A company's latest published row (latest period_end), or None."""
+    return conn.execute(
+        "SELECT * FROM turnover WHERE company_id = ? AND is_proxy = 0"
+        " ORDER BY period_end DESC, period DESC LIMIT 1",
+        (company_id,),
+    ).fetchone()
 
 
 def read_turnover(conn: sqlite3.Connection, company_id: str) -> dict:
     """A company's turnover, ready to display.
 
-    published is a list, latest period first, possibly empty. proxy is the
-    proxy's text, "not available" when the company has no reviews in the
-    window. note carries the pre-merger warning for the proxy.
+    published is the latest published figure as display text, or None;
+    older rows are only for the proxy comparison and are never shown. proxy
+    is the proxy's text, "not available" when the company has no reviews in
+    the window. note carries the pre-merger warning for the proxy.
     """
-    rows = conn.execute(
-        "SELECT * FROM turnover WHERE company_id = ? ORDER BY is_proxy, period_end DESC",
-        (company_id,),
-    ).fetchall()
-    published = [published_text(row) for row in rows if not row["is_proxy"]]
-    proxy_row = next((row for row in rows if row["is_proxy"]), None)
+    latest = latest_published(conn, company_id)
+    published = published_text(latest) if latest is not None else None
+    proxy_row = conn.execute(
+        "SELECT * FROM turnover WHERE company_id = ? AND is_proxy = 1", (company_id,)
+    ).fetchone()
     note = None
     if proxy_row is not None:
         summary = conn.execute(

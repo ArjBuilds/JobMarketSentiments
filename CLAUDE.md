@@ -16,8 +16,11 @@ Milestone 6 is split in two. Stage A (data roles, F8) is built:
 Stage B (market-wide skills, F7) is built:
 - `python -m process.skill_counts` matches data/skills.csv against skills_raw and replaces `skill_counts`; it writes `data/raw/skill_counts_report.txt`, and `--check N` writes a hand-check sample instead. The Market skills page shows F7 through [jmsa/skills.py](jmsa/skills.py); the Company page shows "not available" with a pointer.
 
-Milestone 8 (turnover, F5) is split in two. Stage A (the review-based proxy) is built:
-- `python -m process.turnover_proxy` counts reviews whose headline or cons match [data/turnover_keywords.csv](data/turnover_keywords.csv) in the window and replaces the proxy rows of `turnover`; it writes `data/raw/turnover_proxy_report.txt`, and `--check N` writes a hand-check sample instead. The Company page shows F5 and the Library page two proxy columns through [jmsa/turnover.py](jmsa/turnover.py). Stage B (published attrition from data/turnover.csv, and the Library attrition sort) is next.
+Milestone 8 (turnover, F5) is built in two stages. Stage A, the review-based proxy:
+- `python -m process.turnover_proxy` counts reviews whose headline or cons match [data/turnover_keywords.csv](data/turnover_keywords.csv) in the window and replaces the proxy rows of `turnover`; it writes `data/raw/turnover_proxy_report.txt`, and `--check N` writes a hand-check sample instead. The Company page shows F5 and the Library page two proxy columns through [jmsa/turnover.py](jmsa/turnover.py).
+
+Stage B, published attrition:
+- `python -m ingest.load_turnover` validates [data/turnover.csv](data/turnover.csv) (any bad row: nothing written) and replaces the published rows of `turnover`; it writes `data/raw/turnover_load_report.txt` with the proxy comparison. The Company page shows each company's latest figure; the Library page has the published-attrition column, sort and basis/scope filters.
 
 Milestone 7 (news, F6) is built:
 - `python -m ingest.load_news` sends one GNews request per company, using its query in [data/news_queries.csv](data/news_queries.csv), keeps the articles that name the company, dedupes them, keeps the 10 newest and scores them; it writes `data/raw/news_fetch_report.txt`. The Company page shows F6 through [jmsa/news.py](jmsa/news.py).
@@ -86,6 +89,8 @@ python -m process.skill_counts [--check 50]    # full replace of skill_counts; r
 python -m ingest.load_news [--company ID] [--limit N] [--refresh]
                                                # GNews; skips companies fetched in the last 24 h.
                                                # Exit code 3 = daily quota reached; rerun to resume
+python -m ingest.load_turnover                 # replaces only the published rows of turnover; rerun
+                                               # after editing turnover.csv (run turnover_proxy first)
 python -m process.turnover_proxy [--check 50]  # replaces only the proxy rows of turnover; rerun
                                                # after editing turnover_keywords.csv. --check writes a sample only
 python -m ingest.load_news --from-cache        # re-select from cached responses, 0 requests;
@@ -128,6 +133,7 @@ pytest tests/test_schema.py::test_six_tables_created   # a single test
 - The review source has no location column, so `reviews.location` stays empty and nothing India-specific can be derived from review text.
 - Glassdoor **ratings** and review **text** are different sources with different coverage. A company can have a rating and no sentiment; don't present one as the other.
 - Turnover is published attrition (with period, definition, entity and source URL) and/or the review-based proxy, each under its own heading. A proxy row has `is_proxy = 1`, stores `proxy_share`, never `attrition_pct` (a CHECK enforces it), and is surfaced as "proxy" in the UI.
+- Published attrition comes only from primary documents (annual reports, BRSR, quarterly results, official ESG reports), copied as printed into data/turnover.csv with a page reference. `basis` is voluntary, total or not-stated exactly as the document says; never infer it. Display only each company's latest figure; older rows exist only if their period overlaps the proxy window, for the proxy comparison. A listed India subsidiary counts only if it is the group's main India operating company in its core business; pfizer, novartis and oracle are excluded and siemens uses Siemens AG (reasons in the PRD's "Published attrition"). Never research figures from news, Glassdoor or aggregators.
 - The proxy is reviews dated 2021-04-01 to 2023-03-31 (`WINDOW_*` in [jmsa/turnover.py](jmsa/turnover.py)) whose headline or cons match a keyword, shown "per 100 reviews", never with a % sign, with its split (leaving/attrition, layoffs). Never search pros: there "leave" is time off and "no layoffs" is praise. Never sort or rank by the proxy, and never add bare `leave`, `left`, `job security`, `switch`, `exit`, `notice period`, `restructuring` (28% precision, mostly reorgs) or `fired` (80%, mostly "should be fired"/"hard to get fired" and attendance-point dismissals) as keywords. Re-run `--check 50` and read it after editing the keywords.
 - No live scraping of LinkedIn or Glassdoor — their terms forbid it. Reviews come from the CSV snapshots above.
 - There are no live job APIs. Roles and skills (F7, F8) come only from `naukri_jobs_merged.csv`, which is Indian data-science and analytics postings. Label these views as data roles, and label counts as distinct data-role listings in the dataset snapshot (collected in or after late October 2023), never "open now", with the lower-bound note beside them.

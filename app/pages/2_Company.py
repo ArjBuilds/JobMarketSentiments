@@ -23,7 +23,7 @@ from jmsa.db import get_conn  # noqa: E402
 from jmsa.display import NOT_AVAILABLE, show  # noqa: E402
 from jmsa.jobs import DATA_ROLES_NOTE, LOWER_BOUND_NOTE, ROLES_INTRO, read_roles  # noqa: E402
 from jmsa.news import NEWS_NOTE, read_news  # noqa: E402
-from jmsa.turnover import PROXY_NOTE, read_turnover  # noqa: E402
+from jmsa.turnover import PROXY_NOTE, PUBLISHED_NOTE, read_turnover  # noqa: E402
 from jmsa.sentiment import MIN_REVIEWS, read_summary  # noqa: E402
 from jmsa.skills import COMPANY_SKILLS_NOTE  # noqa: E402
 
@@ -180,14 +180,19 @@ st.caption(NEWS_NOTE)
 st.subheader("Turnover")
 figures = turnover(company["company_id"])
 st.markdown("#### Published attrition")
-if not figures["published"]:
+figure = figures["published"]
+if figure is None:
     st.markdown(f"Published attrition: **{NOT_AVAILABLE}**. No figure from the company's own "
                 "reports has been recorded.")
-for figure in figures["published"]:
+else:
     st.markdown(
-        f"**{figure['value']}** · {figure['period']} · {figure['definition']}  \n"
-        f"Entity: {figure['entity']} · [Source]({figure['source_url']}) ({figure['source_ref']})"
+        f"**{figure['value']}** · {figure['period']} · {figure['basis']} · {figure['scope']}  \n"
+        f"Definition: {figure['definition']}  \n"
+        f"Entity: {figure['entity']}  \n"
+        f"[Source]({figure['source_url']}) ({figure['source_ref']}), retrieved {figure['retrieved_on']}"
+        + (f"  \nNote: {figure['note']}" if figure["note"] else "")
     )
+st.caption(PUBLISHED_NOTE)
 st.markdown("#### Proxy from reviews")
 st.markdown(f"**Proxy:** {figures['proxy']}")
 if figures["note"]:

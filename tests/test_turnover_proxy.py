@@ -160,9 +160,10 @@ def test_pre_merger_reviews_name_mindtree_as_the_entity(library, patterns):
 
 def add_published(db, company_id="acme"):
     db.execute(
-        "INSERT INTO turnover (company_id, is_proxy, period, period_end, attrition_pct, definition, entity,"
-        " source_url, source_ref, retrieved_on) VALUES (?, 0, 'FY2024-25', '2025-03-31', 12.5,"
-        " 'voluntary', 'Acme Ltd', 'https://acme.example/ar.pdf', 'p. 40', '2026-10-22')",
+        "INSERT INTO turnover (company_id, is_proxy, period, period_end, attrition_pct, attrition_text, basis,"
+        " scope, definition, entity, source_url, source_ref, retrieved_on) VALUES (?, 0, 'FY2024-25',"
+        " '2025-03-31', 12.5, '12.5', 'voluntary', 'group', 'voluntary', 'Acme Ltd',"
+        " 'https://acme.example/ar.pdf', 'p. 40', '2026-10-22')",
         (company_id,),
     )
 

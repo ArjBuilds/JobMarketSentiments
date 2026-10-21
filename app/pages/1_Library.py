@@ -4,7 +4,8 @@ and sorting (F2).
 Reads only from SQLite. The Glassdoor columns are filled by
 ingest.load_glassdoor_ratings and the sentiment columns come from
 review_summary, and the data-role counts from jobs (ingest.load_jobs). The
-turnover proxy columns come from turnover (process.turnover_proxy). Filtering, sorting and formatting live in jmsa.library; this
+turnover columns come from turnover: the proxy from process.turnover_proxy,
+published attrition from ingest.load_turnover. Filtering, sorting and formatting live in jmsa.library; this
 page only draws the controls and the table.
 """
 
@@ -29,6 +30,7 @@ from jmsa.library import (  # noqa: E402
     sentiment,
 )
 from jmsa.jobs import LOWER_BOUND_NOTE  # noqa: E402
+from jmsa.turnover import BASES, BASIS_NAMES, SCOPE_NAMES, SCOPES  # noqa: E402
 from jmsa.sentiment import MIN_REVIEWS, PERIOD_TITLES, PERIODS  # noqa: E402
 
 st.set_page_config(page_title="Library · Job Market Analyser", page_icon="📊", layout="wide")
@@ -107,6 +109,20 @@ with st.sidebar:
              "when you set a minimum on that field. On: it stays in, shown as not available.",
     )
 
+    st.header("Compare attrition like with like")
+    attrition_basis = st.selectbox(
+        "Published attrition basis", [ANY, *BASES],
+        format_func=lambda v: v if v == ANY else BASIS_NAMES[v],
+        help="Keep only companies whose latest published figure has this basis. "
+             "\"Basis not stated\" means the document doesn't say voluntary or total.",
+    )
+    attrition_scope = st.selectbox(
+        "Published attrition scope", [ANY, *SCOPES],
+        format_func=lambda v: v if v == ANY else SCOPE_NAMES[v],
+        help="Keep only companies whose latest published figure covers this: the group, one "
+             "segment of it, or its listed India subsidiary.",
+    )
+
     st.header("Sort")
     sort_key = st.selectbox("Sort by", list(SORT_KEYS), format_func=SORT_LABELS.get)
     descending = st.toggle("Descending")
@@ -120,6 +136,8 @@ filters = Filters(
     min_reviews=min_reviews,
     has_data_roles=has_data_roles,
     include_missing=include_missing,
+    attrition_basis=None if attrition_basis == ANY else attrition_basis,
+    attrition_scope=None if attrition_scope == ANY else attrition_scope,
 )
 shown = apply(records, filters, sort_key, descending)
 
@@ -129,6 +147,10 @@ if not shown:
             "or turn on the toggle that includes companies with no value.")
     st.stop()
 
+if sort_key == "attrition" and (filters.attrition_basis is None or filters.attrition_scope is None):
+    st.warning("Published attrition figures use different definitions and cover different entities, "
+               "as each cell says. Choose a basis and a scope under \"Compare attrition like with "
+               "like\" to rank only comparable figures.")
 st.dataframe([display_row(record, period) for record in shown], hide_index=True)
 st.caption(
     "Use **Sort** in the sidebar: it sorts by the numbers and always puts \"not available\" last. "
@@ -139,6 +161,8 @@ st.caption(
     "Data-role listings are distinct Naukri data-science and analytics listings in India in the "
     "dataset snapshot, collected in or after late October 2023, not roles open now. "
     f"{LOWER_BOUND_NOTE} "
+    "Published attrition is each company's latest figure from its own reports; the proxy is never "
+    "part of that ranking. "
     "The turnover proxy counts reviews whose headline or cons mention people leaving, attrition "
     "or layoffs, per 100 reviews; it is not a share of staff, so it can't be sorted here. "
     "A review can mention both kinds, so the split can add up to more than the total."
