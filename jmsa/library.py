@@ -10,7 +10,10 @@ than text, and a missing value is None until it becomes "not available".
 Milestone 6 added data roles: a count per company, the "has data roles"
 filter and a sort. There is no "required skill" filter: the postings' skills
 can't be tied to an employer (see PRD.md, "The postings snapshot").
-Milestone 8 adds attrition as a SORT_KEYS entry.
+Milestone 8 adds the turnover proxy as two display-only columns, the total
+and its split. It is deliberately not a sort key: a share of reviews must
+never be ranked as if it were attrition. Published attrition (stage B) adds
+the SORT_KEYS entry.
 """
 
 from __future__ import annotations
@@ -22,6 +25,7 @@ from dataclasses import dataclass
 from jmsa.display import NOT_AVAILABLE, show
 from jmsa.jobs import cities_text
 from jmsa.sentiment import MIN_REVIEWS, PERIOD_TITLES, hidden, is_shown, score_text
+from jmsa.turnover import WINDOW_TITLE, proxy_parts
 
 # Choices for the minimum-reviews filter. The first is the 20-review rule
 # itself, which already hides small samples, so it filters nothing further.
@@ -56,9 +60,11 @@ def load_library(conn: sqlite3.Connection) -> list[dict]:
     query = """
         SELECT c.company_id, c.name, c.sector, c.hq_country, c.india_cities, c.size_band,
                c.glassdoor_rating, c.glassdoor_review_count, j.roles,
-               s.period, s.review_count, s.avg_compound, s.pre_merger_count
+               s.period, s.review_count, s.avg_compound, s.pre_merger_count,
+               t.reviews_in_window, t.reviews_matched, t.reviews_leaving, t.reviews_layoffs
         FROM companies c
         LEFT JOIN review_summary s ON s.company_id = c.company_id
+        LEFT JOIN turnover t ON t.company_id = c.company_id AND t.is_proxy = 1
         LEFT JOIN (SELECT company_id, COUNT(*) AS roles FROM jobs GROUP BY company_id) j
                ON j.company_id = c.company_id
         ORDER BY c.name COLLATE NOCASE, c.company_id
@@ -76,6 +82,8 @@ def load_library(conn: sqlite3.Connection) -> list[dict]:
             "glassdoor_review_count": row["glassdoor_review_count"],
             # None, not 0, when the dataset has no postings: "not available".
             "data_roles": row["roles"],
+            # Display text for the turnover proxy, or None with no reviews in its window.
+            "proxy": proxy_parts(row) if row["reviews_in_window"] is not None else None,
             "reviews": {},       # period -> scored review count
             "sentiment": {},     # period -> average compound, None if hidden
             "pre_merger": {},    # period -> True if any of the reviews are pre-merger
@@ -188,6 +196,8 @@ def column_headers(period: str) -> dict[str, str]:
         "sentiment": f"Review sentiment ({title})",
         "reviews": f"Reviews scored ({title})",
         "data_roles": "Data-role listings (dataset snapshot)",
+        "proxy": f"Turnover proxy: leaving mentions per 100 reviews ({WINDOW_TITLE})",
+        "proxy_split": "Proxy split per 100 reviews",
     }
 
 
@@ -216,5 +226,7 @@ def display_row(record: dict, period: str) -> dict[str, str]:
         "sentiment": score,
         "reviews": f"{count:,}" if count is not None else None,
         "data_roles": f"{roles:,}" if roles is not None else None,
+        "proxy": record["proxy"]["total"] if record["proxy"] else None,
+        "proxy_split": record["proxy"]["split"] if record["proxy"] else None,
     }
     return {header: show(values[key]) for key, header in column_headers(period).items()}

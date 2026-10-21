@@ -6,8 +6,9 @@ filled by process.review_sentiment; the rules for when a figure is hidden or
 (F8) come from jobs, filled by ingest.load_jobs, through jmsa.jobs.read_roles.
 Skills (F7) are market-wide, so this page only points to the Market skills
 page. News (F6) comes from articles, filled by ingest.load_news, through
-jmsa.news.read_news; the page never calls GNews. Turnover arrives in a later
-milestone.
+jmsa.news.read_news; the page never calls GNews. Turnover (F5) comes from
+turnover through jmsa.turnover.read_turnover: published figures and the
+review-based proxy, shown separately and never mixed.
 """
 
 import sys
@@ -22,6 +23,7 @@ from jmsa.db import get_conn  # noqa: E402
 from jmsa.display import NOT_AVAILABLE, show  # noqa: E402
 from jmsa.jobs import DATA_ROLES_NOTE, LOWER_BOUND_NOTE, ROLES_INTRO, read_roles  # noqa: E402
 from jmsa.news import NEWS_NOTE, read_news  # noqa: E402
+from jmsa.turnover import PROXY_NOTE, read_turnover  # noqa: E402
 from jmsa.sentiment import MIN_REVIEWS, read_summary  # noqa: E402
 from jmsa.skills import COMPANY_SKILLS_NOTE  # noqa: E402
 
@@ -67,6 +69,15 @@ def news(company_id: str) -> dict:
     conn = get_conn()
     try:
         return read_news(conn, company_id)
+    finally:
+        conn.close()
+
+
+@st.cache_data
+def turnover(company_id: str) -> dict:
+    conn = get_conn()
+    try:
+        return read_turnover(conn, company_id)
     finally:
         conn.close()
 
@@ -163,5 +174,22 @@ else:
     ))
 st.caption(NEWS_NOTE)
 
-st.subheader("Coming in a later milestone")
-st.caption("Turnover (F5: milestone 8)")
+# Published attrition and the proxy measure different things (a share of
+# staff, a share of reviews), so each has its own heading and neither stands
+# in for the other.
+st.subheader("Turnover")
+figures = turnover(company["company_id"])
+st.markdown("#### Published attrition")
+if not figures["published"]:
+    st.markdown(f"Published attrition: **{NOT_AVAILABLE}**. No figure from the company's own "
+                "reports has been recorded.")
+for figure in figures["published"]:
+    st.markdown(
+        f"**{figure['value']}** · {figure['period']} · {figure['definition']}  \n"
+        f"Entity: {figure['entity']} · [Source]({figure['source_url']}) ({figure['source_ref']})"
+    )
+st.markdown("#### Proxy from reviews")
+st.markdown(f"**Proxy:** {figures['proxy']}")
+if figures["note"]:
+    st.warning(figures["note"])
+st.caption(PROXY_NOTE)

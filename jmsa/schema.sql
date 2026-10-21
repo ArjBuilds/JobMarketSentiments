@@ -74,13 +74,47 @@ CREATE TABLE IF NOT EXISTS reviews (
 );
 
 CREATE TABLE IF NOT EXISTS turnover (
-    company_id     TEXT NOT NULL REFERENCES companies(company_id),
-    period         TEXT NOT NULL,      -- e.g. FY25 or 2025-Q1
-    attrition_pct  REAL,
-    is_proxy       INTEGER NOT NULL DEFAULT 0 CHECK (is_proxy IN (0, 1)),
-    source_url     TEXT,
-    method_note    TEXT,               -- required when is_proxy = 1
-    PRIMARY KEY (company_id, period)
+    -- Two kinds of row, never mixed (F5):
+    --   is_proxy = 0  published attrition from a primary document
+    --                 (data/turnover.csv, loaded by ingest.load_turnover);
+    --   is_proxy = 1  the review-based proxy, from process.turnover_proxy: the
+    --                 share of reviews in a fixed window whose headline or cons
+    --                 mention leaving, attrition or layoffs.
+    -- The proxy is a share of reviews, not of staff, so it has its own column
+    -- and the CHECK below keeps it out of attrition_pct.
+    company_id        TEXT NOT NULL REFERENCES companies(company_id),
+    is_proxy          INTEGER NOT NULL CHECK (is_proxy IN (0, 1)),
+    period            TEXT NOT NULL,   -- label: 'FY2024-25', 'LTM to Sep 2025', '2021-04 to 2023-03'
+    period_start      TEXT,            -- ISO 8601
+    period_end        TEXT NOT NULL,   -- ISO 8601; a company's latest figure has the latest period_end
+    -- Published only
+    attrition_pct     REAL CHECK (attrition_pct BETWEEN 0 AND 100),
+    basis             TEXT CHECK (basis IN ('voluntary', 'total')),
+    scope             TEXT CHECK (scope IN ('group', 'segment', 'india-subsidiary')),
+    -- Proxy only. A review can mention both leaving and layoffs, so
+    -- reviews_leaving + reviews_layoffs can exceed reviews_matched.
+    proxy_share       REAL CHECK (proxy_share BETWEEN 0 AND 1),   -- reviews_matched / reviews_in_window
+    reviews_in_window INTEGER,
+    reviews_matched   INTEGER,         -- mentioning either kind
+    reviews_leaving   INTEGER,         -- mentioning leaving or attrition
+    reviews_layoffs   INTEGER,         -- mentioning layoffs
+    -- Both
+    definition        TEXT NOT NULL,   -- e.g. 'voluntary attrition, LTM, IT services employees'
+    entity            TEXT NOT NULL,   -- whose figure: 'Infosys Ltd (group)', 'Glassdoor reviews of Infosys'
+    source_url        TEXT,
+    source_ref        TEXT,            -- page, table or BRSR question in the source
+    retrieved_on      TEXT,            -- ISO 8601 date
+    method_note       TEXT,
+    PRIMARY KEY (company_id, is_proxy, period),
+    CHECK (
+        (is_proxy = 1 AND attrition_pct IS NULL AND basis IS NULL AND scope IS NULL
+         AND proxy_share IS NOT NULL AND reviews_in_window IS NOT NULL AND method_note IS NOT NULL)
+        OR
+        (is_proxy = 0 AND proxy_share IS NULL AND attrition_pct IS NOT NULL
+         -- IS NOT NULL first: NULL LIKE '...' is NULL, which a CHECK lets through
+         AND source_url IS NOT NULL AND source_url LIKE 'https://%'
+         AND source_ref IS NOT NULL AND retrieved_on IS NOT NULL)
+    )
 );
 
 CREATE TABLE IF NOT EXISTS articles (

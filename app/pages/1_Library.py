@@ -3,7 +3,8 @@ and sorting (F2).
 
 Reads only from SQLite. The Glassdoor columns are filled by
 ingest.load_glassdoor_ratings and the sentiment columns come from
-review_summary, and the data-role counts from jobs (ingest.load_jobs). Filtering, sorting and formatting live in jmsa.library; this
+review_summary, and the data-role counts from jobs (ingest.load_jobs). The
+turnover proxy columns come from turnover (process.turnover_proxy). Filtering, sorting and formatting live in jmsa.library; this
 page only draws the controls and the table.
 """
 
@@ -137,5 +138,8 @@ st.caption(
     f"Scores based on fewer than {MIN_REVIEWS} reviews are hidden. Reviews end in mid-2023. "
     "Data-role listings are distinct Naukri data-science and analytics listings in India in the "
     "dataset snapshot, collected in or after late October 2023, not roles open now. "
-    f"{LOWER_BOUND_NOTE}"
+    f"{LOWER_BOUND_NOTE} "
+    "The turnover proxy counts reviews whose headline or cons mention people leaving, attrition "
+    "or layoffs, per 100 reviews; it is not a share of staff, so it can't be sorted here. "
+    "A review can mention both kinds, so the split can add up to more than the total."
 )
