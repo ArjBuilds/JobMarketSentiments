@@ -75,10 +75,22 @@ def test_reload_keeps_glassdoor_columns(db):
     assert rating.fetchone()[0] == 3.8
 
 
-def test_empty_optional_stored_as_null(db):
-    load_companies(db)
+def test_empty_optional_stored_as_null(db, tmp_path):
+    load_companies(db, write_csv(tmp_path, [GOOD_ROW]))
     filled = db.execute("SELECT count(*) FROM companies WHERE careers_url IS NOT NULL")
     assert filled.fetchone()[0] == 0
+
+
+def test_an_https_careers_url_is_stored(db, tmp_path):
+    url = "https://careers.acme.example/india"
+    load_companies(db, write_csv(tmp_path, [{**GOOD_ROW, "careers_url": url}]))
+    assert db.execute("SELECT careers_url FROM companies").fetchone()[0] == url
+
+
+def test_every_company_in_the_library_has_an_https_careers_url(db):
+    load_companies(db)
+    urls = [r[0] for r in db.execute("SELECT careers_url FROM companies")]
+    assert all(url and url.startswith("https://") for url in urls)
 
 
 @pytest.mark.parametrize(
@@ -89,8 +101,11 @@ def test_empty_optional_stored_as_null(db):
         ([{**GOOD_ROW, "sector": "Space Mining"}], "not in the PRD's fixed list"),
         ([{**GOOD_ROW, "hq_country": ""}], "hq_country is empty"),
         ([{**GOOD_ROW, "publishes_attrition": "maybe"}], "must be yes, no or empty"),
+        ([{**GOOD_ROW, "careers_url": "http://careers.acme.example"}], "must start with https://"),
+        ([{**GOOD_ROW, "careers_url": "careers.acme.example"}], "must start with https://"),
     ],
-    ids=["duplicate-id", "non-slug-id", "unknown-sector", "missing-required", "bad-attrition"],
+    ids=["duplicate-id", "non-slug-id", "unknown-sector", "missing-required", "bad-attrition",
+         "http-careers-url", "careers-url-without-scheme"],
 )
 def test_bad_row_fails_and_writes_nothing(db, tmp_path, rows, message):
     path = write_csv(tmp_path, rows)

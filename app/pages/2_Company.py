@@ -32,7 +32,8 @@ def companies() -> list[dict]:
     try:
         return [dict(row) for row in conn.execute(
             "SELECT company_id, name, sector, hq_country, india_cities, size_band,"
-            " glassdoor_rating, glassdoor_review_count FROM companies ORDER BY name COLLATE NOCASE"
+            " careers_url, glassdoor_rating, glassdoor_review_count FROM companies"
+            " ORDER BY name COLLATE NOCASE"
         )]
     finally:
         conn.close()
@@ -114,6 +115,14 @@ else:
         "section that mentions it, so praise in the pros and complaints in the cons both count. "
         f"Figures based on fewer than {MIN_REVIEWS} reviews are hidden. Reviews end in mid-2023."
     )
+
+# Current openings live on the company's own careers site, kept apart from
+# the historical F8 snapshot below.
+if company["careers_url"]:
+    openings = f"[{company['name']} careers page]({company['careers_url']}) (external link)"
+else:
+    openings = NOT_AVAILABLE
+st.markdown(f"**Current openings:** {openings}")
 
 st.subheader("Data roles posted in India")
 posted = roles(company["company_id"])

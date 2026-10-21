@@ -1,83 +1,83 @@
 company_id,name,sector,hq_country,india_cities,size_band,careers_url,publishes_attrition
-tata-consultancy-services,Tata Consultancy Services,IT Services,India,Mumbai;Bengaluru;Chennai;Pune;Hyderabad;Kolkata,200k+,,yes
-infosys,Infosys,IT Services,India,Bengaluru;Mysuru;Pune;Hyderabad;Chennai,200k+,,yes
-wipro,Wipro,IT Services,India,Bengaluru;Hyderabad;Pune;Chennai,200k+,,yes
-hcltech,HCLTech,IT Services,India,Noida;Chennai;Bengaluru,200k+,,yes
-tech-mahindra,Tech Mahindra,IT Services,India,Pune;Hyderabad;Bengaluru,50k-200k,,yes
-ltimindtree,LTIMindtree,IT Services,India,Mumbai;Bengaluru;Pune;Chennai,50k-200k,,yes
-cognizant,Cognizant,IT Services,United States,Chennai;Bengaluru;Pune;Hyderabad;Kolkata,200k+,,yes
-accenture,Accenture,IT Services,Ireland,Bengaluru;Hyderabad;Pune;Mumbai;Chennai;Gurugram,200k+,,yes
-capgemini,Capgemini,IT Services,France,Mumbai;Bengaluru;Pune;Chennai;Hyderabad,200k+,,no
-ibm,IBM,IT Services,United States,Bengaluru;Pune;Hyderabad;Kolkata,200k+,,no
-deloitte,Deloitte,Consulting & Professional Services,United Kingdom,Hyderabad;Bengaluru;Mumbai;Gurugram,200k+,,no
-ey,EY,Consulting & Professional Services,United Kingdom,Bengaluru;Gurugram;Kolkata;Mumbai,200k+,,no
-pwc,PwC,Consulting & Professional Services,United Kingdom,Bengaluru;Kolkata;Gurugram;Mumbai,200k+,,no
-kpmg,KPMG,Consulting & Professional Services,United Kingdom,Bengaluru;Gurugram;Mumbai;Hyderabad,200k+,,no
-mckinsey,McKinsey & Company,Consulting & Professional Services,United States,Gurugram;Mumbai;Bengaluru,10k-50k,,no
-bcg,Boston Consulting Group,Consulting & Professional Services,United States,Mumbai;Gurugram;Bengaluru,10k-50k,,no
-bain,Bain & Company,Consulting & Professional Services,United States,Gurugram;Mumbai;Bengaluru,10k-50k,,no
-zs-associates,ZS Associates,Consulting & Professional Services,United States,Pune;Bengaluru;Gurugram,10k-50k,,no
-google,Google,Software & Internet,United States,Bengaluru;Hyderabad;Gurugram;Pune,50k-200k,,no
-microsoft,Microsoft,Software & Internet,United States,Hyderabad;Bengaluru;Noida,200k+,,no
-amazon,Amazon,Software & Internet,United States,Bengaluru;Hyderabad;Chennai,200k+,,no
-apple,Apple,Hardware & Electronics,United States,Hyderabad;Bengaluru,50k-200k,,no
-meta,Meta,Software & Internet,United States,Gurugram;Hyderabad;Bengaluru,50k-200k,,no
-oracle,Oracle,Software & Internet,United States,Bengaluru;Hyderabad;Noida,50k-200k,,no
-salesforce,Salesforce,Software & Internet,United States,Hyderabad;Bengaluru,50k-200k,,no
-adobe,Adobe,Software & Internet,United States,Noida;Bengaluru,10k-50k,,no
-sap,SAP,Software & Internet,Germany,Bengaluru;Gurugram;Pune,50k-200k,,no
-atlassian,Atlassian,Software & Internet,Australia,Bengaluru,10k-50k,,no
-uber,Uber,Software & Internet,United States,Bengaluru;Hyderabad,10k-50k,,no
-intuit,Intuit,Software & Internet,United States,Bengaluru,10k-50k,,no
-servicenow,ServiceNow,Software & Internet,United States,Hyderabad,10k-50k,,no
-workday,Workday,Software & Internet,United States,Pune;Chennai,10k-50k,,no
-autodesk,Autodesk,Software & Internet,United States,Pune;Bengaluru,10k-50k,,no
-linkedin,LinkedIn,Software & Internet,United States,Bengaluru,10k-50k,,no
-flipkart,Flipkart,E-commerce & Retail,India,Bengaluru,10k-50k,,no
-walmart,Walmart,E-commerce & Retail,United States,Bengaluru;Chennai,200k+,,no
-target,Target,E-commerce & Retail,United States,Bengaluru,200k+,,no
-reliance-industries,Reliance Industries,Conglomerate,India,Mumbai;Navi Mumbai,200k+,,no
-intel,Intel,Semiconductors,United States,Bengaluru;Hyderabad,50k-200k,,no
-nvidia,NVIDIA,Semiconductors,United States,Bengaluru;Pune;Hyderabad,10k-50k,,no
-qualcomm,Qualcomm,Semiconductors,United States,Hyderabad;Bengaluru;Chennai,10k-50k,,no
-amd,AMD,Semiconductors,United States,Bengaluru;Hyderabad,10k-50k,,no
-texas-instruments,Texas Instruments,Semiconductors,United States,Bengaluru,10k-50k,,no
-micron,Micron Technology,Semiconductors,United States,Hyderabad;Bengaluru,10k-50k,,no
-samsung,Samsung Electronics,Hardware & Electronics,South Korea,Bengaluru;Noida,200k+,,no
-cisco,Cisco,Telecom & Networking,United States,Bengaluru,50k-200k,,no
-ericsson,Ericsson,Telecom & Networking,Sweden,Gurugram;Chennai;Bengaluru,50k-200k,,no
-nokia,Nokia,Telecom & Networking,Finland,Bengaluru;Chennai;Noida,50k-200k,,no
-goldman-sachs,Goldman Sachs,Banking & Financial Services,United States,Bengaluru;Hyderabad,10k-50k,,no
-jpmorgan-chase,JPMorgan Chase,Banking & Financial Services,United States,Mumbai;Bengaluru;Hyderabad,200k+,,no
-morgan-stanley,Morgan Stanley,Banking & Financial Services,United States,Mumbai;Bengaluru,50k-200k,,no
-citi,Citi,Banking & Financial Services,United States,Pune;Chennai;Mumbai,200k+,,no
-wells-fargo,Wells Fargo,Banking & Financial Services,United States,Hyderabad;Bengaluru,200k+,,no
-barclays,Barclays,Banking & Financial Services,United Kingdom,Pune;Chennai,50k-200k,,no
-hsbc,HSBC,Banking & Financial Services,United Kingdom,Hyderabad;Pune;Bengaluru,200k+,,no
-deutsche-bank,Deutsche Bank,Banking & Financial Services,Germany,Pune;Bengaluru;Mumbai,50k-200k,,no
-blackrock,BlackRock,Banking & Financial Services,United States,Gurugram;Mumbai,10k-50k,,no
-hdfc-bank,HDFC Bank,Banking & Financial Services,India,Mumbai,200k+,,no
-icici-bank,ICICI Bank,Banking & Financial Services,India,Mumbai,50k-200k,,no
-american-express,American Express,Payments & Fintech,United States,Gurugram;Bengaluru,50k-200k,,no
-visa,Visa,Payments & Fintech,United States,Bengaluru,10k-50k,,no
-mastercard,Mastercard,Payments & Fintech,United States,Pune;Gurugram;Vadodara,10k-50k,,no
-paypal,PayPal,Payments & Fintech,United States,Chennai;Bengaluru,10k-50k,,no
-siemens,Siemens,Industrial & Engineering,Germany,Bengaluru;Pune;Mumbai,200k+,,no
-bosch,Bosch,Industrial & Engineering,Germany,Bengaluru;Coimbatore,200k+,,no
-honeywell,Honeywell,Industrial & Engineering,United States,Bengaluru;Hyderabad;Pune,50k-200k,,no
-abb,ABB,Industrial & Engineering,Switzerland,Bengaluru,50k-200k,,no
-schneider-electric,Schneider Electric,Industrial & Engineering,France,Bengaluru,50k-200k,,no
-ge-aerospace,GE Aerospace,Aerospace & Automotive,United States,Bengaluru,50k-200k,,no
-airbus,Airbus,Aerospace & Automotive,France,Bengaluru,50k-200k,,no
-boeing,Boeing,Aerospace & Automotive,United States,Bengaluru;Chennai,50k-200k,,no
-mercedes-benz,Mercedes-Benz,Aerospace & Automotive,Germany,Bengaluru;Pune,50k-200k,,no
-tata-motors,Tata Motors,Aerospace & Automotive,India,Pune;Mumbai,50k-200k,,no
-shell,Shell,Energy,United Kingdom,Bengaluru;Chennai,50k-200k,,no
-unilever,Unilever,FMCG,United Kingdom,Mumbai,50k-200k,,no
-procter-and-gamble,Procter & Gamble,FMCG,United States,Mumbai;Hyderabad,50k-200k,,no
-nestle,Nestlé,FMCG,Switzerland,Gurugram,200k+,,no
-pepsico,PepsiCo,FMCG,United States,Gurugram;Hyderabad,200k+,,no
-johnson-and-johnson,Johnson & Johnson,Pharma & Healthcare,United States,Mumbai,50k-200k,,no
-novartis,Novartis,Pharma & Healthcare,Switzerland,Hyderabad;Mumbai,50k-200k,,no
-pfizer,Pfizer,Pharma & Healthcare,United States,Mumbai;Chennai,50k-200k,,no
-astrazeneca,AstraZeneca,Pharma & Healthcare,United Kingdom,Bengaluru;Chennai,50k-200k,,no
+tata-consultancy-services,Tata Consultancy Services,IT Services,India,Mumbai;Bengaluru;Chennai;Pune;Hyderabad;Kolkata,200k+,https://www.tcs.com/careers/india,yes
+infosys,Infosys,IT Services,India,Bengaluru;Mysuru;Pune;Hyderabad;Chennai,200k+,https://www.infosys.com/careers.html,yes
+wipro,Wipro,IT Services,India,Bengaluru;Hyderabad;Pune;Chennai,200k+,https://careers.wipro.com/,yes
+hcltech,HCLTech,IT Services,India,Noida;Chennai;Bengaluru,200k+,https://careers.hcltech.com/,yes
+tech-mahindra,Tech Mahindra,IT Services,India,Pune;Hyderabad;Bengaluru,50k-200k,https://careers.techmahindra.com/,yes
+ltimindtree,LTM (formerly LTIMindtree),IT Services,India,Mumbai;Bengaluru;Pune;Chennai,50k-200k,https://www.ltm.com/careers,yes
+cognizant,Cognizant,IT Services,United States,Chennai;Bengaluru;Pune;Hyderabad;Kolkata,200k+,https://careers.cognizant.com/india-en/,yes
+accenture,Accenture,IT Services,Ireland,Bengaluru;Hyderabad;Pune;Mumbai;Chennai;Gurugram,200k+,https://www.accenture.com/in-en/careers,yes
+capgemini,Capgemini,IT Services,France,Mumbai;Bengaluru;Pune;Chennai;Hyderabad,200k+,https://www.capgemini.com/in-en/careers/,no
+ibm,IBM,IT Services,United States,Bengaluru;Pune;Hyderabad;Kolkata,200k+,https://www.ibm.com/in-en/careers,no
+deloitte,Deloitte,Consulting & Professional Services,United Kingdom,Hyderabad;Bengaluru;Mumbai;Gurugram,200k+,https://www.deloitte.com/in/en/careers.html,no
+ey,EY,Consulting & Professional Services,United Kingdom,Bengaluru;Gurugram;Kolkata;Mumbai,200k+,https://www.ey.com/en_in/careers,no
+pwc,PwC,Consulting & Professional Services,United Kingdom,Bengaluru;Kolkata;Gurugram;Mumbai,200k+,https://www.pwc.in/careers.html,no
+kpmg,KPMG,Consulting & Professional Services,United Kingdom,Bengaluru;Gurugram;Mumbai;Hyderabad,200k+,https://kpmg.com/in/en/careers.html,no
+mckinsey,McKinsey & Company,Consulting & Professional Services,United States,Gurugram;Mumbai;Bengaluru,10k-50k,https://www.mckinsey.com/careers,no
+bcg,Boston Consulting Group,Consulting & Professional Services,United States,Mumbai;Gurugram;Bengaluru,10k-50k,https://careers.bcg.com/,no
+bain,Bain & Company,Consulting & Professional Services,United States,Gurugram;Mumbai;Bengaluru,10k-50k,https://www.bain.com/careers/,no
+zs-associates,ZS Associates,Consulting & Professional Services,United States,Pune;Bengaluru;Gurugram,10k-50k,https://www.zs.com/careers,no
+google,Google,Software & Internet,United States,Bengaluru;Hyderabad;Gurugram;Pune,50k-200k,https://www.google.com/about/careers/applications/,no
+microsoft,Microsoft,Software & Internet,United States,Hyderabad;Bengaluru;Noida,200k+,https://careers.microsoft.com/,no
+amazon,Amazon,Software & Internet,United States,Bengaluru;Hyderabad;Chennai,200k+,https://www.amazon.jobs/en/,no
+apple,Apple,Hardware & Electronics,United States,Hyderabad;Bengaluru,50k-200k,https://www.apple.com/careers/in/,no
+meta,Meta,Software & Internet,United States,Gurugram;Hyderabad;Bengaluru,50k-200k,https://www.metacareers.com/,no
+oracle,Oracle,Software & Internet,United States,Bengaluru;Hyderabad;Noida,50k-200k,https://www.oracle.com/in/careers/,no
+salesforce,Salesforce,Software & Internet,United States,Hyderabad;Bengaluru,50k-200k,https://www.salesforce.com/company/careers/,no
+adobe,Adobe,Software & Internet,United States,Noida;Bengaluru,10k-50k,https://careers.adobe.com/,no
+sap,SAP,Software & Internet,Germany,Bengaluru;Gurugram;Pune,50k-200k,https://jobs.sap.com/,no
+atlassian,Atlassian,Software & Internet,Australia,Bengaluru,10k-50k,https://www.atlassian.com/company/careers,no
+uber,Uber,Software & Internet,United States,Bengaluru;Hyderabad,10k-50k,https://jobs.uber.com/en/,no
+intuit,Intuit,Software & Internet,United States,Bengaluru,10k-50k,https://www.intuit.com/careers/,no
+servicenow,ServiceNow,Software & Internet,United States,Hyderabad,10k-50k,https://careers.servicenow.com/,no
+workday,Workday,Software & Internet,United States,Pune;Chennai,10k-50k,https://www.workday.com/en-us/company/careers/overview.html,no
+autodesk,Autodesk,Software & Internet,United States,Pune;Bengaluru,10k-50k,https://www.autodesk.com/careers,no
+linkedin,LinkedIn,Software & Internet,United States,Bengaluru,10k-50k,https://careers.linkedin.com/,no
+flipkart,Flipkart,E-commerce & Retail,India,Bengaluru,10k-50k,https://www.flipkartcareers.com/,no
+walmart,Walmart,E-commerce & Retail,United States,Bengaluru;Chennai,200k+,https://careers.walmart.com/,no
+target,Target,E-commerce & Retail,United States,Bengaluru,200k+,https://india.target.com/careers,no
+reliance-industries,Reliance Industries,Conglomerate,India,Mumbai;Navi Mumbai,200k+,https://careers.ril.com/,no
+intel,Intel,Semiconductors,United States,Bengaluru;Hyderabad,50k-200k,https://www.intel.com/content/www/us/en/jobs/jobs-at-intel.html,no
+nvidia,NVIDIA,Semiconductors,United States,Bengaluru;Pune;Hyderabad,10k-50k,https://www.nvidia.com/en-us/about-nvidia/careers/,no
+qualcomm,Qualcomm,Semiconductors,United States,Hyderabad;Bengaluru;Chennai,10k-50k,https://careers.qualcomm.com/,no
+amd,AMD,Semiconductors,United States,Bengaluru;Hyderabad,10k-50k,https://careers.amd.com/,no
+texas-instruments,Texas Instruments,Semiconductors,United States,Bengaluru,10k-50k,https://careers.ti.com/,no
+micron,Micron Technology,Semiconductors,United States,Hyderabad;Bengaluru,10k-50k,https://careers.micron.com/,no
+samsung,Samsung Electronics,Hardware & Electronics,South Korea,Bengaluru;Noida,200k+,https://www.samsung.com/in/about-us/careers/,no
+cisco,Cisco,Telecom & Networking,United States,Bengaluru,50k-200k,https://careers.cisco.com/global/en,no
+ericsson,Ericsson,Telecom & Networking,Sweden,Gurugram;Chennai;Bengaluru,50k-200k,https://www.ericsson.com/en/careers,no
+nokia,Nokia,Telecom & Networking,Finland,Bengaluru;Chennai;Noida,50k-200k,https://www.nokia.com/careers/,no
+goldman-sachs,Goldman Sachs,Banking & Financial Services,United States,Bengaluru;Hyderabad,10k-50k,https://www.goldmansachs.com/careers/,no
+jpmorgan-chase,JPMorgan Chase,Banking & Financial Services,United States,Mumbai;Bengaluru;Hyderabad,200k+,https://www.jpmorganchase.com/careers,no
+morgan-stanley,Morgan Stanley,Banking & Financial Services,United States,Mumbai;Bengaluru,50k-200k,https://www.morganstanley.com/people,no
+citi,Citi,Banking & Financial Services,United States,Pune;Chennai;Mumbai,200k+,https://jobs.citi.com/,no
+wells-fargo,Wells Fargo,Banking & Financial Services,United States,Hyderabad;Bengaluru,200k+,https://www.wellsfargojobs.com/,no
+barclays,Barclays,Banking & Financial Services,United Kingdom,Pune;Chennai,50k-200k,https://home.barclays/careers/,no
+hsbc,HSBC,Banking & Financial Services,United Kingdom,Hyderabad;Pune;Bengaluru,200k+,https://www.hsbc.com/careers,no
+deutsche-bank,Deutsche Bank,Banking & Financial Services,Germany,Pune;Bengaluru;Mumbai,50k-200k,https://careers.db.com/,no
+blackrock,BlackRock,Banking & Financial Services,United States,Gurugram;Mumbai,10k-50k,https://careers.blackrock.com/,no
+hdfc-bank,HDFC Bank,Banking & Financial Services,India,Mumbai,200k+,https://www.hdfc.bank.in/careers,no
+icici-bank,ICICI Bank,Banking & Financial Services,India,Mumbai,50k-200k,https://careers.icici.bank.in/,no
+american-express,American Express,Payments & Fintech,United States,Gurugram;Bengaluru,50k-200k,https://www.americanexpress.com/en-us/careers/,no
+visa,Visa,Payments & Fintech,United States,Bengaluru,10k-50k,https://corporate.visa.com/en/jobs/,no
+mastercard,Mastercard,Payments & Fintech,United States,Pune;Gurugram;Vadodara,10k-50k,https://careers.mastercard.com/,no
+paypal,PayPal,Payments & Fintech,United States,Chennai;Bengaluru,10k-50k,https://careers.pypl.com/,no
+siemens,Siemens,Industrial & Engineering,Germany,Bengaluru;Pune;Mumbai,200k+,https://www.siemens.com/global/en/company/jobs.html,no
+bosch,Bosch,Industrial & Engineering,Germany,Bengaluru;Coimbatore,200k+,https://www.bosch.in/careers/,no
+honeywell,Honeywell,Industrial & Engineering,United States,Bengaluru;Hyderabad;Pune,50k-200k,https://careers.honeywell.com/,no
+abb,ABB,Industrial & Engineering,Switzerland,Bengaluru,50k-200k,https://new.abb.com/indian-subcontinent/careers,no
+schneider-electric,Schneider Electric,Industrial & Engineering,France,Bengaluru,50k-200k,https://www.se.com/in/en/about-us/careers/overview.jsp,no
+ge-aerospace,GE Aerospace,Aerospace & Automotive,United States,Bengaluru,50k-200k,https://careers.geaerospace.com/,no
+airbus,Airbus,Aerospace & Automotive,France,Bengaluru,50k-200k,https://www.airbus.com/en/careers,no
+boeing,Boeing,Aerospace & Automotive,United States,Bengaluru;Chennai,50k-200k,https://jobs.boeing.com/,no
+mercedes-benz,Mercedes-Benz,Aerospace & Automotive,Germany,Bengaluru;Pune,50k-200k,https://group.mercedes-benz.com/careers/,no
+tata-motors,Tata Motors,Aerospace & Automotive,India,Pune;Mumbai,50k-200k,https://www.tatamotors.com/careers/,no
+shell,Shell,Energy,United Kingdom,Bengaluru;Chennai,50k-200k,https://www.shell.in/about-us/careers.html,no
+unilever,Unilever,FMCG,United Kingdom,Mumbai,50k-200k,https://www.hul.co.in/careers/,no
+procter-and-gamble,Procter & Gamble,FMCG,United States,Mumbai;Hyderabad,50k-200k,https://www.pgcareers.com/,no
+nestle,Nestlé,FMCG,Switzerland,Gurugram,200k+,https://www.nestle.in/jobs,no
+pepsico,PepsiCo,FMCG,United States,Gurugram;Hyderabad,200k+,https://www.pepsicojobs.com/,no
+johnson-and-johnson,Johnson & Johnson,Pharma & Healthcare,United States,Mumbai,50k-200k,https://www.careers.jnj.com/,no
+novartis,Novartis,Pharma & Healthcare,Switzerland,Hyderabad;Mumbai,50k-200k,https://www.novartis.com/in-en/careers,no
+pfizer,Pfizer,Pharma & Healthcare,United States,Mumbai;Chennai,50k-200k,https://www.pfizer.com/about/careers,no
+astrazeneca,AstraZeneca,Pharma & Healthcare,United Kingdom,Bengaluru;Chennai,50k-200k,https://careers.astrazeneca.com/,no

@@ -195,7 +195,10 @@ def test_real_snapshot_matches_66_companies(db):
     results = load_ratings(db)
     matched = [r for r in results if r["row"] is not None]
     assert len(matched) == 66
-    assert sum(1 for r in matched if r["how"] == "alias") == 5
+    assert sum(1 for r in matched if r["how"] == "alias") == 6
+    # Renamed "LTM (formerly LTIMindtree)", it keeps its row through an alias.
+    assert next(r for r in matched if r["company_id"] == "ltimindtree")["how"] == "alias"
+    assert glassdoor(db, "ltimindtree")[1] == 3400
     for company_id in ("wipro", "ey", "tata-motors", "mercedes-benz", "infosys", "tata-consultancy-services"):
         assert glassdoor(db, company_id) == (None, None, None, None)
     assert glassdoor(db, "boeing")[1] == 16100

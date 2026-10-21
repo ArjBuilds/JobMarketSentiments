@@ -96,6 +96,11 @@ def read_library(path: str | Path = COMPANIES_CSV) -> list[dict]:
             if attrition is not None and attrition not in ATTRITION_VALUES:
                 problems.append(f"line {line}: publishes_attrition {attrition!r} must be yes, no or empty")
 
+            # The company-run careers site, linked from the Company page.
+            careers_url = row["careers_url"]
+            if careers_url is not None and not careers_url.startswith("https://"):
+                problems.append(f"line {line}: careers_url {careers_url!r} must start with https://")
+
             rows.append(row)
 
     if problems:
