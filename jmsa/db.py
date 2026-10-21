@@ -15,7 +15,8 @@ from pathlib import Path
 from jmsa.config import DB_PATH, SCHEMA_SQL
 
 # Declaration order matters: a table is listed after the one it references.
-TABLES = ("companies", "reviews", "turnover", "articles", "jobs", "job_skills")
+# review_summary is derived from reviews by process.review_sentiment.
+TABLES = ("companies", "reviews", "turnover", "articles", "jobs", "job_skills", "review_summary")
 
 
 def get_conn(db_path: str | Path | None = None) -> sqlite3.Connection:

@@ -1,4 +1,5 @@
--- Job Market Analyser schema. Six tables, all reachable from companies.
+-- Job Market Analyser schema. Six source tables, all reachable from
+-- companies, plus review_summary, which is derived from reviews.
 --
 -- Conventions (see PRD.md "Data dictionary"):
 --   company_id        lowercase slug, e.g. tata-consultancy-services
@@ -32,18 +33,42 @@ CREATE TABLE IF NOT EXISTS companies (
 );
 
 CREATE TABLE IF NOT EXISTS reviews (
-    review_id           TEXT PRIMARY KEY,
+    -- Loaded from data/raw/glassdoor_reviews_matched.csv by ingest.load_reviews;
+    -- the sentiment and theme columns are filled by process.review_sentiment.
+    -- No reviewer names or other personal fields are stored.
+    review_id           TEXT PRIMARY KEY,  -- gd-0000001: record number in the matched CSV
     company_id          TEXT NOT NULL REFERENCES companies(company_id),
-    review_date         TEXT,
+    review_date         TEXT,              -- NULL for the 34 rows with an unparseable date
     rating              REAL,
     headline            TEXT,
     pros                TEXT,
     cons                TEXT,
     job_title           TEXT,
-    location            TEXT,
+    location            TEXT,              -- always NULL: the source has no location
+    is_pre_merger       INTEGER NOT NULL DEFAULT 0 CHECK (is_pre_merger IN (0, 1)),
+    -- Glassdoor's coded answers, stored as given. Meanings are unverified (check
+    -- the Kaggle dataset card): v positive, r mild, o no opinion, x negative.
+    recommend           TEXT CHECK (recommend IN ('v', 'r', 'o', 'x')),
+    ceo_approval        TEXT CHECK (ceo_approval IN ('v', 'r', 'o', 'x')),
+    business_outlook    TEXT CHECK (business_outlook IN ('v', 'r', 'o', 'x')),
+    -- Star sub-ratings. Anything that isn't 1-5 in the source (some cells hold
+    -- scraped codes such as "10u0eun") is stored as NULL.
+    career_opportunities      INTEGER CHECK (career_opportunities BETWEEN 1 AND 5),
+    compensation_and_benefits INTEGER CHECK (compensation_and_benefits BETWEEN 1 AND 5),
+    senior_management         INTEGER CHECK (senior_management BETWEEN 1 AND 5),
+    work_life_balance         INTEGER CHECK (work_life_balance BETWEEN 1 AND 5),
+    culture_and_values        INTEGER CHECK (culture_and_values BETWEEN 1 AND 5),
+    diversity_and_inclusion   INTEGER CHECK (diversity_and_inclusion BETWEEN 1 AND 5),
+    -- mean(headline, mean(pros, cons)), each part scored by VADER on its own;
+    -- NULL when the review has no text. See jmsa/sentiment.py.
     sentiment_compound  REAL,
     sentiment_label     TEXT CHECK (sentiment_label IN ('positive', 'neutral', 'negative')),
-    themes              TEXT           -- semicolon-separated: pay;culture;wlb;management
+    themes              TEXT,          -- semicolon-separated: pay;culture;wlb;management
+    -- VADER score of the section(s) that mention the theme; NULL if not mentioned.
+    theme_pay           REAL,
+    theme_culture       REAL,
+    theme_wlb           REAL,
+    theme_management    REAL
 );
 
 CREATE TABLE IF NOT EXISTS turnover (
@@ -91,8 +116,38 @@ CREATE TABLE IF NOT EXISTS job_skills (
     PRIMARY KEY (job_id, skill)
 );
 
+CREATE TABLE IF NOT EXISTS review_summary (
+    -- Derived, not a source: per-company review figures precomputed by
+    -- process.review_sentiment, so a page reads one row instead of
+    -- aggregating up to 163k reviews. One row per company per period, and
+    -- only for companies with at least one scored review. The numbers are
+    -- stored as computed; the 20-review rule is applied when they are shown.
+    company_id          TEXT NOT NULL REFERENCES companies(company_id),
+    period              TEXT NOT NULL CHECK (period IN ('all', '2020-2023')),
+    review_count        INTEGER NOT NULL,  -- reviews with a sentiment score
+    first_date          TEXT,
+    last_date           TEXT,
+    avg_compound        REAL,
+    share_positive      REAL,
+    share_neutral       REAL,
+    share_negative      REAL,
+    pay_count           INTEGER,           -- reviews mentioning the theme
+    pay_compound        REAL,
+    culture_count       INTEGER,
+    culture_compound    REAL,
+    wlb_count           INTEGER,
+    wlb_compound        REAL,
+    management_count    INTEGER,
+    management_compound REAL,
+    pre_merger_count    INTEGER NOT NULL,
+    PRIMARY KEY (company_id, period)
+);
+
 -- The F2 filters, the F7 skills chart and every company page scan by these.
-CREATE INDEX IF NOT EXISTS idx_reviews_company  ON reviews(company_id);
+-- One composite index serves both "a company's reviews" and "a company's
+-- reviews in a date range"; it replaces the company-only index.
+DROP INDEX IF EXISTS idx_reviews_company;
+CREATE INDEX IF NOT EXISTS idx_reviews_company_date ON reviews(company_id, review_date);
 CREATE INDEX IF NOT EXISTS idx_articles_company ON articles(company_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_company     ON jobs(company_id);
 CREATE INDEX IF NOT EXISTS idx_job_skills_skill ON job_skills(skill);

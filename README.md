@@ -51,7 +51,13 @@ pytest
 
 ## Status
 
-Milestone 1 of 10 (skeleton) is complete: schema, database helper, Streamlit scaffold and test harness. No data is loaded yet — the company library (F1) is milestone 2. See the build order in [PRD.md](PRD.md).
+Milestones 1–4 of 10 are done:
+- the skeleton;
+- the company library (F1);
+- Glassdoor ratings;
+- review sentiment, which is the 1.8M Glassdoor reviews scored with VADER and shown overall and by theme on the company page (F4).
+
+Filters (F2) are next. See the build order in [PRD.md](PRD.md).
 
 ## Data and ethics
 

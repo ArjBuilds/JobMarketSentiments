@@ -4,7 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-Milestones 1 (skeleton), 2 (company library) and 3 (Glassdoor ratings) are done: `python -m ingest.load_companies` loads companies.csv into `companies`, `python -m ingest.load_glassdoor_ratings` fills its `glassdoor_*` columns, and the Library page renders the F1 table with a rating per company. Milestone 4 (reviews and sentiment) is next.
+Milestones 1 (skeleton), 2 (company library), 3 (Glassdoor ratings) and 4 (reviews and sentiment) are done:
+- `python -m ingest.load_companies` loads companies.csv into `companies`, and `python -m ingest.load_glassdoor_ratings` fills its `glassdoor_*` columns. The Library page renders the F1 table with a rating per company.
+- `python -m ingest.load_reviews` loads the 1.8M matched reviews. `python -m process.review_sentiment` scores them and fills `review_summary`. The Company page shows F4 sentiment for a selected company.
+- `python -m process.sentiment_checks` writes the method comparison and the TextBlob agreement rate for the report.
+
+Milestone 5 (filters) is next.
 
 Five files are on disk, and none of them is a live job API:
 
@@ -32,7 +37,11 @@ Layout: `data/` (CSV inputs, the SQLite file, and `raw/` for the source CSVs and
 
 `jmsa/` is not in the PRD's original four-directory sketch. It exists because the loaders, the process steps and the app all need the same connection and the same sentiment cut-offs; put anything cross-cutting there rather than duplicating it.
 
-Six tables: `companies`, `reviews`, `turnover`, `articles`, `jobs`, `job_skills`. All are keyed on `company_id` except `job_skills`, which reaches companies through `jobs`. The Glassdoor ratings are columns on `companies`, not a seventh table. Column lists are in the PRD's data dictionary; the DDL is [jmsa/schema.sql](jmsa/schema.sql).
+Seven tables:
+- Six source tables: `companies`, `reviews`, `turnover`, `articles`, `jobs` and `job_skills`. All are keyed on `company_id` except `job_skills`, which reaches companies through `jobs`.
+- One derived table, `review_summary`, with per-company review figures for `all` and `2020-2023`. Pages read sentiment from it, never by aggregating `reviews` live.
+
+The Glassdoor ratings are columns on `companies`, not a table of their own. Column lists are in the PRD's data dictionary; the DDL is [jmsa/schema.sql](jmsa/schema.sql).
 
 Stack: Python 3.11, requests + pandas for collection, vaderSentiment + TextBlob + spaCy (`en_core_web_sm`) for NLP, stdlib `sqlite3` (no SQLAlchemy), Streamlit + Plotly, python-dotenv for API keys.
 
@@ -46,10 +55,17 @@ source .venv/Scripts/activate
 python -m pip install -r requirements.txt
 python -m spacy download en_core_web_sm   # not a requirements.txt entry
 
-python -m jmsa.db init         # create/upgrade the empty database
+python -m jmsa.db init         # create missing tables; it can't add columns to an
+                               # existing table, so after a column change delete
+                               # data/jmsa.db and rerun the loaders
 streamlit run app/app.py       # dashboard at http://localhost:8501
 python -m ingest.<loader>      # run on demand, never on app start
 python -m process.<step>
+
+# Reviews: --company ID and --limit N for test runs. Point JMSA_DB_PATH at a
+# throwaway file to keep test runs out of data/jmsa.db.
+python -m ingest.load_reviews [--resume]       # ~1.8M rows, 50k per transaction
+python -m process.review_sentiment [--rescore] # --rescore after editing themes.csv
 
 pytest
 pytest tests/test_schema.py::test_six_tables_created   # a single test
@@ -60,7 +76,10 @@ pytest tests/test_schema.py::test_six_tables_created   # a single test
 - `company_id` is a lowercase slug (`tata-consultancy-services`) and is the join key everywhere. Every source must be matched back to it; add a row to `data/raw/company_aliases.csv` rather than fuzzy-matching names at query time.
 - `india_cities` and other multi-value CSV fields are semicolon-separated.
 - All dates are ISO 8601.
-- `sentiment_label` uses the standard VADER cut-offs: positive at compound ≥ 0.05, negative at ≤ −0.05, neutral otherwise. Keep this in one shared helper rather than re-deriving it per loader.
+- `sentiment_label` uses the standard VADER cut-offs: positive at compound ≥ 0.05, negative at ≤ −0.05, neutral otherwise. These live in one shared helper, [jmsa/sentiment.py](jmsa/sentiment.py), with `label()`, `combine()` and the 20-review rule; don't re-derive them per loader.
+- A review's score is `mean(headline, mean(pros, cons))`, each part scored by VADER on its own. Don't subtract cons: VADER already scores them negative, and pros − cons had zero correlation with star ratings. A review with no text gets NULL, not 0.
+- Theme keywords live in [data/themes.csv](data/themes.csv). The four theme names are fixed, and the keywords are editable. A theme's score is the VADER score of the section (headline, pros or cons) that mentions it.
+- The meanings of the review letter codes (`recommend`, `ceo_approval`, `business_outlook`: v, r, o, x) are unverified; check them against the Kaggle dataset card before interpreting them.
 - `sector` comes from a fixed list of 15 values already present in companies.csv — don't introduce new ones ad hoc.
 - Each source is matched to the library once, at load time, never by fuzzy-matching at query time. Every source uses the committed `data/raw/company_aliases.csv`, the only alias store (`companies` has no aliases column). Its `source` column (`glassdoor_reviews`, `glassdoor_ratings`; Naukri gets its own in milestone 6) keeps each alias to the dataset it was found in. Read it through [jmsa/aliases.py](jmsa/aliases.py), which also holds the shared `normalise()`. 43 companies match a Naukri name exactly, so aliases carry the rest.
 - When several `glassdoor_company_ratings.csv` rows match one company — the same name is used by different employers — take the row with the highest `review_count`.

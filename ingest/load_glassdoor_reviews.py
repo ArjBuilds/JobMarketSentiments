@@ -54,7 +54,9 @@ OUT_COLUMNS = [
     "cons",
     "job_title",
     # Every sub-rating the source carries. The first three are Glassdoor's
-    # v/o/x codes (yes / neutral / no), not numbers.
+    # letter codes, not numbers: v, r, o, x. Their meanings are unverified --
+    # check the Kaggle dataset card -- but read as positive, mild, no opinion,
+    # negative. recommend uses only v, o and x.
     "recommend",
     "ceo_approval",
     "business_outlook",
