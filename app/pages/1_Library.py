@@ -1,4 +1,7 @@
-"""Company library: the sortable, filterable table over every tracked company."""
+"""Company library: the table over every tracked company (F1).
+
+Reads only from SQLite. Filters and sorting (F2) come in a later milestone.
+"""
 
 import sys
 from pathlib import Path
@@ -7,11 +10,66 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import streamlit as st  # noqa: E402
 
+from jmsa.config import DB_PATH  # noqa: E402
+from jmsa.db import get_conn  # noqa: E402
+from jmsa.display import show  # noqa: E402
+
 st.set_page_config(page_title="Library · Job Market Analyser", page_icon="📊", layout="wide")
 
+# Database column -> header shown on the page, in display order.
+COLUMNS = {
+    "name": "Company",
+    "sector": "Sector",
+    "hq_country": "HQ country",
+    "india_cities": "India cities",
+    "size_band": "Size band",
+}
+
+
+@st.cache_data
+def library_rows() -> list[dict]:
+    """One display-ready dict per company. Cached, so reruns skip the query.
+
+    The result is cached rather than the connection: sqlite3 refuses to use
+    a connection from a thread other than the one that opened it, and
+    Streamlit may run each visit on a different thread.
+
+    The cache lasts until the app restarts, so restart Streamlit (or press C
+    in the page and clear the cache) after reloading the database.
+    """
+    query = f"SELECT {', '.join(COLUMNS)} FROM companies ORDER BY name COLLATE NOCASE"
+    conn = get_conn()
+    try:
+        records = conn.execute(query).fetchall()
+    finally:
+        conn.close()
+
+    rows = []
+    for record in records:
+        row = {header: show(record[column]) for column, header in COLUMNS.items()}
+        if record["india_cities"]:
+            row["India cities"] = ", ".join(record["india_cities"].split(";"))
+        rows.append(row)
+    return rows
+
+
 st.title("Company library")
-st.info(
-    "Placeholder. F1 (the company table) lands here in milestone 2, and F2 "
-    "(filter by sector, HQ country, open roles, minimum sentiment and "
-    "required skill; sort by sentiment, open roles or attrition) in milestone 4."
-)
+
+# Checked before connecting, because get_conn would create an empty file.
+if not DB_PATH.exists():
+    st.warning(
+        f"No database at `{DB_PATH}`. Create it and load the library with:\n\n"
+        "```bash\npython -m jmsa.db init\npython -m ingest.load_companies\n```"
+    )
+    st.stop()
+
+rows = library_rows()
+if not rows:
+    st.warning(
+        "The companies table is empty. Load it with:\n\n"
+        "```bash\npython -m ingest.load_companies\n```"
+    )
+    st.stop()
+
+st.caption(f"{len(rows)} companies")
+st.dataframe(rows, hide_index=True)

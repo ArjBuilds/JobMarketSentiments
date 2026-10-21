@@ -76,7 +76,7 @@ Every field comes from a source we are allowed to use; anything else is shown as
 
 **The review snapshot.** all_reviews.csv has no company column and no location column: the employer is embedded in `firm_link` in two different shapes (`Reviews/Oracle-Reviews-E1737.htm` and the full `https://www.glassdoor.com/Reviews/Oracle-Reviews-E1737.htm`), and dates arrive as `Nov 19, 2022`. [ingest/load_glassdoor_reviews.py](ingest/load_glassdoor_reviews.py) streams the 3.8 GB file, matches employers through company_aliases.csv, converts dates to ISO and writes data/raw/glassdoor_reviews_matched.csv. Four companies get no reviews at all and must show "not available": **atlassian**, **workday**, **jpmorgan-chase** and **hdfc-bank**. The last two are deliberate: the dataset's `Chase` and `Hdfc` are different legal entities, so they were rejected rather than guessed. **ltimindtree** is carried by 10,545 pre-merger **Mindtree** reviews, flagged `is_pre_merger` so the page can say so. **intuit** scrapes past the 20-review threshold with just 22 reviews, all from 2022–23, so treat its sentiment as indicative only. Because the source carries no location, reviews.location is always empty and no India-only sentiment is possible from it.
 
-**Matching companies to sources.** Employer names are raw in both snapshots. Of the 82 library companies, 64 match a glassdoor_company_ratings.csv name exactly once lowercased, and 43 match a naukri_jobs_merged.csv name; the rest need aliases. Matching happens once at load time, never by fuzzy-matching names at query time. Reviews match through the committed data/raw/company_aliases.csv (company_id, alias_in_dataset); the ratings and postings loaders use the aliases column on companies. Two places for one idea is a wart - fold them together when the ratings loader is written.
+**Matching companies to sources.** Employer names are raw in both snapshots. Of the 82 library companies, 64 match a glassdoor_company_ratings.csv name exactly once lowercased, and 43 match a naukri_jobs_merged.csv name; the rest need aliases. Matching happens once at load time, never by fuzzy-matching names at query time. Every source matches through the one committed alias file, data/raw/company_aliases.csv (company_id, alias_in_dataset). There is no aliases column on companies. When the ratings loader is written, the file gains a source column so each alias applies only to the dataset it was found in.
 
 **Turnover proxy.** Share of a company's reviews that mention leaving, layoffs or attrition. Always labelled "proxy" next to the number. It can be computed for the 78 companies that have review text; the other four show published attrition or "not available".
 
@@ -107,14 +107,14 @@ Six tables in one SQLite database, all keyed on company_id.
 
 | Table | Columns | Filled by |
 | --- | --- | --- |
-| companies | company_id (PK, slug), name, sector, hq_country, india_cities, size_band, careers_url, publishes_attrition, aliases, glassdoor_rating, glassdoor_review_count, glassdoor_employer_size, glassdoor_industry | Library CSV loader; the glassdoor_* columns by the ratings loader |
+| companies | company_id (PK, slug), name, sector, hq_country, india_cities, size_band, careers_url, publishes_attrition, glassdoor_rating, glassdoor_review_count, glassdoor_employer_size, glassdoor_industry | Library CSV loader; the glassdoor_* columns by the ratings loader |
 | reviews | review_id (PK), company_id, review_date, rating, headline, pros, cons, job_title, location, sentiment_compound, sentiment_label, themes | Review-text loader + sentiment step |
 | turnover | company_id, period, attrition_pct, is_proxy, source_url, method_note | Manual entry + proxy step |
 | articles | article_id (PK), company_id, title, outlet, published_at, url, summary, sentiment_compound, sentiment_label | News loader + sentiment step |
 | jobs | job_id (PK), company_id, title, city, posted_relative, url, skills_raw, source, loaded_at | Naukri loader |
 | job_skills | job_id, skill | Skill extraction step |
 
-**Conventions.** company_id is a lowercase slug such as `tata-consultancy-services`. Dates are ISO 8601. sentiment_label is positive when compound ≥ 0.05, negative when ≤ −0.05, otherwise neutral (the standard VADER cut-offs). india_cities, aliases and jobs.city are semicolon-separated lists.
+**Conventions.** company_id is a lowercase slug such as `tata-consultancy-services`. Dates are ISO 8601. sentiment_label is positive when compound ≥ 0.05, negative when ≤ −0.05, otherwise neutral (the standard VADER cut-offs). india_cities and jobs.city are semicolon-separated lists.
 
 **Why jobs has no posted date.** The postings source has none. posted_relative holds the Naukri string as given ("1 Day Ago"), or is empty for the 19,479 rows that lack it, and loaded_at records when the snapshot was loaded. skills_raw keeps the unsplit source string; the skills matched out of it live in job_skills.
 
@@ -143,7 +143,7 @@ The main risk is thin data for some companies; the missing-data rule keeps the d
 | Review text stops in mid-2023 | Sentiment is a couple of years behind | Show the review date range on each company page and state the snapshot date in the report |
 | Thin or stand-in coverage for a few companies | intuit has 22 reviews (2022–23); ltimindtree is pre-merger Mindtree | Keep the 20-review cut-off, surface the review count next to the score, and label pre-merger rows |
 | GNews free-tier limit | Fetches fail mid-run | Cache to the database; run news once a day at most |
-| Employer names are raw in both snapshots (8,009 distinct in Naukri) | Data attached to the wrong company or lost | Match once at load time against the aliases column; prefer the highest review_count when a ratings name is ambiguous; spot-check |
+| Employer names are raw in both snapshots (8,009 distinct in Naukri) | Data attached to the wrong company or lost | Match once at load time against data/raw/company_aliases.csv; prefer the highest review_count when a ratings name is ambiguous; spot-check |
 | Postings carry relative post times, and 19,479 rows carry none | No absolute posted date, and no link for those rows | Report roles posted in the dataset period rather than open now; show "not available" for a missing link or post time |
 | Few companies publish attrition | Turnover mostly proxy | Label the proxy clearly; don't rank by turnover without the label |
 | VADER misreads sarcasm and Indian English | Noisy sentiment | Cross-check with TextBlob; report agreement rate |

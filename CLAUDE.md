@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-Milestone 1 (skeleton) is done: the package layout, schema, Streamlit scaffold and a pytest harness exist. No data is loaded yet; loading the company library is milestone 2.
+Milestones 1 (skeleton) and 2 (company library) are done: `python -m ingest.load_companies` loads companies.csv into `companies`, and the Library page renders the F1 table. Milestone 3 (Glassdoor ratings) is next.
 
 Five files are on disk, and none of them is a live job API:
 
@@ -57,12 +57,12 @@ pytest tests/test_schema.py::test_six_tables_created   # a single test
 
 ## Conventions that cross files
 
-- `company_id` is a lowercase slug (`tata-consultancy-services`) and is the join key everywhere. Every source must be matched back to it; add an aliases column rather than fuzzy-matching names at query time.
+- `company_id` is a lowercase slug (`tata-consultancy-services`) and is the join key everywhere. Every source must be matched back to it; add a row to `data/raw/company_aliases.csv` rather than fuzzy-matching names at query time.
 - `india_cities` and other multi-value CSV fields are semicolon-separated.
 - All dates are ISO 8601.
 - `sentiment_label` uses the standard VADER cut-offs: positive at compound ≥ 0.05, negative at ≤ −0.05, neutral otherwise. Keep this in one shared helper rather than re-deriving it per loader.
 - `sector` comes from a fixed list of 15 values already present in companies.csv — don't introduce new ones ad hoc.
-- Each source is matched to the library once, at load time, never by fuzzy-matching at query time. Reviews use the committed `data/raw/company_aliases.csv`; the ratings and postings loaders use the `aliases` column on `companies`. 64 of the 82 companies match a Glassdoor ratings name exactly and 43 match a Naukri name, so aliases carry the rest.
+- Each source is matched to the library once, at load time, never by fuzzy-matching at query time. Every source uses the committed `data/raw/company_aliases.csv`, the only alias store (`companies` has no aliases column). It gains a `source` column in milestone 3. 64 of the 82 companies match a Glassdoor ratings name exactly and 43 match a Naukri name, so aliases carry the rest.
 - When several `glassdoor_company_ratings.csv` rows match one company — the same name is used by different employers — take the row with the highest `review_count`.
 - `jobs` holds no posted date: the Naukri file has only relative strings (`posted_relative`, e.g. "1 Day Ago"), empty for 19,479 of its rows. Never convert these into dates.
 - `skills_raw` concatenates skills with no separator (`Text miningCareer developmentdata science`), so it cannot be split on a delimiter. Match known skills from skills.csv against the string with the spaCy PhraseMatcher.

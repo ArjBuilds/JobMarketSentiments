@@ -18,6 +18,26 @@ RAW_DIR = DATA_DIR / "raw"
 COMPANIES_CSV = DATA_DIR / "companies.csv"
 SCHEMA_SQL = Path(__file__).resolve().parent / "schema.sql"
 
+# The fixed sector list from PRD.md. The library loader rejects anything else,
+# so a typo in companies.csv can't quietly create a sixteenth sector.
+SECTORS = (
+    "Aerospace & Automotive",
+    "Banking & Financial Services",
+    "Conglomerate",
+    "Consulting & Professional Services",
+    "E-commerce & Retail",
+    "Energy",
+    "FMCG",
+    "Hardware & Electronics",
+    "IT Services",
+    "Industrial & Engineering",
+    "Payments & Fintech",
+    "Pharma & Healthcare",
+    "Semiconductors",
+    "Software & Internet",
+    "Telecom & Networking",
+)
+
 load_dotenv(REPO_ROOT / ".env")
 
 # Override with JMSA_DB_PATH to point at a frozen database for the demo.

@@ -3,7 +3,7 @@
 -- Conventions (see PRD.md "Data dictionary"):
 --   company_id        lowercase slug, e.g. tata-consultancy-services
 --   dates             TEXT holding ISO 8601
---   india_cities      semicolon-separated list, as are aliases and jobs.city
+--   india_cities      semicolon-separated list, as is jobs.city
 --   sentiment_label   positive at compound >= 0.05, negative at <= -0.05,
 --                     neutral otherwise (standard VADER cut-offs)
 --
@@ -11,9 +11,10 @@
 -- here must be idempotent.
 
 CREATE TABLE IF NOT EXISTS companies (
-    -- The first block mirrors the data/companies.csv header exactly: the
-    -- library loader inserts the CSV rows unchanged. The glassdoor_* block
-    -- is filled later by the ratings loader, not by the CSV.
+    -- The first block mirrors the data/companies.csv header exactly, in
+    -- order; ingest.load_companies checks this. The glassdoor_* block is
+    -- filled later by the ratings loader, not by the CSV. Other names the
+    -- sources use for a company live in data/raw/company_aliases.csv, not here.
     company_id              TEXT PRIMARY KEY,
     name                    TEXT NOT NULL,
     sector                  TEXT NOT NULL,
@@ -22,7 +23,6 @@ CREATE TABLE IF NOT EXISTS companies (
     size_band               TEXT,
     careers_url             TEXT,
     publishes_attrition     TEXT,       -- yes | no, as curated in the CSV
-    aliases                 TEXT,       -- other names the sources use for this company
     -- From data/raw/glassdoor_company_ratings.csv. When several rows share
     -- the name, the one with the highest review_count wins.
     glassdoor_rating        REAL,
