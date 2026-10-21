@@ -17,6 +17,7 @@ import streamlit as st  # noqa: E402
 from jmsa.config import DB_PATH  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.display import NOT_AVAILABLE  # noqa: E402
+from jmsa.freshness import naukri_dates  # noqa: E402
 from jmsa.skills import (  # noqa: E402
     MARKET_SKILLS_NOTE, MIN_SCORED_POSTINGS, TOP_N, VIEWS,
     read_export_comparison, read_market_skills, read_scope_sizes,
@@ -29,6 +30,15 @@ BAR_COLOUR = "#2a78d6"
 
 
 # Cached results, not connections, for the reason given on the Library page.
+@st.cache_data
+def snapshot_dates() -> str:
+    conn = get_conn()
+    try:
+        return naukri_dates(conn)
+    finally:
+        conn.close()
+
+
 @st.cache_data
 def market(view: str) -> dict:
     conn = get_conn()
@@ -97,7 +107,7 @@ if not skills["available"]:
 else:
     st.plotly_chart(bar_chart(skills["rows"]), width="stretch")
     st.caption(f"Based on {skills['scored']:,} distinct skill lists from the two data-science exports. "
-               + MARKET_SKILLS_NOTE)
+               + MARKET_SKILLS_NOTE + f" Snapshot {snapshot_dates()}.")
 
     with st.expander("Compare the three exports"):
         rows, sizes = comparison(view)

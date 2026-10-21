@@ -45,6 +45,8 @@ from pathlib import Path
 from jmsa.aliases import ALIASES_CSV, normalise, read_aliases
 from jmsa.config import DATA_DIR, RAW_DIR
 from jmsa.db import apply_schema, get_conn
+from jmsa.display import plural
+from jmsa.jobs import LINK
 
 NAUKRI_CSV = RAW_DIR / "naukri_jobs_merged.csv"
 KEYWORDS_CSV = DATA_DIR / "data_role_keywords.csv"
@@ -116,8 +118,6 @@ CITIES = {
 # would all fail.
 LINK_NAMES = {"pwc": ("Pricewaterhouse Coopers",)}
 
-# A Naukri link: https://www.naukri.com/job-listings-<slug>-<x>-to-<y>-years-<12-digit id>
-LINK = re.compile(r"/job-listings-(.+)-\d+-to-\d+-years-(\d{12})")
 
 # "Business analyst" is mostly a requirements role, so it is an exclude
 # keyword. These excludes are lifted when the title also has an include
@@ -405,7 +405,7 @@ def build_report(result: dict, rejected: dict[str, str] = REJECTED_NAMES) -> str
     add(f"Postings in file:                 {result['read']:>7,}")
     add(f"  not a data role (title filter): {dropped:>7,}")
     add(f"  data-role postings:             {kept:>7,}")
-    add(f"  matched to a library company:   {matched_rows:>7,}  ({len(matched)} companies)")
+    add(f"  matched to a library company:   {matched_rows:>7,}  ({plural(len(matched), 'company')})")
     add(f"  unmatched:                      {result['unmatched']:>7,}")
     add(f"  matched with a verified link:   {sum(result['verified_rows'].values()):>7,}")
     add("")

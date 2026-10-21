@@ -21,6 +21,7 @@ from pathlib import Path
 
 from jmsa.config import COMPANIES_CSV, SECTORS
 from jmsa.db import apply_schema, get_conn
+from jmsa.display import plural
 
 # Must equal the CSV header exactly, in order, and the first block of the
 # companies table in schema.sql (tests/test_load_companies.py checks both).
@@ -157,7 +158,7 @@ def main(argv: list[str]) -> int:
     finally:
         conn.close()
 
-    print(f"loaded {count} companies into {db_file}")
+    print(f"loaded {plural(count, 'company')} into {db_file}")
     return 0
 
 

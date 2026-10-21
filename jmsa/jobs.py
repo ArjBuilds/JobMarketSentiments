@@ -7,14 +7,21 @@ lay it out. The roles come from ingest.load_jobs.
 
 from __future__ import annotations
 
+import re
 import sqlite3
+from datetime import date
 
 from jmsa.display import NOT_AVAILABLE, show
+
+# A Naukri link: https://www.naukri.com/job-listings-<slug>-<x>-to-<y>-years-<12-digit id>.
+# ingest.load_jobs verifies links with it; jmsa.freshness dates the snapshot from it.
+LINK = re.compile(r"/job-listings-(.+)-\d+-to-\d+-years-(\d{12})")
 
 # The postings are a fixed Naukri snapshot, never a live count. Its links
 # have expired and its relative post times ("1 Day Ago") were relative to
 # 2023, so neither is shown; both stay in jobs for verification and dedup.
-ROLES_INTRO = ("Data-role listings this company posted in the dataset snapshot (late 2023). "
+# {snapshot} is the snapshot's month, read from the database by jmsa.freshness.
+ROLES_INTRO = ("Data-role listings this company posted in the dataset snapshot ({snapshot}). "
                "Historical, not current openings.")
 
 # ingest.load_jobs deduplicates rows without a verified link by employer and
@@ -24,10 +31,25 @@ LOWER_BOUND_NOTE = ("This is a lower bound: same-title listings without a verifi
 
 DATA_ROLES_NOTE = (
     "Naukri postings in India for data-science and analytics roles only, kept when the job title "
-    "names a data role. Collected in or after late October 2023 (dated from two of three exports; "
-    "the third is undated). The source's columns are misaligned row by row, so a city is shown "
+    "names a data role. The source's columns are misaligned row by row, so a city is shown "
     "only where the posting's link names its own title and employer."
 )
+
+
+def link_date(url: str | None) -> date | None:
+    """The date a Naukri job ID starts with (DDMMYY), or None.
+
+    '...-4-to-8-years-261023500868' -> 26 Oct 2023. It dates when the ID was
+    issued, not when the row was collected: reposted listings keep old IDs.
+    """
+    found = LINK.search(url or "")
+    if not found:
+        return None
+    digits = found.group(2)
+    try:
+        return date(2000 + int(digits[4:6]), int(digits[2:4]), int(digits[0:2]))
+    except ValueError:      # an ID that doesn't start with a real date
+        return None
 
 
 def cities_text(cities: str | None) -> str | None:

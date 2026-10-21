@@ -32,6 +32,7 @@ from pathlib import Path
 
 from jmsa.config import DATA_DIR, RAW_DIR
 from jmsa.db import apply_schema, get_conn
+from jmsa.display import plural
 from jmsa.sentiment import is_shown
 from jmsa.turnover import BASES, SCOPES, WINDOW_TITLE, overlaps_window
 
@@ -233,8 +234,8 @@ def build_report(rows: list[dict], pairs: list[dict]) -> str:
     for row in rows:
         if row["company_id"] not in latest or row["period_end"] > latest[row["company_id"]]["period_end"]:
             latest[row["company_id"]] = row
-    lines = [f"Published rows loaded: {len(rows)} for {len(latest)} companies "
-             f"({len(rows) - len(latest)} older rows kept for the proxy comparison only)", ""]
+    lines = [f"Published rows loaded: {len(rows)} for {plural(len(latest), 'company')} "
+             f"({plural(len(rows) - len(latest), 'older row')} kept for the proxy comparison only)", ""]
     lines.append("Shown on the dashboard (latest per company)")
     for company_id, row in sorted(latest.items()):
         lines.append(f"  {company_id:28} {row['attrition_pct']:>6}%  {row['basis']:11} {row['scope']:17} "

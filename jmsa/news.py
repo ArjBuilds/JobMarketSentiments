@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 import sqlite3
 
-from jmsa.display import NOT_AVAILABLE
+from jmsa.display import show
 from jmsa.sentiment import MONTHS
 
 # The free tier searches only the last 30 days and returns 10 articles a
@@ -50,9 +50,9 @@ def read_news(conn: sqlite3.Connection, company_id: str) -> dict:
         {
             "title": escape_markdown(row["title"]),
             "url": row["url"],
-            "outlet": row["outlet"] or NOT_AVAILABLE,
-            "date": day_month_year(row["published_at"]) or NOT_AVAILABLE,
-            "sentiment": row["sentiment_label"] or NOT_AVAILABLE,
+            "outlet": show(row["outlet"]),
+            "date": show(day_month_year(row["published_at"])),
+            "sentiment": show(row["sentiment_label"]),
         }
         for row in conn.execute(
             "SELECT title, url, outlet, published_at, sentiment_label FROM articles"

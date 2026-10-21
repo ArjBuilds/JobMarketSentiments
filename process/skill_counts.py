@@ -61,6 +61,7 @@ from spacy.util import filter_spans
 from ingest.load_jobs import NAUKRI_CSV
 from jmsa.config import DATA_DIR, RAW_DIR
 from jmsa.db import apply_schema, get_conn
+from jmsa.display import plural
 from jmsa.skills import DATA_SCIENCE_EXPORTS, EXPORTS, HEADLINE_SCOPE, TOP_N, TYPES
 
 SKILLS_CSV = DATA_DIR / "skills.csv"
@@ -321,7 +322,7 @@ def main(argv: list[str]) -> int:
     try:
         if args.check:
             n = write_check(CHECK_PATH, args.check, args.seed, args.csv, args.skills)
-            print(f"{n} skill lists written to {CHECK_PATH} for a hand check; the database was not touched")
+            print(f"{plural(n, 'skill list')} written to {CHECK_PATH} for a hand check; the database was not touched")
             return 0
         conn = get_conn()
         try:

@@ -1,0 +1,71 @@
+"""Every page runs, twice, against a small database, with no exception.
+
+Streamlit's own AppTest runs each page script headlessly. The second run
+matters: Streamlit reruns a page on another thread, which is how the home
+page's cached sqlite connection once crashed ("SQLite objects created in a
+thread can only be used in that same thread").
+"""
+
+from pathlib import Path
+
+import pytest
+import streamlit as st
+from streamlit.testing.v1 import AppTest
+
+import jmsa.config
+import jmsa.db
+from jmsa.db import get_conn, init_db
+
+ROOT = Path(__file__).resolve().parents[1]
+PAGES = ["app/app.py", "app/pages/1_Library.py", "app/pages/2_Company.py",
+         "app/pages/3_Market_skills.py", "app/pages/4_Compare.py", "app/pages/5_About_and_methods.py"]
+
+
+@pytest.fixture
+def small_db(tmp_path, monkeypatch):
+    """A temporary database with two companies, pointed at by every page.
+
+    The pages read DB_PATH from jmsa.config and get_conn reads its own copy
+    in jmsa.db, so both are patched. Cached results are cleared, so no page
+    sees another test's database.
+    """
+    path = tmp_path / "pages.db"
+    init_db(path)
+    conn = get_conn(path)
+    conn.executemany(
+        "INSERT INTO companies (company_id, name, sector, hq_country, glassdoor_rating,"
+        " glassdoor_review_count) VALUES (?, ?, 'IT Services', 'India', ?, ?)",
+        [("acme", "Acme", 4.1, 2500), ("hooli", "Hooli", None, None)],
+    )
+    conn.execute(
+        "INSERT INTO review_summary (company_id, period, review_count, first_date, last_date,"
+        " avg_compound, share_positive, share_neutral, share_negative, pre_merger_count)"
+        " VALUES ('acme', 'all', 500, '2010-01-01', '2023-07-06', 0.2, 0.6, 0.2, 0.2, 0)"
+    )
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(jmsa.config, "DB_PATH", path)
+    monkeypatch.setattr(jmsa.db, "DB_PATH", path)
+    st.cache_data.clear()
+    yield path
+    st.cache_data.clear()
+
+
+@pytest.mark.parametrize("page", PAGES)
+def test_page_runs_twice_without_an_exception(small_db, page):
+    app = AppTest.from_file(str(ROOT / page), default_timeout=30)
+    for _ in range(2):
+        app.run()
+        assert not app.exception, app.exception
+        # A syntax error isn't an exception to AppTest: the page just draws
+        # nothing. Every page starts with its title, so a missing one fails.
+        assert app.title, f"{page} drew nothing: does it compile?"
+
+
+def test_compare_asks_for_two_companies_then_shows_the_table(small_db):
+    app = AppTest.from_file(str(ROOT / "app/pages/4_Compare.py"), default_timeout=30)
+    app.run()
+    assert "Pick 2 to 4 companies" in app.info[0].value
+    app.multiselect[0].select("acme").select("hooli").run()
+    assert not app.exception, app.exception
+    assert len(app.dataframe) >= 1

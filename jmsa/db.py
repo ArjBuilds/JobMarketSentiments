@@ -70,8 +70,13 @@ def main(argv: list[str]) -> int:
         return 2
     path = init_db()
     print(f"schema applied to {path}")
-    for table, count in table_counts().items():
-        print(f"  {table:<12} {count:>8} rows")
+    counts = table_counts()
+    # Widths from the longest name and count, so review_summary and
+    # 1,799,628 line up with the rest.
+    name_width = max(len(table) for table in counts)
+    count_width = max(len(f"{count:,}") for count in counts.values())
+    for table, count in counts.items():
+        print(f"  {table:<{name_width}}  {count:>{count_width},} rows")
     return 0
 
 

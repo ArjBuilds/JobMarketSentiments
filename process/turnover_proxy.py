@@ -37,6 +37,7 @@ from pathlib import Path
 
 from jmsa.config import DATA_DIR, RAW_DIR
 from jmsa.db import apply_schema, get_conn
+from jmsa.display import plural
 from jmsa.sentiment import is_shown
 from jmsa.turnover import (
     KINDS,
@@ -335,7 +336,7 @@ def main(argv: list[str]) -> int:
     report = build_report(result, keywords)
     REPORT_PATH.write_text(report + "\n", encoding="utf-8")
     print(report)
-    print(f"\n{len(rows)} proxy rows written. Report written to {REPORT_PATH}")
+    print(f"\n{plural(len(rows), 'proxy row')} written. Report written to {REPORT_PATH}")
     return 0
 
 

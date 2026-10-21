@@ -5,8 +5,9 @@ Reads only from SQLite. The Glassdoor columns are filled by
 ingest.load_glassdoor_ratings and the sentiment columns come from
 review_summary, and the data-role counts from jobs (ingest.load_jobs). The
 turnover columns come from turnover: the proxy from process.turnover_proxy,
-published attrition from ingest.load_turnover. Filtering, sorting and formatting live in jmsa.library; this
-page only draws the controls and the table.
+published attrition from ingest.load_turnover. Filtering, sorting and
+formatting live in jmsa.library; this page only draws the controls and the
+table. The source lines and dates under it come from jmsa.freshness.
 """
 
 import sys
@@ -18,19 +19,21 @@ import streamlit as st  # noqa: E402
 
 from jmsa.config import DB_PATH  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
+from jmsa.freshness import read_freshness, review_end, source_line  # noqa: E402
 from jmsa.library import (  # noqa: E402
     REVIEW_MINIMUMS,
     SORT_KEYS,
     SORT_LABELS,
     Filters,
     apply,
+    column_headers,
     display_row,
     load_library,
     minimum_steps,
     sentiment,
 )
 from jmsa.jobs import LOWER_BOUND_NOTE  # noqa: E402
-from jmsa.turnover import BASES, BASIS_NAMES, SCOPE_NAMES, SCOPES  # noqa: E402
+from jmsa.turnover import BASES, BASIS_NAMES, PROXY_CHECK_NOTE, SCOPE_NAMES, SCOPES  # noqa: E402
 from jmsa.sentiment import MIN_REVIEWS, PERIOD_TITLES, PERIODS  # noqa: E402
 
 st.set_page_config(page_title="Library · Job Market Analyser", page_icon="📊", layout="wide")
@@ -52,6 +55,16 @@ def library() -> list[dict]:
     conn = get_conn()
     try:
         return load_library(conn)
+    finally:
+        conn.close()
+
+
+@st.cache_data
+def sources() -> tuple[dict, str]:
+    """Each source's dates, and when the reviews end, read from the database."""
+    conn = get_conn()
+    try:
+        return read_freshness(conn), review_end(conn)
     finally:
         conn.close()
 
@@ -151,19 +164,26 @@ if sort_key == "attrition" and (filters.attrition_basis is None or filters.attri
     st.warning("Published attrition figures use different definitions and cover different entities, "
                "as each cell says. Choose a basis and a scope under \"Compare attrition like with "
                "like\" to rank only comparable figures.")
-st.dataframe([display_row(record, period) for record in shown], hide_index=True)
+freshness, reviews_end = sources()
+headers = column_headers(period)
+# The tooltip on both proxy columns, so the proxy is never read without it.
+proxy_help = st.column_config.Column(help=PROXY_CHECK_NOTE)
+st.dataframe([display_row(record, period) for record in shown], hide_index=True,
+             column_config={headers["proxy"]: proxy_help, headers["proxy_split"]: proxy_help})
 st.caption(
     "Use **Sort** in the sidebar: it sorts by the numbers and always puts \"not available\" last. "
     "Clicking a column header sorts the cells as text. "
     "The Glassdoor rating comes from a ratings snapshot; review sentiment is VADER over a "
     "separate set of review texts, from −1 to +1, so a company can have one without the other. "
-    f"Scores based on fewer than {MIN_REVIEWS} reviews are hidden. Reviews end in mid-2023. "
+    f"Scores based on fewer than {MIN_REVIEWS} reviews are hidden. Reviews end {reviews_end}. "
     "Data-role listings are distinct Naukri data-science and analytics listings in India in the "
-    "dataset snapshot, collected in or after late October 2023, not roles open now. "
+    "dataset snapshot, not roles open now. "
     f"{LOWER_BOUND_NOTE} "
     "Published attrition is each company's latest figure from its own reports; the proxy is never "
     "part of that ranking. "
     "The turnover proxy counts reviews whose headline or cons mention people leaving, attrition "
     "or layoffs, per 100 reviews; it is not a share of staff, so it can't be sorted here. "
-    "A review can mention both kinds, so the split can add up to more than the total."
+    "A review can mention both kinds, so the split can add up to more than the total. "
+    f"{PROXY_CHECK_NOTE}"
 )
+st.caption("  \n".join(source_line(freshness, key) for key in ("ratings", "reviews", "roles", "attrition", "proxy")))

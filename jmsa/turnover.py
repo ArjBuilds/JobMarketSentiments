@@ -51,6 +51,14 @@ PROXY_NOTE = (
     "up to more than the total."
 )
 
+# The result of the proxy comparison in ingest.load_turnover (PRD.md, "Proxy
+# comparison": Spearman -0.08 over the 12 companies with both).
+PROXY_CHECK_NOTE = (
+    "Checked against published attrition for 12 companies over the same years, the proxy showed no "
+    "relationship (rank correlation about zero), so it reflects what reviewers write about, not how "
+    "many people leave."
+)
+
 # What a published figure measures, as its document says. "not-stated" when
 # the document doesn't say voluntary or total; never inferred.
 BASES = ("voluntary", "total", "not-stated")

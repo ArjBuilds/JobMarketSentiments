@@ -29,6 +29,7 @@ from pathlib import Path
 from jmsa.aliases import ALIASES_CSV, normalise, read_aliases
 from jmsa.config import RAW_DIR
 from jmsa.db import apply_schema, get_conn
+from jmsa.display import plural
 
 RATINGS_CSV = RAW_DIR / "glassdoor_company_ratings.csv"
 
@@ -183,7 +184,7 @@ def build_report(results: list[dict], rejected: dict[str, str] = REJECTED) -> st
 
     matched = [r for r in results if r["row"] is not None]
     by_alias = [r for r in matched if r["how"] == "alias"]
-    add(f"Matched {len(matched)} of {len(results)} companies "
+    add(f"Matched {len(matched)} of {plural(len(results), 'company')} "
         f"({len(matched) - len(by_alias)} by exact name, {len(by_alias)} by alias)")
     add("")
 

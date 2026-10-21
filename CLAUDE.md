@@ -25,13 +25,18 @@ Stage B, published attrition:
 Milestone 7 (news, F6) is built:
 - `python -m ingest.load_news` sends one GNews request per company, using its query in [data/news_queries.csv](data/news_queries.csv), keeps the articles that name the company, dedupes them, keeps the 10 newest and scores them; it writes `data/raw/news_fetch_report.txt`. The Company page shows F6 through [jmsa/news.py](jmsa/news.py).
 
+Milestone 9 (polish, F9) is built:
+- [jmsa/freshness.py](jmsa/freshness.py) reads every source's dates from the database (review range, Naukri snapshot and load date, news fetch date, attrition retrieval date, proxy window) and holds the source citations and licences. Every page's source lines and the home-page sources table come from it.
+- The Compare page (F9) builds its table in [jmsa/compare.py](jmsa/compare.py) from the Library's records and `display_row`, plus `read_news`, so labels and "not available" match. The About and methods page restates the PRD's sources, method and caveats.
+- `python scripts/time_pages.py` times every page against the real database; tests/test_pages.py runs every page twice headlessly.
+
 Five files are on disk, and none of them is a live job API:
 
 - [data/companies.csv](data/companies.csv) — 82 curated companies, the spine everything joins to.
-- `data/raw/glassdoor_company_ratings.csv` — 3,029 rows of overall rating, review count, employer size and industry. No review text.
+- `data/raw/glassdoor_company_ratings.csv` — 3,029 rows of overall rating, review count, employer size and industry. No review text and no snapshot date. A Kaggle dataset downloaded October 2026 (originally Glassdoor_Dataset.csv); dataset page not recorded, licence unknown.
 - `data/raw/all_reviews.csv` — 9.9M Glassdoor reviews with text (davidgauthier/glassdoor-job-reviews-2, CC BY-NC-SA 4.0). 1,799,628 of them match 78 of our 82 companies, 2008 to mid-2023. This replaced employee_reviews.csv, which is still on disk but no longer used.
 - `data/raw/company_aliases.csv` — the name mappings that matching depends on (`company_id,alias_in_dataset,source`): 80 for review text, 6 for ratings. Committed, unlike everything else in `raw/`.
-- `data/raw/naukri_jobs_merged.csv` — 43,630 Indian Naukri postings in three exports, already deduplicated. Its columns are misaligned row by row, and many titles aren't data roles; see the PRD's "The postings snapshot" before using any column.
+- `data/raw/naukri_jobs_merged.csv` — 43,630 Indian Naukri postings in three exports, already deduplicated. A Kaggle dataset downloaded October 2026; dataset page not recorded, licence unknown. Its columns are misaligned row by row, and many titles aren't data roles; see the PRD's "The postings snapshot" before using any column.
 
 [PRD.md](PRD.md) is the specification of record. Read it before building anything — it fixes the feature list (F1–F9), data sources, SQLite schema, naming conventions and the milestone order. When something here and the PRD disagree, the PRD wins; update both.
 
@@ -47,7 +52,7 @@ A batch pipeline, deliberately split so the dashboard never calls a live source 
         → app/ (Streamlit pages read only from SQLite)
 ```
 
-Layout: `data/` (CSV inputs, the SQLite file, and `raw/` for the source CSVs and cached API responses), `ingest/` (one script per source), `process/`, `app/` (Streamlit entry + `pages/`), `jmsa/` (shared code: [config.py](jmsa/config.py), [db.py](jmsa/db.py), [schema.sql](jmsa/schema.sql)), `tests/`.
+Layout: `data/` (CSV inputs, the SQLite file, and `raw/` for the source CSVs and cached API responses), `ingest/` (one script per source), `process/`, `app/` (Streamlit entry + `pages/`), `scripts/` (developer checks, e.g. page timing), `jmsa/` (shared code: [config.py](jmsa/config.py), [db.py](jmsa/db.py), [schema.sql](jmsa/schema.sql)), `tests/`.
 
 `jmsa/` is not in the PRD's original four-directory sketch. It exists because the loaders, the process steps and the app all need the same connection and the same sentiment cut-offs; put anything cross-cutting there rather than duplicating it.
 
@@ -95,6 +100,7 @@ python -m process.turnover_proxy [--check 50]  # replaces only the proxy rows of
                                                # after editing turnover_keywords.csv. --check writes a sample only
 python -m ingest.load_news --from-cache        # re-select from cached responses, 0 requests;
                                                # rerun after editing gnews aliases
+python scripts/time_pages.py                   # each page's first-load and rerun time (target < 3 s)
 
 pytest
 pytest tests/test_schema.py::test_six_tables_created   # a single test
@@ -121,6 +127,9 @@ pytest tests/test_schema.py::test_six_tables_created   # a single test
 - `jobs` holds distinct listings, not rows: matched rows are deduplicated at load time, verified rows by Naukri job ID and unverified rows by (employer as posted, title), with an unverified row dropped when a verified row has the same pair. Same-title listings without a verified link count once, so every count is a lower bound and is shown with that note.
 - `skills_raw` concatenates skills with no separator (`Text miningCareer developmentdata science`), so it cannot be split on a delimiter. Match known skills from skills.csv against the string with the spaCy PhraseMatcher on `spacy.blank("en")`. Its skills belong to other rows' postings, so count them only per export, never per company; the headline pools the two data-science exports. Count each distinct skills_raw string once: lists were copied when listings were rescraped, and the two data-science exports overlap (86%).
 - News: [data/news_queries.csv](data/news_queries.csv) (`company_id,query`) holds one GNews query per company, at most 200 characters: the quoted name, `AND (employees OR workers OR staff OR layoffs OR "job cuts" OR hiring OR headcount OR workplace OR culture OR "return to office")`. Never add `jobs` (Steve Jobs). A name the press capitalises unambiguously (Intel, SAP, Intuit, EY) goes in bare and relies on the case-sensitive relevance check; a name that title-case headlines or a common phrase make ambiguous even capitalised (Target, Shell, Visa, LinkedIn, Apple, Meta, Oracle, Uber, LTM, TCS) keeps a group of narrower quoted phrases. The terms take 125 characters, so a name group has at most 70. Always use parentheses: GNews binds OR tighter than AND. An article is kept only if its title or description names the company, its library name or a `gnews` alias, as a whole word with matching case. Never add bare `LTM` as an alias: it also means "last twelve months". The free tier searches only 30 days and returns 10 articles a request, so F6 is labelled "up to 10 most recent articles published in the 30 days before the fetch date", never "last 12 months". Article `content` is stored nowhere, not even in the cached response.
+- Dates shown on pages (review range, snapshot, fetch, retrieval, window) come from [jmsa/freshness.py](jmsa/freshness.py), read from the database, never typed into a caption or constant. A review date range that runs past `WINDOW_END` gets "(sparse after Mar 2023)" through `sparse_note()`. The ratings file records no date: say so, don't supply one.
+- Count-plus-noun messages go through `plural()` in [jmsa/display.py](jmsa/display.py) ("1 company", not "1 companies").
+- Pages cache results with `st.cache_data`, never a sqlite connection: Streamlit reruns on other threads and sqlite refuses a connection from another thread.
 - data/skills.csv is `skill,type,synonym`; only the synonym is matched. Every skill has exactly one type, `tool` (a named product or language) or `method` (a technique). Never list `go` or `bi` as a synonym: they match ordinary words.
 
 ## Rules the data layer must hold to
@@ -142,7 +151,7 @@ pytest tests/test_schema.py::test_six_tables_created   # a single test
 
 ## Build order
 
-Work one PRD milestone at a time, run it, and commit before starting the next. F1–F8 are the submission minimum; F9 (compare view) is a stretch goal.
+Work one PRD milestone at a time, run it, and commit before starting the next. With every milestone commit, update the README status line and feature list. F1–F8 are the submission minimum; F9 (compare view) is a stretch goal.
 
 ## How to work with me
 - I'm new to coding. Build one milestone from the PRD's build order at a time, and only touch files that milestone needs.

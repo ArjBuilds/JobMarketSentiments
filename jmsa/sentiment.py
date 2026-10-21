@@ -83,13 +83,16 @@ def score_text(compound: float) -> str:
 
 
 def period_view(period: str, row: sqlite3.Row | None) -> dict:
-    """Display strings for one period. Every value is text, never None."""
-    view = {"title": PERIOD_TITLES[period]}
+    """Display strings for one period. Every value is text, never None,
+    except last_date: the ISO date the range ends on, for the page's
+    "sparse after" note (jmsa.freshness.sparse_note), None with no reviews."""
+    view = {"title": PERIOD_TITLES[period], "last_date": None}
     if row is None:
         view.update(range=NOT_AVAILABLE, reviews=NOT_AVAILABLE, average=NOT_AVAILABLE,
                     shares=NOT_AVAILABLE, themes=[])
         return view
 
+    view["last_date"] = row["last_date"]
     count = row["review_count"]
     first, last = month_year(row["first_date"]), month_year(row["last_date"])
     view["range"] = f"{first} – {last}" if first and last else NOT_AVAILABLE

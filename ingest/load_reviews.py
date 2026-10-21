@@ -34,6 +34,7 @@ from pathlib import Path
 
 from ingest.load_glassdoor_reviews import OUT_COLUMNS, OUT_CSV
 from jmsa.db import apply_schema, get_conn
+from jmsa.display import plural
 
 REVIEWS_CSV = OUT_CSV
 
@@ -241,7 +242,7 @@ def main(argv: list[str]) -> int:
     rate = stats["loaded"] / seconds if seconds else 0
     if stats["resumed_after"]:
         print(f"resumed after {stats['resumed_after']}")
-    print(f"loaded {stats['loaded']:,} reviews for {len(stats['companies'])} companies "
+    print(f"loaded {plural(stats['loaded'], 'review')} for {plural(len(stats['companies']), 'company')} "
           f"in {seconds:.1f} s ({rate:,.0f} rows/s)")
     print(f"  {stats['undated']:,} without a date (kept, review_date NULL)")
     if stats["discarded"]:

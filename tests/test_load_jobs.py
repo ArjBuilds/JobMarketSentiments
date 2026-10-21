@@ -276,7 +276,7 @@ def test_report_lists_unmatched_companies_with_unaccepted_suggestions(load):
                    {"job_title": "Data Analyst", "company_name": "Globexx"},
                    {"job_title": "Telecaller", "company_name": "Initech"}])
     report = build_report(result)
-    assert "matched to a library company:         1  (1 companies)" in report
+    assert "matched to a library company:         1  (1 company)" in report
     assert "globex                       suggestions, not accepted: globexx (1)" in report
     assert "[1 matched, all dropped by the title filter]" in report
     assert "30 most common titles dropped by the title filter\n      1  Telecaller" in report
