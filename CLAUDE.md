@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-This repo is pre-implementation: it currently holds only [PRD.md](PRD.md), [README.md](README.md) and [data/companies.csv](data/companies.csv) (82 curated companies). There is no `requirements.txt`, package code, database or test suite yet.
+Milestone 1 (skeleton) is done: the package layout, schema, Streamlit scaffold and a pytest harness exist. No data is loaded yet — [data/companies.csv](data/companies.csv) (82 curated companies) is the only input, and loading it is milestone 2.
 
 [PRD.md](PRD.md) is the specification of record. Read it before building anything — it fixes the feature list (F1–F9), data sources, SQLite schema, naming conventions and the milestone order. When something here and the PRD disagree, the PRD wins; update both.
 
@@ -19,23 +19,31 @@ sources → ingest/ (one loader per source, raw results cached)
         → app/ (Streamlit pages read only from SQLite)
 ```
 
-Planned layout per the PRD: `data/` (CSV inputs + the SQLite file), `ingest/` (one script per source), `process/`, `app/`.
+Layout: `data/` (CSV inputs, the SQLite file, and `raw/` for cached API responses), `ingest/` (one script per source), `process/`, `app/` (Streamlit entry + `pages/`), `jmsa/` (shared code: [config.py](jmsa/config.py), [db.py](jmsa/db.py), [schema.sql](jmsa/schema.sql)), `tests/`.
 
-Six tables, all keyed on `company_id`: `companies`, `reviews`, `turnover`, `articles`, `jobs`, `job_skills`. Column lists are in the PRD's data dictionary.
+`jmsa/` is not in the PRD's original four-directory sketch. It exists because the loaders, the process steps and the app all need the same connection and the same sentiment cut-offs; put anything cross-cutting there rather than duplicating it.
 
-Stack: Python 3.11/3.12, requests + feedparser + pandas for collection, vaderSentiment + TextBlob + spaCy (`en_core_web_sm`) for NLP, sqlite3/SQLAlchemy, Streamlit + Plotly, python-dotenv for API keys.
+Six tables: `companies`, `reviews`, `turnover`, `articles`, `jobs`, `job_skills`. All are keyed on `company_id` except `job_skills`, which reaches companies through `jobs`. Column lists are in the PRD's data dictionary; the DDL is [jmsa/schema.sql](jmsa/schema.sql).
+
+Stack: Python 3.11, requests + feedparser + pandas for collection, vaderSentiment + TextBlob + spaCy (`en_core_web_sm`) for NLP, stdlib `sqlite3` (no SQLAlchemy), Streamlit + Plotly, python-dotenv for API keys.
 
 ## Commands
 
-Nothing is wired up yet. The intended setup, once `requirements.txt` exists (milestone 1):
+The shell for this project is Git Bash, not PowerShell.
 
 ```bash
-python -m venv .venv && .venv\Scripts\activate   # Windows; this is a win32 checkout
-pip install -r requirements.txt
-python -m spacy download en_core_web_sm
-python -m ingest.<loader>      # ingest scripts are run on demand, not on app start
+py -m venv .venv
+source .venv/Scripts/activate
+python -m pip install -r requirements.txt
+python -m spacy download en_core_web_sm   # not a requirements.txt entry
+
+python -m jmsa.db init         # create/upgrade the empty database
+streamlit run app/app.py       # dashboard at http://localhost:8501
+python -m ingest.<loader>      # run on demand, never on app start
 python -m process.<step>
-streamlit run app/app.py
+
+pytest
+pytest tests/test_schema.py::test_six_tables_created   # a single test
 ```
 
 ## Conventions that cross files
@@ -59,3 +67,18 @@ streamlit run app/app.py
 ## Build order
 
 Work one PRD milestone at a time, run it, and commit before starting the next. F1–F8 are the submission minimum; F9 (compare view) is a stretch goal.
+
+## How to work with me
+- I'm new to coding. Build one milestone from the PRD's build order at a time, and only touch files that milestone needs.
+- Plan first: list the files you'll create or change and why, then wait for my go-ahead.
+- After each change, tell me exactly what command to run to test it and what I should see.
+- Explain any non-obvious code in plain English, briefly. I need to be able to explain it in my viva.
+- When something fails, find the cause before changing code. Don't paper over errors with try/except.
+- Suggest a git commit message when a milestone works.
+
+## Environment and secrets
+- Windows, Git Bash terminal. Run Python with `py`; venv in `.venv`, activated with `source .venv/Scripts/activate`.
+- Pin versions in requirements.txt.
+- API keys live only in .env. Keep .env.example with empty placeholders.
+- .gitignore must include .env, .venv/, __pycache__/, data/raw/ and data/*.db.
+- Stack is fixed per PRD.md; ask before adding a library.

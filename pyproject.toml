@@ -1,0 +1,6 @@
+# Pytest config only — the project is run as scripts, not installed as a package.
+# pythonpath puts the repo root on sys.path so tests can `import jmsa`
+# without an editable install.
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

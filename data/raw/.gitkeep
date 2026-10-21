@@ -1,0 +1,2 @@
+Raw API and RSS responses are cached here so a rerun doesn't spend quota and
+the demo survives a dead source. Contents are gitignored.

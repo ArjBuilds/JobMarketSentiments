@@ -89,7 +89,7 @@ Because the dashboard never calls a live source, the demo works even if an API i
 | Dashboard | Streamlit + Plotly | Tables, filters and charts with no separate frontend |
 | Config | .env with python-dotenv | API keys never committed |
 
-**Repo layout:** `data/` (CSV inputs, SQLite file), `ingest/` (one script per source), `process/` (sentiment, skills, proxy), `app/` (Streamlit pages), `CLAUDE.md` (rules for the AI tool).
+**Repo layout:** `data/` (CSV inputs, SQLite file, `raw/` cache), `ingest/` (one script per source), `process/` (sentiment, skills, proxy), `app/` (Streamlit pages), `jmsa/` (shared config, database helper and schema, imported by the other three), `tests/`, `CLAUDE.md` (rules for the AI tool).
 
 ## Data dictionary
 

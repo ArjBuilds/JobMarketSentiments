@@ -1,0 +1,25 @@
+# Exact pins, as resolved and verified working on Python 3.11 (Windows).
+# requirements.lock.txt holds the full transitive set from pip freeze.
+#
+# The spaCy model is not a pip entry — install it separately with
+#   python -m spacy download en_core_web_sm
+
+# Dashboard
+streamlit==1.66.0
+plotly==7.1.0
+
+# Collection
+pandas==3.0.6
+requests==2.34.2
+feedparser==6.0.14
+
+# NLP (course-specified)
+vaderSentiment==3.3.2
+textblob==0.20.1
+spacy==3.8.16
+
+# Config
+python-dotenv==1.2.4
+
+# Tests
+pytest==9.1.1
