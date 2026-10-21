@@ -25,10 +25,10 @@ import re
 import sys
 from collections import defaultdict
 
+from jmsa.aliases import ALIASES_CSV, normalise, read_aliases
 from jmsa.config import COMPANIES_CSV, RAW_DIR
 
 SOURCE_CSV = RAW_DIR / "all_reviews.csv"
-ALIASES_CSV = RAW_DIR / "company_aliases.csv"
 OUT_CSV = RAW_DIR / "glassdoor_reviews_matched.csv"
 REPORT_TXT = RAW_DIR / "glassdoor_match_report.txt"
 
@@ -123,26 +123,13 @@ def firm_from_link(link: str) -> str:
     return match.group(1).rsplit("/", 1)[-1]
 
 
-def normalise(name: str) -> str:
-    """Fold a company name to a comparable key.
-
-    The dataset writes 'Tata-Consultancy-Services' where our library writes
-    'Tata Consultancy Services', so hyphens and other punctuation collapse to
-    single spaces before anything is compared.
-    """
-    text = (name or "").lower().replace("&", " and ")
-    text = re.sub(r"[^a-z0-9]+", " ", text)
-    return re.sub(r"\s+", " ", text).strip()
-
-
 def load_aliases() -> dict[str, tuple[str, int]]:
-    """normalised alias -> (company_id, is_pre_merger)."""
+    """normalised alias -> (company_id, is_pre_merger), reviews aliases only."""
     aliases: dict[str, tuple[str, int]] = {}
-    with ALIASES_CSV.open(newline="", encoding="utf-8") as handle:
-        for row in csv.DictReader(handle):
-            key = normalise(row["alias_in_dataset"])
-            flag = 1 if key in PRE_MERGER_ALIASES else 0
-            aliases[key] = (row["company_id"], flag)
+    for company_id, alias in read_aliases("glassdoor_reviews"):
+        key = normalise(alias)
+        flag = 1 if key in PRE_MERGER_ALIASES else 0
+        aliases[key] = (company_id, flag)
     return aliases
 
 

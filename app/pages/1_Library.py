@@ -1,6 +1,8 @@
 """Company library: the table over every tracked company (F1).
 
-Reads only from SQLite. Filters and sorting (F2) come in a later milestone.
+Reads only from SQLite. The Glassdoor columns are filled by
+ingest.load_glassdoor_ratings. Filters and sorting (F2) come in a later
+milestone.
 """
 
 import sys
@@ -12,7 +14,7 @@ import streamlit as st  # noqa: E402
 
 from jmsa.config import DB_PATH  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
-from jmsa.display import show  # noqa: E402
+from jmsa.display import NOT_AVAILABLE, show  # noqa: E402
 
 st.set_page_config(page_title="Library · Job Market Analyser", page_icon="📊", layout="wide")
 
@@ -23,6 +25,10 @@ COLUMNS = {
     "hq_country": "HQ country",
     "india_cities": "India cities",
     "size_band": "Size band",
+    # The Glassdoor ratings snapshot: an overall star rating and how many
+    # reviews it rests on. Not review-text sentiment, which is a separate source.
+    "glassdoor_rating": "Glassdoor rating",
+    "glassdoor_review_count": "Glassdoor reviews",
 }
 
 
@@ -49,6 +55,12 @@ def library_rows() -> list[dict]:
         row = {header: show(record[column]) for column, header in COLUMNS.items()}
         if record["india_cities"]:
             row["India cities"] = ", ".join(record["india_cities"].split(";"))
+        # Formatted as text because a column can't mix numbers with the
+        # "not available" string; numeric sorting comes with the F2 filters.
+        if record["glassdoor_rating"] is not None:
+            row["Glassdoor rating"] = f"{record['glassdoor_rating']:.1f}"
+        if record["glassdoor_review_count"] is not None:
+            row["Glassdoor reviews"] = f"{record['glassdoor_review_count']:,}"
         rows.append(row)
     return rows
 
@@ -71,5 +83,6 @@ if not rows:
     )
     st.stop()
 
-st.caption(f"{len(rows)} companies")
+rated = sum(1 for row in rows if row["Glassdoor rating"] != NOT_AVAILABLE)
+st.caption(f"{len(rows)} companies, {rated} with a Glassdoor rating")
 st.dataframe(rows, hide_index=True)

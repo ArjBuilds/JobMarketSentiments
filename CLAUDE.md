@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-Milestones 1 (skeleton) and 2 (company library) are done: `python -m ingest.load_companies` loads companies.csv into `companies`, and the Library page renders the F1 table. Milestone 3 (Glassdoor ratings) is next.
+Milestones 1 (skeleton), 2 (company library) and 3 (Glassdoor ratings) are done: `python -m ingest.load_companies` loads companies.csv into `companies`, `python -m ingest.load_glassdoor_ratings` fills its `glassdoor_*` columns, and the Library page renders the F1 table with a rating per company. Milestone 4 (reviews and sentiment) is next.
 
 Five files are on disk, and none of them is a live job API:
 
 - [data/companies.csv](data/companies.csv) — 82 curated companies, the spine everything joins to.
 - `data/raw/glassdoor_company_ratings.csv` — 3,029 rows of overall rating, review count, employer size and industry. No review text.
 - `data/raw/all_reviews.csv` — 9.9M Glassdoor reviews with text (davidgauthier/glassdoor-job-reviews-2, CC BY-NC-SA 4.0). 1,799,628 of them match 78 of our 82 companies, 2008 to mid-2023. This replaced employee_reviews.csv, which is still on disk but no longer used.
-- `data/raw/company_aliases.csv` — the 80 name mappings that matching depends on. Committed, unlike everything else in `raw/`.
+- `data/raw/company_aliases.csv` — the name mappings that matching depends on (`company_id,alias_in_dataset,source`): 80 for review text, 5 for ratings. Committed, unlike everything else in `raw/`.
 - `data/raw/naukri_jobs_merged.csv` — 43,630 Indian Naukri data-science and analytics postings, already deduplicated.
 
 [PRD.md](PRD.md) is the specification of record. Read it before building anything — it fixes the feature list (F1–F9), data sources, SQLite schema, naming conventions and the milestone order. When something here and the PRD disagree, the PRD wins; update both.
@@ -62,8 +62,9 @@ pytest tests/test_schema.py::test_six_tables_created   # a single test
 - All dates are ISO 8601.
 - `sentiment_label` uses the standard VADER cut-offs: positive at compound ≥ 0.05, negative at ≤ −0.05, neutral otherwise. Keep this in one shared helper rather than re-deriving it per loader.
 - `sector` comes from a fixed list of 15 values already present in companies.csv — don't introduce new ones ad hoc.
-- Each source is matched to the library once, at load time, never by fuzzy-matching at query time. Every source uses the committed `data/raw/company_aliases.csv`, the only alias store (`companies` has no aliases column). It gains a `source` column in milestone 3. 64 of the 82 companies match a Glassdoor ratings name exactly and 43 match a Naukri name, so aliases carry the rest.
+- Each source is matched to the library once, at load time, never by fuzzy-matching at query time. Every source uses the committed `data/raw/company_aliases.csv`, the only alias store (`companies` has no aliases column). Its `source` column (`glassdoor_reviews`, `glassdoor_ratings`; Naukri gets its own in milestone 6) keeps each alias to the dataset it was found in. Read it through [jmsa/aliases.py](jmsa/aliases.py), which also holds the shared `normalise()`. 43 companies match a Naukri name exactly, so aliases carry the rest.
 - When several `glassdoor_company_ratings.csv` rows match one company — the same name is used by different employers — take the row with the highest `review_count`.
+- Ratings coverage: 66 of 82 companies (61 by exact name, 5 by alias). 16 show "not available": the file has only subsidiaries or regional arms for tata-consultancy-services, infosys, accenture, capgemini, ibm, deloitte, amazon and walmart; no row at all for cognizant, linkedin, blackrock and visa; **wipro**, **ey** and **tata-motors** are exact matches deliberately rejected (`REJECTED` in the ratings loader) because the rows have low review counts and a foreign head office, i.e. regional pages; and **mercedes-benz** has no ratings alias because its only row, Mercedes-Benz International (Motor Vehicle Dealers, 3 offices), is a sales arm, not the group. Its glassdoor_reviews alias is unaffected. Employer size is not a reason to reject — that column is unreliable across the file. The loader's report flags, without changing, big companies (size band 50k-200k or 200k+) with under 5,000 ratings reviews as "check: possibly a regional page".
 - `jobs` holds no posted date: the Naukri file has only relative strings (`posted_relative`, e.g. "1 Day Ago"), empty for 19,479 of its rows. Never convert these into dates.
 - `skills_raw` concatenates skills with no separator (`Text miningCareer developmentdata science`), so it cannot be split on a delimiter. Match known skills from skills.csv against the string with the spaCy PhraseMatcher.
 
