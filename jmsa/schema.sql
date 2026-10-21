@@ -1,6 +1,7 @@
 -- Job Market Analyser schema. Six source tables, all reachable from
 -- companies, plus two derived tables: review_summary, derived from reviews,
--- and skill_counts, market-wide skill counts that reach no company.
+-- and skill_counts, market-wide skill counts that reach no company. A ninth,
+-- news_fetches, records each company's last GNews fetch for articles.
 --
 -- Conventions (see PRD.md "Data dictionary"):
 --   company_id        lowercase slug, e.g. tata-consultancy-services
@@ -83,15 +84,37 @@ CREATE TABLE IF NOT EXISTS turnover (
 );
 
 CREATE TABLE IF NOT EXISTS articles (
-    article_id          TEXT PRIMARY KEY,
+    -- News about working at a company (F6), from GNews by ingest.load_news.
+    -- Only the headline and GNews's short description are kept, never the
+    -- article text. When the company's articles were fetched is in news_fetches.
+    article_id          TEXT PRIMARY KEY,  -- <company_id>:<first 12 hex of sha1(url)>
     company_id          TEXT NOT NULL REFERENCES companies(company_id),
     title               TEXT,
     outlet              TEXT,
     published_at        TEXT,
     url                 TEXT,
-    summary             TEXT,
+    summary             TEXT,              -- GNews's description of the article
+    -- VADER on title + description, labelled by jmsa.sentiment.label()
     sentiment_compound  REAL,
     sentiment_label     TEXT CHECK (sentiment_label IN ('positive', 'neutral', 'negative'))
+);
+
+CREATE TABLE IF NOT EXISTS news_fetches (
+    -- One row per company: its last GNews fetch, written by ingest.load_news
+    -- in the same transaction as its articles. It is what lets a rerun skip
+    -- companies fetched in the last 24 hours, and lets the page say when news
+    -- was fetched even when no article was kept. response_json caches the API
+    -- response, with every article's content field removed, so articles can
+    -- be re-selected (--from-cache) without spending quota.
+    company_id          TEXT PRIMARY KEY REFERENCES companies(company_id),
+    fetched_at          TEXT NOT NULL,     -- ISO 8601, UTC
+    query               TEXT NOT NULL,     -- as sent, from data/news_queries.csv
+    window_from         TEXT NOT NULL,     -- fetched_at minus 30 days, the free tier's archive
+    returned            INTEGER NOT NULL,  -- articles in the response
+    dropped_irrelevant  INTEGER NOT NULL,  -- not naming the company in title or description
+    dropped_duplicate   INTEGER NOT NULL,  -- same URL or a near-identical title
+    kept                INTEGER NOT NULL,  -- rows in articles, at most 10
+    response_json       TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS jobs (

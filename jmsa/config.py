@@ -40,5 +40,9 @@ SECTORS = (
 
 load_dotenv(REPO_ROOT / ".env")
 
+# The only API key in the project (GNews, for F6). Read by ingest.load_news
+# and never printed or written anywhere.
+GNEWS_API_KEY = os.getenv("GNEWS_API_KEY") or None
+
 # Override with JMSA_DB_PATH to point at a frozen database for the demo.
 DB_PATH = Path(os.getenv("JMSA_DB_PATH") or DATA_DIR / "jmsa.db")

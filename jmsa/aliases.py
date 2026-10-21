@@ -7,6 +7,7 @@ matches rows in another:
     glassdoor_reviews   firm names in all_reviews.csv
     glassdoor_ratings   company_name in glassdoor_company_ratings.csv
     naukri              company_name in naukri_jobs_merged.csv
+    gnews               names a news article uses, for the relevance check
 """
 
 from __future__ import annotations
@@ -19,7 +20,7 @@ from jmsa.config import RAW_DIR
 
 ALIASES_CSV = RAW_DIR / "company_aliases.csv"
 
-SOURCES = ("glassdoor_reviews", "glassdoor_ratings", "naukri")
+SOURCES = ("glassdoor_reviews", "glassdoor_ratings", "naukri", "gnews")
 
 
 def normalise(name: str) -> str:

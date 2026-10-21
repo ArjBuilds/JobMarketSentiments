@@ -52,3 +52,12 @@ def test_sentiment_label_rejects_values_outside_the_vader_three(db):
             "INSERT INTO reviews (review_id, company_id, sentiment_label)"
             " VALUES ('r1', 'x', 'very positive')"
         )
+
+
+def test_news_fetches_belongs_to_a_company(db):
+    with pytest.raises(sqlite3.IntegrityError):
+        db.execute(
+            "INSERT INTO news_fetches (company_id, fetched_at, query, window_from, returned,"
+            " dropped_irrelevant, dropped_duplicate, kept, response_json)"
+            " VALUES ('no-such-company', 't', 'q', 'w', 0, 0, 0, 0, '{}')"
+        )

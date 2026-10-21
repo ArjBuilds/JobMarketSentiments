@@ -16,6 +16,9 @@ Milestone 6 is split in two. Stage A (data roles, F8) is built:
 Stage B (market-wide skills, F7) is built:
 - `python -m process.skill_counts` matches data/skills.csv against skills_raw and replaces `skill_counts`; it writes `data/raw/skill_counts_report.txt`, and `--check N` writes a hand-check sample instead. The Market skills page shows F7 through [jmsa/skills.py](jmsa/skills.py); the Company page shows "not available" with a pointer.
 
+Milestone 7 (news, F6) is built:
+- `python -m ingest.load_news` sends one GNews request per company, using its query in [data/news_queries.csv](data/news_queries.csv), keeps the articles that name the company, dedupes them, keeps the 10 newest and scores them; it writes `data/raw/news_fetch_report.txt`. The Company page shows F6 through [jmsa/news.py](jmsa/news.py).
+
 Five files are on disk, and none of them is a live job API:
 
 - [data/companies.csv](data/companies.csv) — 82 curated companies, the spine everything joins to.
@@ -42,9 +45,10 @@ Layout: `data/` (CSV inputs, the SQLite file, and `raw/` for the source CSVs and
 
 `jmsa/` is not in the PRD's original four-directory sketch. It exists because the loaders, the process steps and the app all need the same connection and the same sentiment cut-offs; put anything cross-cutting there rather than duplicating it.
 
-Eight tables:
+Nine tables:
 - Six source tables: `companies`, `reviews`, `turnover`, `articles`, `jobs` and `job_skills`. All are keyed on `company_id` except `job_skills`, which reaches companies through `jobs`.
 - Two derived tables: `review_summary`, with per-company review figures for `all` and `2020-2023` (pages read sentiment from it, never by aggregating `reviews` live), and `skill_counts`, market-wide skill counts per scope, keyed on no company.
+- `news_fetches`, one row per company: its last GNews fetch (`fetched_at`, query, counts) and the cached response with every article's `content` removed. It drives the 24-hour skip and "news fetched on".
 - `job_skills` is always empty: no skill can be tied to a posting.
 
 The Glassdoor ratings are columns on `companies`, not a table of their own. Column lists are in the PRD's data dictionary; the DDL is [jmsa/schema.sql](jmsa/schema.sql).
@@ -76,6 +80,11 @@ python -m ingest.load_jobs                     # full replace of jobs; rerun aft
                                                # data_role_keywords.csv or naukri aliases
 python -m process.skill_counts [--check 50]    # full replace of skill_counts; rerun after
                                                # editing skills.csv. --check writes a sample only
+python -m ingest.load_news [--company ID] [--limit N] [--refresh]
+                                               # GNews; skips companies fetched in the last 24 h.
+                                               # Exit code 3 = daily quota reached; rerun to resume
+python -m ingest.load_news --from-cache        # re-select from cached responses, 0 requests;
+                                               # rerun after editing gnews aliases
 
 pytest
 pytest tests/test_schema.py::test_six_tables_created   # a single test
@@ -101,6 +110,7 @@ pytest tests/test_schema.py::test_six_tables_created   # a single test
 - A posting is a data role only if its title passes the include/exclude keywords in [data/data_role_keywords.csv](data/data_role_keywords.csv). "business analyst" is excluded unless the title also has a data-specific include keyword (`OVERRIDABLE_EXCLUDES` and `GENERIC_INCLUDES` in the loader).
 - `jobs` holds distinct listings, not rows: matched rows are deduplicated at load time, verified rows by Naukri job ID and unverified rows by (employer as posted, title), with an unverified row dropped when a verified row has the same pair. Same-title listings without a verified link count once, so every count is a lower bound and is shown with that note.
 - `skills_raw` concatenates skills with no separator (`Text miningCareer developmentdata science`), so it cannot be split on a delimiter. Match known skills from skills.csv against the string with the spaCy PhraseMatcher on `spacy.blank("en")`. Its skills belong to other rows' postings, so count them only per export, never per company; the headline pools the two data-science exports. Count each distinct skills_raw string once: lists were copied when listings were rescraped, and the two data-science exports overlap (86%).
+- News: [data/news_queries.csv](data/news_queries.csv) (`company_id,query`) holds one GNews query per company, at most 200 characters: the quoted name, or a group of quoted phrases for an ambiguous name (Target, Shell, Visa, Apple, Oracle, Meta, Uber, Intel, Citi, EY, SAP, Workday, Intuit, LinkedIn, TCS, LTM), `AND (employees OR layoffs OR hiring OR workplace OR culture)`. Always use parentheses: GNews binds OR tighter than AND. An article is kept only if its title or description names the company, its library name or a `gnews` alias, as a whole word with matching case. Never add bare `LTM` as an alias: it also means "last twelve months". The free tier searches only 30 days and returns 10 articles a request, so F6 is labelled "up to 10 most recent articles published in the 30 days before the fetch date", never "last 12 months". Article `content` is stored nowhere, not even in the cached response.
 - data/skills.csv is `skill,type,synonym`; only the synonym is matched. Every skill has exactly one type, `tool` (a named product or language) or `method` (a technique). Never list `go` or `bi` as a synonym: they match ordinary words.
 
 ## Rules the data layer must hold to
@@ -116,7 +126,7 @@ pytest tests/test_schema.py::test_six_tables_created   # a single test
 - No live scraping of LinkedIn or Glassdoor — their terms forbid it. Reviews come from the CSV snapshots above.
 - There are no live job APIs. Roles and skills (F7, F8) come only from `naukri_jobs_merged.csv`, which is Indian data-science and analytics postings. Label these views as data roles, and label counts as distinct data-role listings in the dataset snapshot (collected in or after late October 2023), never "open now", with the lower-bound note beside them.
 - Store no reviewer names or personal data.
-- GNews is the only API in the project. Cache every response into SQLite; news runs at most once a day against free-tier limits.
+- GNews is the only API in the project. Cache every response into SQLite (`news_fetches.response_json`); news runs at most once a day against free-tier limits (100 requests a day, reset at 00:00 UTC; 1 a second). The key goes only in request parameters and is never printed, logged or stored: requests puts it in the URL, so exception text is never shown, and messages go through `redact()`.
 
 ## Build order
 

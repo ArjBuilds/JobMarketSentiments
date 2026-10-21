@@ -16,9 +16,10 @@ from jmsa.config import DB_PATH, SCHEMA_SQL
 
 # Declaration order matters: a table is listed after the one it references.
 # review_summary is derived from reviews by process.review_sentiment, and
-# skill_counts from the postings CSV by process.skill_counts.
+# skill_counts from the postings CSV by process.skill_counts. news_fetches
+# records each company's last GNews fetch, alongside articles.
 TABLES = ("companies", "reviews", "turnover", "articles", "jobs", "job_skills", "review_summary",
-          "skill_counts")
+          "skill_counts", "news_fetches")
 
 
 def get_conn(db_path: str | Path | None = None) -> sqlite3.Connection:
