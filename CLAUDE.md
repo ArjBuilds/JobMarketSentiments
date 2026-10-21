@@ -4,12 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-Milestones 1 (skeleton), 2 (company library), 3 (Glassdoor ratings) and 4 (reviews and sentiment) are done:
+Milestones 1 (skeleton), 2 (company library), 3 (Glassdoor ratings), 4 (reviews and sentiment) and 5 (filters) are done:
 - `python -m ingest.load_companies` loads companies.csv into `companies`, and `python -m ingest.load_glassdoor_ratings` fills its `glassdoor_*` columns. The Library page renders the F1 table with a rating per company.
 - `python -m ingest.load_reviews` loads the 1.8M matched reviews. `python -m process.review_sentiment` scores them and fills `review_summary`. The Company page shows F4 sentiment for a selected company.
 - `python -m process.sentiment_checks` writes the method comparison and the TextBlob agreement rate for the report.
+- The Library page filters and sorts (F2) through [jmsa/library.py](jmsa/library.py), which has no Streamlit code so the tests call it directly. Add the M6 roles/skill filters as `Filters` fields and the M8 attrition sort as a `SORT_KEYS` entry there.
 
-Milestone 5 (filters) is next.
+Milestone 6 (data roles and skills) is next.
 
 Five files are on disk, and none of them is a live job API:
 

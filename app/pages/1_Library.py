@@ -1,8 +1,10 @@
-"""Company library: the table over every tracked company (F1).
+"""Company library: the table over every tracked company (F1), with filters
+and sorting (F2).
 
 Reads only from SQLite. The Glassdoor columns are filled by
-ingest.load_glassdoor_ratings. Filters and sorting (F2) come in a later
-milestone.
+ingest.load_glassdoor_ratings and the sentiment columns come from
+review_summary. Filtering, sorting and formatting live in jmsa.library; this
+page only draws the controls and the table.
 """
 
 import sys
@@ -14,27 +16,27 @@ import streamlit as st  # noqa: E402
 
 from jmsa.config import DB_PATH  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
-from jmsa.display import NOT_AVAILABLE, show  # noqa: E402
+from jmsa.library import (  # noqa: E402
+    REVIEW_MINIMUMS,
+    SORT_KEYS,
+    SORT_LABELS,
+    Filters,
+    apply,
+    display_row,
+    load_library,
+    minimum_steps,
+    sentiment,
+)
+from jmsa.sentiment import MIN_REVIEWS, PERIOD_TITLES, PERIODS  # noqa: E402
 
 st.set_page_config(page_title="Library · Job Market Analyser", page_icon="📊", layout="wide")
 
-# Database column -> header shown on the page, in display order.
-COLUMNS = {
-    "name": "Company",
-    "sector": "Sector",
-    "hq_country": "HQ country",
-    "india_cities": "India cities",
-    "size_band": "Size band",
-    # The Glassdoor ratings snapshot: an overall star rating and how many
-    # reviews it rests on. Not review-text sentiment, which is a separate source.
-    "glassdoor_rating": "Glassdoor rating",
-    "glassdoor_review_count": "Glassdoor reviews",
-}
+ANY = "Any"
 
 
 @st.cache_data
-def library_rows() -> list[dict]:
-    """One display-ready dict per company. Cached, so reruns skip the query.
+def library() -> list[dict]:
+    """Every company's raw record. Cached, so a filter change runs no query.
 
     The result is cached rather than the connection: sqlite3 refuses to use
     a connection from a thread other than the one that opened it, and
@@ -43,26 +45,11 @@ def library_rows() -> list[dict]:
     The cache lasts until the app restarts, so restart Streamlit (or press C
     in the page and clear the cache) after reloading the database.
     """
-    query = f"SELECT {', '.join(COLUMNS)} FROM companies ORDER BY name COLLATE NOCASE"
     conn = get_conn()
     try:
-        records = conn.execute(query).fetchall()
+        return load_library(conn)
     finally:
         conn.close()
-
-    rows = []
-    for record in records:
-        row = {header: show(record[column]) for column, header in COLUMNS.items()}
-        if record["india_cities"]:
-            row["India cities"] = ", ".join(record["india_cities"].split(";"))
-        # Formatted as text because a column can't mix numbers with the
-        # "not available" string; numeric sorting comes with the F2 filters.
-        if record["glassdoor_rating"] is not None:
-            row["Glassdoor rating"] = f"{record['glassdoor_rating']:.1f}"
-        if record["glassdoor_review_count"] is not None:
-            row["Glassdoor reviews"] = f"{record['glassdoor_review_count']:,}"
-        rows.append(row)
-    return rows
 
 
 st.title("Company library")
@@ -75,14 +62,70 @@ if not DB_PATH.exists():
     )
     st.stop()
 
-rows = library_rows()
-if not rows:
+records = library()
+if not records:
     st.warning(
         "The companies table is empty. Load it with:\n\n"
         "```bash\npython -m ingest.load_companies\n```"
     )
     st.stop()
 
-rated = sum(1 for row in rows if row["Glassdoor rating"] != NOT_AVAILABLE)
-st.caption(f"{len(rows)} companies, {rated} with a Glassdoor rating")
-st.dataframe(rows, hide_index=True)
+with st.sidebar:
+    st.header("Filter")
+    period = st.radio("Review period", list(PERIODS), format_func=PERIOD_TITLES.get, horizontal=True)
+    sectors = st.multiselect("Sector", sorted({r["sector"] for r in records}))
+    countries = st.multiselect("HQ country", sorted({r["hq_country"] for r in records if r["hq_country"]}))
+    # "Any" as the first stop makes "no minimum" explicit, rather than
+    # treating the slider's lowest number as off.
+    min_rating = st.select_slider(
+        "Minimum Glassdoor rating",
+        [ANY, *minimum_steps([r["glassdoor_rating"] for r in records], 0.1)],
+        format_func=lambda v: v if v == ANY else f"{v:.1f}",
+    )
+    min_sentiment = st.select_slider(
+        "Minimum review sentiment",
+        [ANY, *minimum_steps([sentiment(r, p) for r in records for p in PERIODS], 0.05)],
+        format_func=lambda v: v if v == ANY else f"{v:+.2f}",
+    )
+    min_reviews = st.select_slider(
+        "Minimum reviews scored",
+        REVIEW_MINIMUMS,
+        format_func=lambda v: f"{v:,}",
+        help=f"{MIN_REVIEWS} is the standing rule: below it a score is hidden. "
+             "Raise it to drop companies whose score rests on a small sample.",
+    )
+    include_missing = st.toggle(
+        "Include companies with no value for a minimum you've set",
+        help="Off: a company with no rating, no sentiment or no reviews is left out "
+             "when you set a minimum on that field. On: it stays in, shown as not available.",
+    )
+
+    st.header("Sort")
+    sort_key = st.selectbox("Sort by", list(SORT_KEYS), format_func=SORT_LABELS.get)
+    descending = st.toggle("Descending")
+
+filters = Filters(
+    period=period,
+    sectors=tuple(sectors),
+    countries=tuple(countries),
+    min_rating=None if min_rating == ANY else min_rating,
+    min_sentiment=None if min_sentiment == ANY else min_sentiment,
+    min_reviews=min_reviews,
+    include_missing=include_missing,
+)
+shown = apply(records, filters, sort_key, descending)
+
+st.caption(f"{len(shown)} of {len(records)} companies")
+if not shown:
+    st.info("No companies match these filters. Remove a sector or country, lower a minimum, "
+            "or turn on the toggle that includes companies with no value.")
+    st.stop()
+
+st.dataframe([display_row(record, period) for record in shown], hide_index=True)
+st.caption(
+    "Use **Sort** in the sidebar: it sorts by the numbers and always puts \"not available\" last. "
+    "Clicking a column header sorts the cells as text. "
+    "The Glassdoor rating comes from a ratings snapshot; review sentiment is VADER over a "
+    "separate set of review texts, from −1 to +1, so a company can have one without the other. "
+    f"Scores based on fewer than {MIN_REVIEWS} reviews are hidden. Reviews end in mid-2023."
+)

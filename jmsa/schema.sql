@@ -143,9 +143,10 @@ CREATE TABLE IF NOT EXISTS review_summary (
     PRIMARY KEY (company_id, period)
 );
 
--- The F2 filters, the F7 skills chart and every company page scan by these.
--- One composite index serves both "a company's reviews" and "a company's
--- reviews in a date range"; it replaces the company-only index.
+-- Per-company lookups. The F2 filters don't use these: they read
+-- review_summary, which has its own primary key. One composite index serves
+-- both "a company's reviews" and "a company's reviews in a date range" (the
+-- sentiment step's per-period summaries); it replaces the company-only index.
 DROP INDEX IF EXISTS idx_reviews_company;
 CREATE INDEX IF NOT EXISTS idx_reviews_company_date ON reviews(company_id, review_date);
 CREATE INDEX IF NOT EXISTS idx_articles_company ON articles(company_id);

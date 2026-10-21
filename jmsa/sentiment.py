@@ -69,6 +69,11 @@ def month_year(iso_date: str | None) -> str | None:
     return f"{MONTHS[int(iso_date[5:7]) - 1]} {iso_date[:4]}"
 
 
+def is_shown(count: int) -> bool:
+    """The 20-review rule: is a figure based on count reviews shown at all?"""
+    return count >= MIN_REVIEWS
+
+
 def hidden(count: int) -> str:
     return f"hidden: fewer than {MIN_REVIEWS} reviews ({count})"
 
@@ -91,7 +96,7 @@ def period_view(period: str, row: sqlite3.Row | None) -> dict:
     # The count is always shown, even when the score is hidden, so a thin
     # sample (intuit has 22) is never presented without its size.
     view["reviews"] = f"{count:,}"
-    shown = count >= MIN_REVIEWS
+    shown = is_shown(count)
     view["average"] = score_text(row["avg_compound"]) if shown else hidden(count)
     view["shares"] = (
         f"{row['share_positive']:.0%} positive · {row['share_neutral']:.0%} neutral · "
@@ -105,7 +110,7 @@ def period_view(period: str, row: sqlite3.Row | None) -> dict:
         view["themes"].append({
             "Theme": THEME_NAMES[theme],
             "Reviews mentioning": f"{mentions:,}",
-            "Score": score_text(compound) if mentions >= MIN_REVIEWS else hidden(mentions),
+            "Score": score_text(compound) if is_shown(mentions) else hidden(mentions),
         })
     return view
 
