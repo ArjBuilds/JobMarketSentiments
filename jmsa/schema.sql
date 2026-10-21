@@ -3,7 +3,7 @@
 -- Conventions (see PRD.md "Data dictionary"):
 --   company_id        lowercase slug, e.g. tata-consultancy-services
 --   dates             TEXT holding ISO 8601
---   india_cities      semicolon-separated list
+--   india_cities      semicolon-separated list, as are aliases and jobs.city
 --   sentiment_label   positive at compound >= 0.05, negative at <= -0.05,
 --                     neutral otherwise (standard VADER cut-offs)
 --
@@ -11,18 +11,24 @@
 -- here must be idempotent.
 
 CREATE TABLE IF NOT EXISTS companies (
-    -- Columns mirror the data/companies.csv header exactly: the library
-    -- loader inserts the CSV rows unchanged.
-    company_id           TEXT PRIMARY KEY,
-    name                 TEXT NOT NULL,
-    sector               TEXT NOT NULL,
-    hq_country           TEXT,
-    india_cities         TEXT,
-    size_band            TEXT,
-    ats_type             TEXT,          -- greenhouse | lever | empty
-    ats_board_id         TEXT,
-    careers_url          TEXT,
-    publishes_attrition  TEXT           -- yes | no, as curated in the CSV
+    -- The first block mirrors the data/companies.csv header exactly: the
+    -- library loader inserts the CSV rows unchanged. The glassdoor_* block
+    -- is filled later by the ratings loader, not by the CSV.
+    company_id              TEXT PRIMARY KEY,
+    name                    TEXT NOT NULL,
+    sector                  TEXT NOT NULL,
+    hq_country              TEXT,
+    india_cities            TEXT,
+    size_band               TEXT,
+    careers_url             TEXT,
+    publishes_attrition     TEXT,       -- yes | no, as curated in the CSV
+    aliases                 TEXT,       -- other names the sources use for this company
+    -- From data/raw/glassdoor_company_ratings.csv. When several rows share
+    -- the name, the one with the highest review_count wins.
+    glassdoor_rating        REAL,
+    glassdoor_review_count  INTEGER,
+    glassdoor_employer_size TEXT,
+    glassdoor_industry      TEXT
 );
 
 CREATE TABLE IF NOT EXISTS reviews (
@@ -63,19 +69,23 @@ CREATE TABLE IF NOT EXISTS articles (
 );
 
 CREATE TABLE IF NOT EXISTS jobs (
-    job_id       TEXT PRIMARY KEY,
-    company_id   TEXT NOT NULL REFERENCES companies(company_id),
-    title        TEXT,
-    city         TEXT,
-    posted_at    TEXT,
-    url          TEXT,
-    description  TEXT,
-    source       TEXT,                 -- adzuna | greenhouse | lever
-    fetched_at   TEXT                  -- drives the "last refresh" date on F8
+    -- Indian data-science and analytics postings from
+    -- data/raw/naukri_jobs_merged.csv. There is no posted date column
+    -- because the source has no dates, only relative strings.
+    job_id           TEXT PRIMARY KEY,
+    company_id       TEXT NOT NULL REFERENCES companies(company_id),
+    title            TEXT,
+    city             TEXT,             -- semicolon-separated if the posting lists several
+    posted_relative  TEXT,             -- "1 Day Ago", "30+ Days Ago"; empty for 19,479 rows
+    url              TEXT,             -- empty for those same rows
+    skills_raw       TEXT,             -- source string, skills concatenated with no separator
+    source           TEXT,             -- naukri
+    loaded_at        TEXT              -- when the snapshot was loaded
 );
 
 CREATE TABLE IF NOT EXISTS job_skills (
-    -- Reaches companies through jobs, not directly.
+    -- Reaches companies through jobs, not directly. Filled by matching
+    -- skills.csv against jobs.skills_raw with the spaCy PhraseMatcher.
     job_id  TEXT NOT NULL REFERENCES jobs(job_id),
     skill   TEXT NOT NULL,
     PRIMARY KEY (job_id, skill)
