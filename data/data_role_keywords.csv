@@ -1,0 +1,53 @@
+keyword,kind
+data,include
+analyst,include
+analysts,include
+analytics,include
+analytical,include
+analysis,include
+scientist,include
+scientists,include
+science,include
+machine learning,include
+ml,include
+mlops,include
+ai,include
+artificial intelligence,include
+generative ai,include
+genai,include
+llm,include
+nlp,include
+deep learning,include
+computer vision,include
+bi,include
+business intelligence,include
+power bi,include
+tableau,include
+qlik,include
+sql,include
+python,include
+statistics,include
+statistical,include
+statistician,include
+insights,include
+mis,include
+quant,include
+quantitative,include
+modeling,include
+modelling,include
+model validation,include
+model development,include
+etl,include
+big data,include
+visualisation,include
+visualization,include
+data entry,exclude
+data entry operator,exclude
+data center,exclude
+data centre,exclude
+data protection,exclude
+data privacy,exclude
+business analyst,exclude
+snowflake,include
+databricks,include
+spark,include

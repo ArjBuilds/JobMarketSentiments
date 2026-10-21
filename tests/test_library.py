@@ -207,6 +207,52 @@ def test_pre_merger_reviews_are_marked(db):
         "+0.26 (positive) · pre-merger Mindtree reviews")
 
 
+# --- data roles ------------------------------------------------------------
+
+# company_id -> postings in jobs; the other three companies have none.
+DATA_ROLES = {"acme": 3, "initech": 1}
+
+
+@pytest.fixture
+def with_roles(db):
+    for company in COMPANIES:
+        add_company(db, *company)
+    for company_id, count in DATA_ROLES.items():
+        for n in range(count):
+            db.execute("INSERT INTO jobs (job_id, company_id, title) VALUES (?, ?, 'Data Analyst')",
+                       (f"{company_id}-{n}", company_id))
+    db.commit()
+    return load_library(db)
+
+
+def test_data_roles_are_counted_and_missing_is_none_not_zero(with_roles):
+    counts = {r["company_id"]: r["data_roles"] for r in with_roles}
+    assert counts == {"acme": 3, "globex": None, "hooli": None, "initech": 1, "tiny": None}
+
+
+def test_has_data_roles_filter(with_roles):
+    assert ids(with_roles, Filters(has_data_roles=True)) == ["acme", "initech"]
+
+
+def test_has_data_roles_combines_with_other_filters(with_roles):
+    assert ids(with_roles, Filters(has_data_roles=True, countries=("India",))) == ["acme"]
+
+
+@pytest.mark.parametrize("descending, expected", [
+    (False, ["initech", "acme", "globex", "hooli", "tiny"]),
+    (True, ["acme", "initech", "globex", "hooli", "tiny"]),
+])
+def test_sort_by_data_roles_puts_missing_last(with_roles, descending, expected):
+    assert ids(with_roles, sort_key="data_roles", descending=descending) == expected
+
+
+def test_display_shows_data_roles_or_not_available(with_roles):
+    header = column_headers("all")["data_roles"]
+    rows = rows_by_id(with_roles)
+    assert rows["acme"][header] == "3"
+    assert rows["globex"][header] == NOT_AVAILABLE
+
+
 # --- slider stops ----------------------------------------------------------
 
 def test_minimum_steps_cover_the_data_with_exact_values():

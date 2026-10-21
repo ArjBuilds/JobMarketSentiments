@@ -3,7 +3,7 @@ and sorting (F2).
 
 Reads only from SQLite. The Glassdoor columns are filled by
 ingest.load_glassdoor_ratings and the sentiment columns come from
-review_summary. Filtering, sorting and formatting live in jmsa.library; this
+review_summary, and the data-role counts from jobs (ingest.load_jobs). Filtering, sorting and formatting live in jmsa.library; this
 page only draws the controls and the table.
 """
 
@@ -27,6 +27,7 @@ from jmsa.library import (  # noqa: E402
     minimum_steps,
     sentiment,
 )
+from jmsa.jobs import LOWER_BOUND_NOTE  # noqa: E402
 from jmsa.sentiment import MIN_REVIEWS, PERIOD_TITLES, PERIODS  # noqa: E402
 
 st.set_page_config(page_title="Library · Job Market Analyser", page_icon="📊", layout="wide")
@@ -94,6 +95,11 @@ with st.sidebar:
         help=f"{MIN_REVIEWS} is the standing rule: below it a score is hidden. "
              "Raise it to drop companies whose score rests on a small sample.",
     )
+    has_data_roles = st.checkbox(
+        "Has data roles in the dataset",
+        help="Keep only companies with at least one data-science or analytics posting "
+             "in the Naukri snapshot.",
+    )
     include_missing = st.toggle(
         "Include companies with no value for a minimum you've set",
         help="Off: a company with no rating, no sentiment or no reviews is left out "
@@ -111,6 +117,7 @@ filters = Filters(
     min_rating=None if min_rating == ANY else min_rating,
     min_sentiment=None if min_sentiment == ANY else min_sentiment,
     min_reviews=min_reviews,
+    has_data_roles=has_data_roles,
     include_missing=include_missing,
 )
 shown = apply(records, filters, sort_key, descending)
@@ -127,5 +134,8 @@ st.caption(
     "Clicking a column header sorts the cells as text. "
     "The Glassdoor rating comes from a ratings snapshot; review sentiment is VADER over a "
     "separate set of review texts, from −1 to +1, so a company can have one without the other. "
-    f"Scores based on fewer than {MIN_REVIEWS} reviews are hidden. Reviews end in mid-2023."
+    f"Scores based on fewer than {MIN_REVIEWS} reviews are hidden. Reviews end in mid-2023. "
+    "Data-role listings are distinct Naukri data-science and analytics listings in India in the "
+    "dataset snapshot, collected in or after late October 2023, not roles open now. "
+    f"{LOWER_BOUND_NOTE}"
 )

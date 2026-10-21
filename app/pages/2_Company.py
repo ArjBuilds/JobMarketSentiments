@@ -2,8 +2,9 @@
 
 Reads only from SQLite. Review sentiment (F4) comes from review_summary,
 filled by process.review_sentiment; the rules for when a figure is hidden or
-"not available" live in jmsa.sentiment.read_summary, not here. Turnover,
-skills, roles and news arrive in later milestones.
+"not available" live in jmsa.sentiment.read_summary, not here. Data roles
+(F8) come from jobs, filled by ingest.load_jobs, through jmsa.jobs.read_roles.
+Turnover, skills and news arrive in later milestones.
 """
 
 import sys
@@ -16,6 +17,7 @@ import streamlit as st  # noqa: E402
 from jmsa.config import DB_PATH  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.display import NOT_AVAILABLE, show  # noqa: E402
+from jmsa.jobs import DATA_ROLES_NOTE, LOWER_BOUND_NOTE, ROLES_INTRO, read_roles  # noqa: E402
 from jmsa.sentiment import MIN_REVIEWS, read_summary  # noqa: E402
 
 st.set_page_config(page_title="Company · Job Market Analyser", page_icon="📊", layout="wide")
@@ -41,6 +43,15 @@ def sentiment(company_id: str) -> dict:
     conn = get_conn()
     try:
         return read_summary(conn, company_id)
+    finally:
+        conn.close()
+
+
+@st.cache_data
+def roles(company_id: str) -> dict:
+    conn = get_conn()
+    try:
+        return read_roles(conn, company_id)
     finally:
         conn.close()
 
@@ -104,6 +115,16 @@ else:
         f"Figures based on fewer than {MIN_REVIEWS} reviews are hidden. Reviews end in mid-2023."
     )
 
+st.subheader("Data roles posted in India")
+posted = roles(company["company_id"])
+if not posted["available"]:
+    st.markdown(f"Data roles posted: **{NOT_AVAILABLE}**. The postings dataset has none for this company.")
+else:
+    st.markdown(ROLES_INTRO)
+    st.markdown(f"**{posted['count']}** distinct listings. {LOWER_BOUND_NOTE}")
+    st.dataframe(posted["rows"], hide_index=True)
+st.caption(DATA_ROLES_NOTE)
+
 st.subheader("Coming in later milestones")
-st.caption("Data roles posted and their skills (F8, F7: milestone 6) · News coverage (F6: milestone 7) · "
+st.caption("Data-role skills (F7: milestone 6, stage B) · News coverage (F6: milestone 7) · "
            "Turnover (F5: milestone 8)")

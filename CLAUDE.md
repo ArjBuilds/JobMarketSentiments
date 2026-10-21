@@ -8,9 +8,12 @@ Milestones 1 (skeleton), 2 (company library), 3 (Glassdoor ratings), 4 (reviews 
 - `python -m ingest.load_companies` loads companies.csv into `companies`, and `python -m ingest.load_glassdoor_ratings` fills its `glassdoor_*` columns. The Library page renders the F1 table with a rating per company.
 - `python -m ingest.load_reviews` loads the 1.8M matched reviews. `python -m process.review_sentiment` scores them and fills `review_summary`. The Company page shows F4 sentiment for a selected company.
 - `python -m process.sentiment_checks` writes the method comparison and the TextBlob agreement rate for the report.
-- The Library page filters and sorts (F2) through [jmsa/library.py](jmsa/library.py), which has no Streamlit code so the tests call it directly. Add the M6 roles/skill filters as `Filters` fields and the M8 attrition sort as a `SORT_KEYS` entry there.
+- The Library page filters and sorts (F2) through [jmsa/library.py](jmsa/library.py), which has no Streamlit code so the tests call it directly. Add the M8 attrition sort as a `SORT_KEYS` entry there.
 
-Milestone 6 (data roles and skills) is next.
+Milestone 6 is split in two. Stage A (data roles, F8) is built:
+- `python -m ingest.load_jobs` filters titles, matches employers, verifies links and replaces `jobs`; it writes `data/raw/naukri_match_report.txt`. The Company page shows F8 through [jmsa/jobs.py](jmsa/jobs.py), and the Library page has the data-roles column, filter and sort.
+
+Stage B (market-wide skills, F7) is next.
 
 Five files are on disk, and none of them is a live job API:
 
@@ -18,7 +21,7 @@ Five files are on disk, and none of them is a live job API:
 - `data/raw/glassdoor_company_ratings.csv` — 3,029 rows of overall rating, review count, employer size and industry. No review text.
 - `data/raw/all_reviews.csv` — 9.9M Glassdoor reviews with text (davidgauthier/glassdoor-job-reviews-2, CC BY-NC-SA 4.0). 1,799,628 of them match 78 of our 82 companies, 2008 to mid-2023. This replaced employee_reviews.csv, which is still on disk but no longer used.
 - `data/raw/company_aliases.csv` — the name mappings that matching depends on (`company_id,alias_in_dataset,source`): 80 for review text, 5 for ratings. Committed, unlike everything else in `raw/`.
-- `data/raw/naukri_jobs_merged.csv` — 43,630 Indian Naukri data-science and analytics postings, already deduplicated.
+- `data/raw/naukri_jobs_merged.csv` — 43,630 Indian Naukri postings in three exports, already deduplicated. Its columns are misaligned row by row, and many titles aren't data roles; see the PRD's "The postings snapshot" before using any column.
 
 [PRD.md](PRD.md) is the specification of record. Read it before building anything — it fixes the feature list (F1–F9), data sources, SQLite schema, naming conventions and the milestone order. When something here and the PRD disagree, the PRD wins; update both.
 
@@ -67,6 +70,8 @@ python -m process.<step>
 # throwaway file to keep test runs out of data/jmsa.db.
 python -m ingest.load_reviews [--resume]       # ~1.8M rows, 50k per transaction
 python -m process.review_sentiment [--rescore] # --rescore after editing themes.csv
+python -m ingest.load_jobs                     # full replace of jobs; rerun after editing
+                                               # data_role_keywords.csv or naukri aliases
 
 pytest
 pytest tests/test_schema.py::test_six_tables_created   # a single test
@@ -82,11 +87,15 @@ pytest tests/test_schema.py::test_six_tables_created   # a single test
 - Theme keywords live in [data/themes.csv](data/themes.csv). The four theme names are fixed, and the keywords are editable. A theme's score is the VADER score of the section (headline, pros or cons) that mentions it.
 - The meanings of the review letter codes (`recommend`, `ceo_approval`, `business_outlook`: v, r, o, x) are unverified; check them against the Kaggle dataset card before interpreting them.
 - `sector` comes from a fixed list of 15 values already present in companies.csv — don't introduce new ones ad hoc.
-- Each source is matched to the library once, at load time, never by fuzzy-matching at query time. Every source uses the committed `data/raw/company_aliases.csv`, the only alias store (`companies` has no aliases column). Its `source` column (`glassdoor_reviews`, `glassdoor_ratings`; Naukri gets its own in milestone 6) keeps each alias to the dataset it was found in. Read it through [jmsa/aliases.py](jmsa/aliases.py), which also holds the shared `normalise()`. 43 companies match a Naukri name exactly, so aliases carry the rest.
+- Each source is matched to the library once, at load time, never by fuzzy-matching at query time. Every source uses the committed `data/raw/company_aliases.csv`, the only alias store (`companies` has no aliases column). Its `source` column (`glassdoor_reviews`, `glassdoor_ratings`, `naukri`) keeps each alias to the dataset it was found in. Read it through [jmsa/aliases.py](jmsa/aliases.py), which also holds the shared `normalise()`. 43 companies match a Naukri name exactly, so aliases carry the rest.
+- Naukri alias rule: a company's own India operations and service centres count for it; recruitment agencies, namesakes and majority-owned businesses in a different line of work (ICICI Prudential, HDFC Life, Tata Motors Finance, Siemens Healthcare) don't. Checked rejections live in `REJECTED_NAMES` in [ingest/load_jobs.py](ingest/load_jobs.py) and can never match.
 - When several `glassdoor_company_ratings.csv` rows match one company — the same name is used by different employers — take the row with the highest `review_count`.
 - Ratings coverage: 66 of 82 companies (61 by exact name, 5 by alias). 16 show "not available": the file has only subsidiaries or regional arms for tata-consultancy-services, infosys, accenture, capgemini, ibm, deloitte, amazon and walmart; no row at all for cognizant, linkedin, blackrock and visa; **wipro**, **ey** and **tata-motors** are exact matches deliberately rejected (`REJECTED` in the ratings loader) because the rows have low review counts and a foreign head office, i.e. regional pages; and **mercedes-benz** has no ratings alias because its only row, Mercedes-Benz International (Motor Vehicle Dealers, 3 offices), is a sales arm, not the group. Its glassdoor_reviews alias is unaffected. Employer size is not a reason to reject — that column is unreliable across the file. The loader's report flags, without changing, big companies (size band 50k-200k or 200k+) with under 5,000 ratings reviews as "check: possibly a regional page".
-- `jobs` holds no posted date: the Naukri file has only relative strings (`posted_relative`, e.g. "1 Day Ago"), empty for 19,479 of its rows. Never convert these into dates.
-- `skills_raw` concatenates skills with no separator (`Text miningCareer developmentdata science`), so it cannot be split on a delimiter. Match known skills from skills.csv against the string with the spaCy PhraseMatcher.
+- `jobs` holds no posted date: the Naukri file has only relative strings (`posted_relative`, e.g. "1 Day Ago"). Never convert these into dates.
+- Naukri columns: only `job_title` and `company_name` reliably belong together. A row's `url`, `posted_relative` and `city` are kept only when its link's slug starts with the title and then names the employer; `city` is read from that slug. `url` and `posted_relative` drive verification and dedup but are never displayed: the 2023 links have expired and "1 Day Ago" would read as current. F8 shows title, employer (as posted) and city only. Never store `locations`, `experience_required`, `package` or `skills_raw` against a posting.
+- A posting is a data role only if its title passes the include/exclude keywords in [data/data_role_keywords.csv](data/data_role_keywords.csv). "business analyst" is excluded unless the title also has a data-specific include keyword (`OVERRIDABLE_EXCLUDES` and `GENERIC_INCLUDES` in the loader).
+- `jobs` holds distinct listings, not rows: matched rows are deduplicated at load time, verified rows by Naukri job ID and unverified rows by (employer as posted, title), with an unverified row dropped when a verified row has the same pair. Same-title listings without a verified link count once, so every count is a lower bound and is shown with that note.
+- `skills_raw` concatenates skills with no separator (`Text miningCareer developmentdata science`), so it cannot be split on a delimiter. Match known skills from skills.csv against the string with the spaCy PhraseMatcher. Its skills belong to other rows' postings, so count them only per export (the two data-science exports), never per company.
 
 ## Rules the data layer must hold to
 
@@ -99,7 +108,7 @@ pytest tests/test_schema.py::test_six_tables_created   # a single test
 - Glassdoor **ratings** and review **text** are different sources with different coverage. A company can have a rating and no sentiment; don't present one as the other.
 - Turnover is either published attrition (with period and source URL) or the review-based proxy, and a proxy is always labelled `is_proxy` and surfaced as "proxy" in the UI.
 - No live scraping of LinkedIn or Glassdoor — their terms forbid it. Reviews come from the CSV snapshots above.
-- There are no live job APIs. Roles and skills (F7, F8) come only from `naukri_jobs_merged.csv`, which is Indian data-science and analytics postings. Label these views as data roles, and label counts as "roles posted in the dataset period", never "open now".
+- There are no live job APIs. Roles and skills (F7, F8) come only from `naukri_jobs_merged.csv`, which is Indian data-science and analytics postings. Label these views as data roles, and label counts as distinct data-role listings in the dataset snapshot (collected in or after late October 2023), never "open now", with the lower-bound note beside them.
 - Store no reviewer names or personal data.
 - GNews is the only API in the project. Cache every response into SQLite; news runs at most once a day against free-tier limits.
 

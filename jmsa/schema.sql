@@ -94,18 +94,26 @@ CREATE TABLE IF NOT EXISTS articles (
 );
 
 CREATE TABLE IF NOT EXISTS jobs (
-    -- Indian data-science and analytics postings from
-    -- data/raw/naukri_jobs_merged.csv. There is no posted date column
+    -- Indian data-role postings from data/raw/naukri_jobs_merged.csv, loaded
+    -- by ingest.load_jobs: only postings whose title is a data role and whose
+    -- employer matched a library company. There is no posted date column
     -- because the source has no dates, only relative strings.
-    job_id           TEXT PRIMARY KEY,
+    --
+    -- The source's columns are misaligned row by row: title and employer
+    -- belong together, but the link, post time, locations and skills often
+    -- come from another posting. So url, posted_relative and city are kept
+    -- only when the link's slug names this row's title and employer, and are
+    -- NULL otherwise.
+    job_id           TEXT PRIMARY KEY,  -- nk-<job_row_id>
     company_id       TEXT NOT NULL REFERENCES companies(company_id),
+    employer_name    TEXT,              -- company_name as posted, e.g. "KPMG Global Services Private Limited"
     title            TEXT,
-    city             TEXT,             -- semicolon-separated if the posting lists several
-    posted_relative  TEXT,             -- "1 Day Ago", "30+ Days Ago"; empty for 19,479 rows
-    url              TEXT,             -- empty for those same rows
-    skills_raw       TEXT,             -- source string, skills concatenated with no separator
-    source           TEXT,             -- naukri
-    loaded_at        TEXT              -- when the snapshot was loaded
+    city             TEXT,              -- read from the verified link; semicolon-separated if several
+    posted_relative  TEXT,              -- "1 Day Ago", "30+ Days Ago" as given; never converted to a date
+    url              TEXT,
+    skills_raw       TEXT,              -- always NULL: the source's skills belong to other postings
+    source           TEXT,              -- naukri
+    loaded_at        TEXT               -- when the snapshot was loaded, ISO 8601
 );
 
 CREATE TABLE IF NOT EXISTS job_skills (

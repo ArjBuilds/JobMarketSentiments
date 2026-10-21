@@ -7,9 +7,10 @@ display_row() over the 82 records in memory. No query per filter.
 Values stay numeric until display_row(), so sorting compares numbers rather
 than text, and a missing value is None until it becomes "not available".
 
-Milestone 6 adds the "has data roles" and "required skill" filters as new
-Filters fields with a check in matches(). Milestone 8 adds attrition as a
-SORT_KEYS entry. Nothing else here needs to change.
+Milestone 6 added data roles: a count per company, the "has data roles"
+filter and a sort. There is no "required skill" filter: the postings' skills
+can't be tied to an employer (see PRD.md, "The postings snapshot").
+Milestone 8 adds attrition as a SORT_KEYS entry.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ import sqlite3
 from dataclasses import dataclass
 
 from jmsa.display import NOT_AVAILABLE, show
+from jmsa.jobs import cities_text
 from jmsa.sentiment import MIN_REVIEWS, PERIOD_TITLES, hidden, is_shown, score_text
 
 # Choices for the minimum-reviews filter. The first is the 20-review rule
@@ -35,6 +37,7 @@ class Filters:
     min_rating: float | None = None     # None means no minimum
     min_sentiment: float | None = None
     min_reviews: int = MIN_REVIEWS
+    has_data_roles: bool = False        # True keeps only companies with postings in the dataset
     # When a minimum is set, may a company with no value for it stay in?
     include_missing: bool = False
 
@@ -49,11 +52,15 @@ def load_library(conn: sqlite3.Connection) -> list[dict]:
     """
     # A company with no reviews has no review_summary rows, so the LEFT JOIN
     # gives it one row with NULLs; a company with reviews gets one per period.
+    # Its data roles are counted once in a subquery and repeat on each row.
     query = """
         SELECT c.company_id, c.name, c.sector, c.hq_country, c.india_cities, c.size_band,
-               c.glassdoor_rating, c.glassdoor_review_count,
+               c.glassdoor_rating, c.glassdoor_review_count, j.roles,
                s.period, s.review_count, s.avg_compound, s.pre_merger_count
-        FROM companies c LEFT JOIN review_summary s ON s.company_id = c.company_id
+        FROM companies c
+        LEFT JOIN review_summary s ON s.company_id = c.company_id
+        LEFT JOIN (SELECT company_id, COUNT(*) AS roles FROM jobs GROUP BY company_id) j
+               ON j.company_id = c.company_id
         ORDER BY c.name COLLATE NOCASE, c.company_id
     """
     records: dict[str, dict] = {}
@@ -67,6 +74,8 @@ def load_library(conn: sqlite3.Connection) -> list[dict]:
             "size_band": row["size_band"],
             "glassdoor_rating": row["glassdoor_rating"],
             "glassdoor_review_count": row["glassdoor_review_count"],
+            # None, not 0, when the dataset has no postings: "not available".
+            "data_roles": row["roles"],
             "reviews": {},       # period -> scored review count
             "sentiment": {},     # period -> average compound, None if hidden
             "pre_merger": {},    # period -> True if any of the reviews are pre-merger
@@ -95,12 +104,14 @@ SORT_KEYS = {
     "rating": lambda record, period: record["glassdoor_rating"],
     "sentiment": sentiment,
     "reviews": reviews,
+    "data_roles": lambda record, period: record["data_roles"],
 }
 SORT_LABELS = {
     "name": "Name",
     "rating": "Glassdoor rating",
     "sentiment": "Review sentiment",
     "reviews": "Reviews scored",
+    "data_roles": "Data-role listings",
 }
 
 
@@ -125,6 +136,7 @@ def matches(record: dict, filters: Filters) -> bool:
         and meets(record["glassdoor_rating"], filters.min_rating, filters.include_missing)
         and meets(sentiment(record, period), filters.min_sentiment, filters.include_missing)
         and meets(reviews(record, period), min_reviews, filters.include_missing)
+        and (not filters.has_data_roles or record["data_roles"] is not None)
     )
 
 
@@ -175,6 +187,7 @@ def column_headers(period: str) -> dict[str, str]:
         "rating_count": "Glassdoor ratings",
         "sentiment": f"Review sentiment ({title})",
         "reviews": f"Reviews scored ({title})",
+        "data_roles": "Data-role listings (dataset snapshot)",
     }
 
 
@@ -191,16 +204,17 @@ def display_row(record: dict, period: str) -> dict[str, str]:
             score += " · pre-merger Mindtree reviews"
 
     rating, rating_count = record["glassdoor_rating"], record["glassdoor_review_count"]
-    cities = record["india_cities"]
+    roles = record["data_roles"]
     values = {
         "name": record["name"],
         "sector": record["sector"],
         "hq_country": record["hq_country"],
-        "india_cities": ", ".join(cities.split(";")) if cities else None,
+        "india_cities": cities_text(record["india_cities"]),
         "size_band": record["size_band"],
         "rating": f"{rating:.1f}" if rating is not None else None,
         "rating_count": f"{rating_count:,}" if rating_count is not None else None,
         "sentiment": score,
         "reviews": f"{count:,}" if count is not None else None,
+        "data_roles": f"{roles:,}" if roles is not None else None,
     }
     return {header: show(values[key]) for key, header in column_headers(period).items()}

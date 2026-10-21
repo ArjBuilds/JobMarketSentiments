@@ -28,8 +28,8 @@ def connection():
 
 st.title("Job Market Analyser")
 st.caption(
-    "Employee sentiment, turnover, news coverage, in-demand skills and open "
-    "India roles for a curated library of large employers."
+    "Employee sentiment, turnover, news coverage, in-demand skills and the "
+    "India data roles posted in a dataset snapshot, for a curated library of large employers."
 )
 
 if not DB_PATH.exists():
