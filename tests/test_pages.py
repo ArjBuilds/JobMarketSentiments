@@ -108,6 +108,11 @@ def test_about_opens_without_a_database(tmp_path, monkeypatch):
     assert not app.error   # the router lets About through
     assert "No database" in app.warning[0].value
     assert app.expander[0].label == "How scores work"
+    headings = [m.value for m in app.expander[0].markdown]
+    for heading in ("Review sentiment", "Theme sentiment", "Thresholds", "Glassdoor rating vs review sentiment",
+                    "Published attrition", "Turnover proxy", "News sentiment", "Data-role listings",
+                    "Skills counts"):
+        assert f"**{heading}**" in headings
     assert not missing.exists()
 
 

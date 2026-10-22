@@ -20,7 +20,7 @@ Use `st.navigation` with `st.Page` (not the legacy `pages/` folder auto-discover
 | Company | Everything about one company (F3–F6, F8) | Header, metric row, tabs: Sentiment, Data roles & skills, News, Turnover |
 | Compare | 2–4 companies side by side (F9) | One metrics table + small multiples |
 | Market skills | Skills Indian data-role postings ask for, market-wide (F7) | One-line market-wide label, view switch (all / tools / methods), top skills bar chart |
-| About the data | Sources and their dates | Sources table (source, used for, dates) and one collapsed "How scores work" expander |
+| About the data | Sources and their dates, and how every score is calculated | Sources table (source, used for, dates) and one collapsed "How scores work" expander |
 
 Sidebar: app name, page nav in the order Explore, Company, Compare, Market skills, About the data, and a data-freshness line ("Data last refreshed: <newest source date>", linking to About the data, where each source's own date is listed). The date is read from `jmsa/freshness.py`, never typed in. The sidebar carries no compare-list count; "Compare (n)" sits beside the compare picker on Explore. Explore draws its filters in the sidebar; no other page does, because no other page filters the library.
 
@@ -59,7 +59,7 @@ Links between pages:
 - Copy: plain, specific labels ("Data-role listings (2023 snapshot)", not "Opportunities"). Postings are a 2023 snapshot: never "open now", "hiring now" or "open roles". Buttons use verbs ("Add to compare"). Emoji only as page icons in navigation, nowhere else.
 
 ## Text on pages
-The app reads like a finished product a student uses, not a methods write-up. Labels, one-sentence tooltips and a one-line source-and-date note per data block; never method or caveat paragraphs, long captions, export file names, or mention of the course or assignment. The method and caveats live in docs/methods.md.
+The app reads like a finished product a student uses, not a methods write-up. Labels, one-sentence tooltips and a one-line source-and-date note per data block; never method or caveat paragraphs (the About page's collapsed "How scores work" expander is the one exception), long captions, export file names, or mention of the course or assignment. The method and caveats live in docs/methods.md.
 - Proxy: a "Proxy" tag beside every proxy number, tooltip "Reviews mentioning people leaving, per 100 reviews. Not a share of staff."
 - Data roles: "Data-role listings (2023 snapshot)", tooltip "From a 2023 dataset, not live openings."
 - Missing and thin data: "Not available" and "Fewer than 20 reviews (n = X)".
@@ -94,7 +94,7 @@ Neither the cards nor the articles are filtered. Filters in the sidebar, drawn b
 
 **Compare.** Shows `compare_ids`, the list built on Explore and Company, with a picker to change it. One box per company: its name opens its Company page, plus a Remove button. Table with companies as columns and metrics as rows, same formatting and colours as elsewhere; a grouped bar of theme sentiment where colour means sentiment and each bar is labelled with its company. Fewer than 2 companies: a message and a link to Explore. The list holds 4; Add to compare on a full list says so rather than doing nothing.
 
-**About the data.** A clean, short page: a table of sources (source, what it is used for, dates) and at most one collapsed "How scores work" expander with no more than 4 one-line bullets. No paragraphs. It still opens when the database is missing.
+**About the data.** A clean, short page: a table of sources (source, what it is used for, dates) and one collapsed "How scores work" expander. The expander is the one place the app explains its method: a bold heading and a short paragraph or bullets for each calculation (review sentiment, theme sentiment, thresholds, Glassdoor rating vs review sentiment, published attrition, turnover proxy, news sentiment, data-role listings, skills counts), drawn from docs/methods.md, with numbers from the pipeline's constants. No paragraphs outside it. It still opens when the database is missing.
 
 ## Required states
 - Default with real data.
