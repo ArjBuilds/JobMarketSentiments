@@ -62,6 +62,45 @@ def test_page_runs_twice_without_an_exception(small_db, page):
         assert app.title, f"{page} drew nothing: does it compile?"
 
 
+def test_router_shows_one_error_without_a_database(tmp_path, monkeypatch):
+    """No database: the router says how to build one instead of failing,
+    and doesn't create the file while checking."""
+    missing = tmp_path / "missing.db"
+    monkeypatch.setattr(jmsa.config, "DB_PATH", missing)
+    monkeypatch.setattr(jmsa.db, "DB_PATH", missing)
+    st.cache_data.clear()
+    app = AppTest.from_file(str(ROOT / "app/app.py"), default_timeout=30)
+    app.run()
+    assert not app.exception, app.exception
+    assert "There is no database" in app.error[0].value
+    assert "python -m jmsa.db init" in app.error[0].value
+    assert not missing.exists()
+
+
+def test_router_shows_one_error_with_no_companies(tmp_path, monkeypatch):
+    path = tmp_path / "empty.db"
+    init_db(path)
+    monkeypatch.setattr(jmsa.config, "DB_PATH", path)
+    monkeypatch.setattr(jmsa.db, "DB_PATH", path)
+    st.cache_data.clear()
+    app = AppTest.from_file(str(ROOT / "app/app.py"), default_timeout=30)
+    app.run()
+    assert not app.exception, app.exception
+    assert "has no companies loaded" in app.error[0].value
+    st.cache_data.clear()
+
+
+def test_about_opens_without_a_database(tmp_path, monkeypatch):
+    missing = tmp_path / "missing.db"
+    monkeypatch.setattr(jmsa.config, "DB_PATH", missing)
+    monkeypatch.setattr(jmsa.db, "DB_PATH", missing)
+    app = AppTest.from_file(str(ROOT / "app/pages/5_About_and_methods.py"), default_timeout=30)
+    app.run()
+    assert not app.exception, app.exception
+    assert app.header[0].value == "Sources"
+    assert not missing.exists()
+
+
 def test_compare_asks_for_two_companies_then_shows_the_table(small_db):
     app = AppTest.from_file(str(ROOT / "app/pages/4_Compare.py"), default_timeout=30)
     app.run()

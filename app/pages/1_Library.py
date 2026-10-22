@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import streamlit as st  # noqa: E402
 
-from jmsa.config import DB_PATH  # noqa: E402
+from app.state import init_state  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.freshness import read_freshness, review_end, source_line  # noqa: E402
 from jmsa.library import (  # noqa: E402
@@ -36,7 +36,7 @@ from jmsa.jobs import LOWER_BOUND_NOTE  # noqa: E402
 from jmsa.turnover import BASES, BASIS_NAMES, PROXY_CHECK_NOTE, SCOPE_NAMES, SCOPES  # noqa: E402
 from jmsa.sentiment import MIN_REVIEWS, PERIOD_TITLES, PERIODS  # noqa: E402
 
-st.set_page_config(page_title="Library · Job Market Analyser", page_icon="📊", layout="wide")
+init_state()
 
 ANY = "Any"
 
@@ -71,21 +71,8 @@ def sources() -> tuple[dict, str]:
 
 st.title("Company library")
 
-# Checked before connecting, because get_conn would create an empty file.
-if not DB_PATH.exists():
-    st.warning(
-        f"No database at `{DB_PATH}`. Create it and load the library with:\n\n"
-        "```bash\npython -m jmsa.db init\npython -m ingest.load_companies\n```"
-    )
-    st.stop()
-
+# app/app.py has already checked the database exists and has companies.
 records = library()
-if not records:
-    st.warning(
-        "The companies table is empty. Load it with:\n\n"
-        "```bash\npython -m ingest.load_companies\n```"
-    )
-    st.stop()
 
 with st.sidebar:
     st.header("Filter")

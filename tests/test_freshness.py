@@ -6,6 +6,7 @@ from jmsa.display import NOT_AVAILABLE
 from jmsa.freshness import (
     attrition_dates,
     freshness_table,
+    last_refreshed,
     naukri_dates,
     news_dates,
     proxy_window,
@@ -79,7 +80,7 @@ def test_link_date_is_none_without_a_valid_id():
 
 def test_every_reader_says_not_available_on_an_empty_database(library):
     for reader in (review_range, review_end, snapshot_month, naukri_dates, news_dates,
-                   attrition_dates, proxy_window):
+                   attrition_dates, proxy_window, last_refreshed):
         assert reader(library) == NOT_AVAILABLE, reader.__name__
 
 
@@ -147,6 +148,19 @@ def test_attrition_dates_read_retrieved_on_from_published_rows_only(library):
     add_proxy(library, "acme")    # proxy rows have no retrieved_on and are ignored
     assert attrition_dates(library) == ("periods vary by company (shown with each figure); "
                                         "retrieved 20 Oct 2026 – 22 Oct 2026")
+
+
+def test_last_refreshed_is_the_newest_load_fetch_or_retrieval(library):
+    add_job(library, 1, loaded_at="2026-10-21T17:13:15+00:00")
+    add_fetch(library, "acme", "2026-10-21T17:54:57Z")
+    add_published(library, "acme", "FY2025-26", "2026-03-31", "2026-10-22")   # the newest
+    add_proxy(library, "globex")    # no date of its own: ignored
+    assert last_refreshed(library) == "22 Oct 2026"
+
+
+def test_last_refreshed_uses_whichever_sources_are_loaded(library):
+    add_fetch(library, "acme", "2026-10-19T08:15:00Z")
+    assert last_refreshed(library) == "19 Oct 2026"
 
 
 def test_proxy_window_is_read_from_the_stored_rows(library):

@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import streamlit as st  # noqa: E402
 
 from jmsa.compare import MAX_COMPANIES, MIN_COMPANIES, compare_table  # noqa: E402
-from jmsa.config import DB_PATH  # noqa: E402
+from app.state import init_state  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.freshness import freshness_table, read_freshness, review_end  # noqa: E402
 from jmsa.jobs import LOWER_BOUND_NOTE  # noqa: E402
@@ -23,7 +23,7 @@ from jmsa.news import NEWS_NOTE, read_news  # noqa: E402
 from jmsa.sentiment import MIN_REVIEWS  # noqa: E402
 from jmsa.turnover import PROXY_CHECK_NOTE, PUBLISHED_NOTE  # noqa: E402
 
-st.set_page_config(page_title="Compare · Job Market Analyser", page_icon="📊", layout="wide")
+init_state()
 
 
 # Cached results, not connections, for the reason given on the Library page.
@@ -56,18 +56,8 @@ def sources() -> tuple[dict, str]:
 
 st.title("Compare companies")
 
-# Checked before connecting, because get_conn would create an empty file.
-if not DB_PATH.exists():
-    st.warning(
-        f"No database at `{DB_PATH}`. Create it and load the library with:\n\n"
-        "```bash\npython -m jmsa.db init\npython -m ingest.load_companies\n```"
-    )
-    st.stop()
-
+# app/app.py has already checked the database exists and has companies.
 records = library()
-if not records:
-    st.warning("The companies table is empty. Load it with:\n\n```bash\npython -m ingest.load_companies\n```")
-    st.stop()
 
 names = {r["company_id"]: r["name"] for r in records}
 picked = st.multiselect(f"Companies ({MIN_COMPANIES} to {MAX_COMPANIES})", list(names),

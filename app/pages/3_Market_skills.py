@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import plotly.graph_objects as go  # noqa: E402
 import streamlit as st  # noqa: E402
 
-from jmsa.config import DB_PATH  # noqa: E402
+from app.state import init_state  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.display import NOT_AVAILABLE  # noqa: E402
 from jmsa.freshness import naukri_dates  # noqa: E402
@@ -23,7 +23,7 @@ from jmsa.skills import (  # noqa: E402
     read_export_comparison, read_market_skills, read_scope_sizes,
 )
 
-st.set_page_config(page_title="Market skills · Job Market Analyser", page_icon="📊", layout="wide")
+init_state()
 
 # One series, so one hue (the palette's first categorical slot) and no legend.
 BAR_COLOUR = "#2a78d6"
@@ -84,14 +84,6 @@ def bar_chart(rows: list[dict]) -> go.Figure:
 
 st.title("Market skills")
 st.markdown("What Indian data-role postings ask for. **Market-wide, not any one company's.**")
-
-# Checked before connecting, because get_conn would create an empty file.
-if not DB_PATH.exists():
-    st.warning(
-        f"No database at `{DB_PATH}`. Create it and count the skills with:\n\n"
-        "```bash\npython -m jmsa.db init\npython -m process.skill_counts\n```"
-    )
-    st.stop()
 
 view = st.radio("Show", list(VIEWS), horizontal=True,
                 help="Tools are named products and languages; methods are techniques. "

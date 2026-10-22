@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import streamlit as st  # noqa: E402
 
-from jmsa.config import DB_PATH  # noqa: E402
+from app.state import init_state  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.display import NOT_AVAILABLE, show  # noqa: E402
 from jmsa.freshness import (  # noqa: E402
@@ -32,7 +32,7 @@ from jmsa.turnover import PROXY_CHECK_NOTE, PROXY_NOTE, PUBLISHED_NOTE, read_tur
 from jmsa.sentiment import MIN_REVIEWS, read_summary  # noqa: E402
 from jmsa.skills import COMPANY_SKILLS_NOTE  # noqa: E402
 
-st.set_page_config(page_title="Company · Job Market Analyser", page_icon="📊", layout="wide")
+init_state()
 
 
 # Cached results, not connections, for the reason given on the Library page:
@@ -99,18 +99,8 @@ def turnover(company_id: str) -> dict:
 
 st.title("Company")
 
-# Checked before connecting, because get_conn would create an empty file.
-if not DB_PATH.exists():
-    st.warning(
-        f"No database at `{DB_PATH}`. Create it and load the library with:\n\n"
-        "```bash\npython -m jmsa.db init\npython -m ingest.load_companies\n```"
-    )
-    st.stop()
-
+# app/app.py has already checked the database exists and has companies.
 library = companies()
-if not library:
-    st.warning("The companies table is empty. Load it with:\n\n```bash\npython -m ingest.load_companies\n```")
-    st.stop()
 
 freshness, reviews_end, snapshot = sources()
 by_id = {c["company_id"]: c for c in library}

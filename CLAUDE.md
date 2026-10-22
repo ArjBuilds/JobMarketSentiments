@@ -26,7 +26,7 @@ Milestone 7 (news, F6) is built:
 - `python -m ingest.load_news` sends one GNews request per company, using its query in [data/news_queries.csv](data/news_queries.csv), keeps the articles that name the company, dedupes them, keeps the 10 newest and scores them; it writes `data/raw/news_fetch_report.txt`. The Company page shows F6 through [jmsa/news.py](jmsa/news.py).
 
 Milestone 9 (polish, F9) is built:
-- [jmsa/freshness.py](jmsa/freshness.py) reads every source's dates from the database (review range, Naukri snapshot and load date, news fetch date, attrition retrieval date, proxy window) and holds the source citations and licences. Every page's source lines and the home-page sources table come from it.
+- [jmsa/freshness.py](jmsa/freshness.py) reads every source's dates from the database (review range, Naukri snapshot and load date, news fetch date, attrition retrieval date, proxy window) and holds the source citations and licences. Every page's source lines, the About page's sources table and the sidebar's "Data last refreshed" date (`last_refreshed()`) come from it.
 - The Compare page (F9) builds its table in [jmsa/compare.py](jmsa/compare.py) from the Library's records and `display_row`, plus `read_news`, so labels and "not available" match. The About and methods page restates the PRD's sources, method and caveats.
 - `python scripts/time_pages.py` times every page against the real database; tests/test_pages.py runs every page twice headlessly.
 
@@ -57,7 +57,7 @@ A batch pipeline, deliberately split so the dashboard never calls a live source 
         → app/ (Streamlit pages read only from SQLite)
 ```
 
-Layout: `data/` (CSV inputs, the SQLite file, and `raw/` for the source CSVs and cached API responses), `ingest/` (one script per source), `process/`, `app/` (Streamlit entry + `pages/`), `scripts/` (developer checks, e.g. page timing), `jmsa/` (shared code: [config.py](jmsa/config.py), [db.py](jmsa/db.py), [schema.sql](jmsa/schema.sql)), `tests/`.
+Layout: `data/` (CSV inputs, the SQLite file, and `raw/` for the source CSVs and cached API responses), `ingest/` (one script per source), `process/`, `app/` (Streamlit entry + `pages/`; [app/app.py](app/app.py) routes every page with `st.navigation`, sets up shared session state through [app/state.py](app/state.py) and checks the database once; [DESIGN.md](DESIGN.md) is the UI contract), `scripts/` (developer checks, e.g. page timing), `jmsa/` (shared code: [config.py](jmsa/config.py), [db.py](jmsa/db.py), [schema.sql](jmsa/schema.sql)), `tests/`.
 
 `jmsa/` is not in the PRD's original four-directory sketch. It exists because the loaders, the process steps and the app all need the same connection and the same sentiment cut-offs; put anything cross-cutting there rather than duplicating it.
 

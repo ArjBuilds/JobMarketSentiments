@@ -93,7 +93,7 @@ Each loader writes a report to `data/raw/` (e.g. `naukri_match_report.txt`). To 
 streamlit run app/app.py    # http://localhost:8501
 ```
 
-Pages: Library, Company, Market skills, Compare, and About and methods. The home page lists every source with its dates. After reloading the database, restart Streamlit (or press C in the browser) to clear its cache.
+Pages, in the sidebar: Explore (the company library, where the app opens), Company, Market skills, Compare, and About the data, which lists every source with its dates. After reloading the database, restart Streamlit (or press C in the browser) to clear its cache.
 
 ## Tests and checks
 

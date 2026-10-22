@@ -1,23 +1,41 @@
-"""Job Market Analyser dashboard entry point.
+"""Job Market Analyser dashboard entry point: the router every page runs through.
 
 Run from the repo root:  streamlit run app/app.py
+
+st.navigation, not the pages/ folder, decides each page's title, icon, URL
+and order. This file runs on every visit before the page does, so it is the
+one place that sets up shared state (app.state), draws the sidebar, and
+checks the database is there.
 """
 
 import sys
 from pathlib import Path
 
 # Streamlit puts this script's own directory on sys.path, not the repo root,
-# so `import jmsa` needs the root added first. Only needed here: the ingest
-# and process steps run as `python -m ...` from the root.
+# so `import jmsa` and `import app` need the root added first. Only needed
+# here and in the pages: the ingest and process steps run as `python -m ...`
+# from the root.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import streamlit as st  # noqa: E402
 
+from app.state import init_state  # noqa: E402
+from jmsa.compare import MAX_COMPANIES  # noqa: E402
 from jmsa.config import DB_PATH  # noqa: E402
-from jmsa.db import get_conn, table_counts  # noqa: E402
-from jmsa.freshness import freshness_table, read_freshness  # noqa: E402
+from jmsa.db import get_conn  # noqa: E402
+from jmsa.freshness import last_refreshed  # noqa: E402
 
 st.set_page_config(page_title="Job Market Analyser", page_icon="📊", layout="wide")
+init_state()
+
+PAGES = Path(__file__).parent / "pages"
+explore = st.Page(PAGES / "1_Library.py", title="Explore", icon=":material/search:", default=True)
+company = st.Page(PAGES / "2_Company.py", title="Company", icon=":material/business:", url_path="company")
+skills = st.Page(PAGES / "3_Market_skills.py", title="Market skills", icon=":material/bar_chart:",
+                 url_path="market-skills")
+compare = st.Page(PAGES / "4_Compare.py", title="Compare", icon=":material/compare_arrows:", url_path="compare")
+about = st.Page(PAGES / "5_About_and_methods.py", title="About the data", icon=":material/info:",
+                url_path="about")
 
 
 # Cached results, not a connection: sqlite3 refuses to use a connection from
@@ -25,45 +43,43 @@ st.set_page_config(page_title="Job Market Analyser", page_icon="📊", layout="w
 # visit on a different thread. Restart Streamlit (or press C) after
 # reloading the database.
 @st.cache_data
-def overview() -> tuple[dict, dict]:
+def database_status() -> tuple[int, str]:
+    """How many companies are loaded, and the newest pipeline date."""
     conn = get_conn()
     try:
-        return read_freshness(conn), table_counts(conn)
+        if not conn.execute("SELECT 1 FROM sqlite_master WHERE name = 'companies'").fetchone():
+            return 0, ""
+        return conn.execute("SELECT COUNT(*) FROM companies").fetchone()[0], last_refreshed(conn)
     finally:
         conn.close()
 
 
-st.title("Job Market Analyser")
-st.caption(
-    "Employee sentiment, turnover, news coverage, in-demand skills and the "
-    "India data roles posted in a dataset snapshot, for a curated library of large employers."
-)
-
 # Checked before connecting, because get_conn would create an empty file.
 if not DB_PATH.exists():
-    st.warning(
-        f"No database at `{DB_PATH}`. Create an empty one with:\n\n"
-        "```bash\npython -m jmsa.db init\n```\n\nthen run the loaders in the order the README gives."
+    problem = f"There is no database at `{DB_PATH}`."
+    refreshed = None
+else:
+    loaded, refreshed = database_status()
+    problem = None if loaded else f"The database at `{DB_PATH}` has no companies loaded."
+
+page = st.navigation({"Job Market Analyser": [explore, company, skills, compare, about]})
+
+with st.sidebar:
+    st.caption(f"Compare list: {len(st.session_state.compare_ids)} of {MAX_COMPANIES}")
+    if refreshed:
+        st.page_link(about, label=f"Data last refreshed: {refreshed}", icon=":material/update:",
+                     help="The newest load, fetch or retrieval date. Each source's own dates are on "
+                          "About the data.")
+
+# Every page but About needs the database. About's methods text doesn't, so
+# it still opens and says which dates it can't show.
+if problem and page.url_path != about.url_path:
+    st.error(
+        f"{problem} Build it from the repo root with the venv active:\n\n"
+        "```bash\npython -m jmsa.db init\npython -m ingest.load_companies\n```\n\n"
+        "then run the remaining loaders in the order the README's \"Build the database\" section "
+        "gives, and restart Streamlit."
     )
     st.stop()
 
-freshness, counts = overview()
-
-st.markdown(
-    "- **Library**: every company in one table, with filters and sorting.\n"
-    "- **Company**: everything known about one employer.\n"
-    "- **Market skills**: the skills Indian data-role postings ask for, market-wide.\n"
-    "- **Compare**: 2 to 4 companies side by side.\n"
-    "- **About and methods**: sources, licences, how matching works and what the figures can't tell you."
-)
-
-st.subheader("Data sources and freshness")
-st.dataframe(freshness_table(freshness), hide_index=True)
-st.caption("Dates are read from the database, so they change when the loaders are rerun. "
-           "The dashboard never calls a live source.")
-
-with st.expander("Database row counts"):
-    st.write(f"Reading `{DB_PATH}`.")
-    st.dataframe([{"Table": table, "Rows": f"{rows:,}"} for table, rows in counts.items()], hide_index=True)
-    if not counts["companies"]:
-        st.info("The companies table is empty. Load it with `python -m ingest.load_companies`.")
+page.run()

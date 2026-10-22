@@ -13,14 +13,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import streamlit as st  # noqa: E402
 
+from app.state import init_state  # noqa: E402
 from jmsa.config import DB_PATH  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
+from jmsa.display import NOT_AVAILABLE  # noqa: E402
 from jmsa.freshness import (  # noqa: E402
     REVIEWS_URL, freshness_table, proxy_window, read_freshness, review_end, review_range,
 )
 from jmsa.sentiment import MIN_REVIEWS  # noqa: E402
 
-st.set_page_config(page_title="About and methods · Job Market Analyser", page_icon="📊", layout="wide")
+init_state()
 
 
 # Cached results, not connections, for the reason given on the Library page.
@@ -41,16 +43,19 @@ st.markdown(
     "source has nothing for a company, the dashboard says **not available** rather than estimating."
 )
 
+# The one page that opens without a database (app/app.py lets it through):
+# the methods text below needs none, so only the dates read "not available".
 # Checked before connecting, because get_conn would create an empty file.
-if not DB_PATH.exists():
-    st.warning(f"No database at `{DB_PATH}`, so the source dates can't be shown. "
-               "Create it with `python -m jmsa.db init` and run the loaders.")
-    st.stop()
-
-freshness, reviews, reviews_end, window = sources()
+if DB_PATH.exists():
+    freshness, reviews, reviews_end, window = sources()
+else:
+    freshness, reviews, reviews_end, window = None, NOT_AVAILABLE, NOT_AVAILABLE, NOT_AVAILABLE
 
 st.header("Sources")
-st.dataframe(freshness_table(freshness), hide_index=True)
+if freshness:
+    st.dataframe(freshness_table(freshness), hide_index=True)
+else:
+    st.warning(f"No database at `{DB_PATH}`, so each source's dates can't be shown.")
 st.markdown(
     f"- **Review text**: [davidgauthier/glassdoor-job-reviews-2]({REVIEWS_URL}) on Kaggle, "
     "licensed CC BY-NC-SA 4.0 (attribution, non-commercial, share-alike). 9.9M Glassdoor reviews, "

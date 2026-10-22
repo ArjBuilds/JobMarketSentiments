@@ -1,7 +1,7 @@
 """Where each source's data comes from and when (milestone 9).
 
-One definition for every page's source lines and for the sources table on
-the home, Compare and About pages. No Streamlit here, so the tests call it
+One definition for every page's source lines, for the sources table on the
+Compare and About pages, and for the sidebar's last-refreshed date. No Streamlit here, so the tests call it
 directly. Every date is read from the database, never written into a
 caption, so a reload changes what the pages say. Every value comes back as
 display text, with the missing-data rule applied through show().
@@ -124,6 +124,24 @@ def attrition_dates(conn: sqlite3.Connection) -> str:
     ).fetchone()
     when = span(first, last, day_month_year)
     return f"periods vary by company (shown with each figure); retrieved {when}" if when else NOT_AVAILABLE
+
+
+def last_refreshed(conn: sqlite3.Connection) -> str:
+    """'22 Oct 2026': the newest date the pipeline last touched a source, for the sidebar.
+
+    Only three sources record when they were loaded: the Naukri load, the
+    GNews fetches and the attrition retrievals. The ratings and review files
+    record no load date, so they can't count. ISO dates sort as text, and a
+    date sorts before a timestamp on the same day, which day_month_year
+    reads the same.
+    """
+    dates = [conn.execute(sql).fetchone()[0] for sql in (
+        "SELECT MAX(loaded_at) FROM jobs",
+        "SELECT MAX(fetched_at) FROM news_fetches",
+        "SELECT MAX(retrieved_on) FROM turnover WHERE is_proxy = 0",
+    )]
+    present = [d for d in dates if d]
+    return day_month_year(max(present)) if present else NOT_AVAILABLE
 
 
 def proxy_window(conn: sqlite3.Connection) -> str:
