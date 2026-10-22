@@ -6,6 +6,8 @@ from jmsa.library import (
     apply,
     column_headers,
     display_row,
+    featured,
+    has_card_metrics,
     load_library,
     minimum_steps,
 )
@@ -259,3 +261,45 @@ def test_minimum_steps_cover_the_data_with_exact_values():
     assert minimum_steps([3.5, None, 4.6], 0.1) == [3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6]
     assert minimum_steps([0.14, 0.53], 0.05) == [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55]
     assert minimum_steps([None], 0.1) == []
+
+
+# --- featured companies ------------------------------------------------------
+
+def card_record(company_id, sector="IT Services", reviews=1000, score=0.2, attrition=12.0, roles=3):
+    """Just the fields the Explore cards use; score None means hidden or no reviews."""
+    return {"company_id": company_id, "sector": sector, "reviews": {"all": reviews},
+            "sentiment": {"all": score}, "attrition": attrition, "data_roles": roles}
+
+
+@pytest.mark.parametrize("missing", [{"score": None}, {"attrition": None}, {"roles": None}])
+def test_a_card_needs_sentiment_attrition_and_data_roles(missing):
+    assert has_card_metrics(card_record("acme"), {"acme": 1})
+    assert not has_card_metrics(card_record("acme", **missing), {"acme": 1})
+
+
+def test_a_card_needs_a_news_article_but_not_a_rating():
+    record = card_record("acme")   # card records carry no Glassdoor rating at all
+    assert not has_card_metrics(record, {})
+    assert not has_card_metrics(record, {"acme": 0})
+    assert has_card_metrics(record, {"acme": 2})
+
+
+def test_featured_ranks_eligible_companies_by_review_count():
+    records = [card_record("small", reviews=100), card_record("big", sector="FMCG", reviews=9000),
+               card_record("no-news", sector="Banking", reviews=50000), card_record("mid", sector="Pharma", reviews=500)]
+    news = {"small": 1, "big": 1, "mid": 3}
+    assert [r["company_id"] for r in featured(records, news)] == ["big", "mid", "small"]
+
+
+def test_featured_takes_at_most_two_per_sector():
+    records = [card_record(f"it{n}", reviews=1000 - n) for n in range(4)] + [card_record("bank", "Banking", 10)]
+    news = {r["company_id"]: 1 for r in records}
+    assert [r["company_id"] for r in featured(records, news)] == ["it0", "it1", "bank"]
+    assert [r["company_id"] for r in featured(records, news, per_sector=3)] == ["it0", "it1", "it2", "bank"]
+
+
+def test_featured_stops_at_n():
+    records = [card_record(f"c{n}", sector=f"S{n}", reviews=100 - n) for n in range(9)]
+    news = {r["company_id"]: 1 for r in records}
+    assert [r["company_id"] for r in featured(records, news)] == [f"c{n}" for n in range(6)]
+    assert len(featured(records, news, n=2)) == 2

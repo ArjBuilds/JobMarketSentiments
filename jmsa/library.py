@@ -263,3 +263,32 @@ def display_row(record: dict, period: str) -> dict[str, str]:
         "proxy_split": record["proxy"]["split"] if record["proxy"] else None,
     }
     return {header: show(values[key]) for key, header in column_headers(period).items()}
+
+
+def has_card_metrics(record: dict, news_counts: dict[str, int]) -> bool:
+    """Has the company every figure an Explore card shows? An all-time score from
+    at least 20 reviews, published attrition, data-role listings and at least one
+    news article. The card shows no Glassdoor rating, so none is needed."""
+    return (sentiment(record, "all") is not None
+            and record["attrition"] is not None
+            and record["data_roles"] is not None
+            and news_counts.get(record["company_id"], 0) >= 1)
+
+
+def featured(records: list[dict], news_counts: dict[str, int], n: int = 6,
+             per_sector: int = 2) -> list[dict]:
+    """The companies Explore features: the eligible ones with the most reviews,
+    at most per_sector from any one sector, so the set isn't one industry.
+
+    news_counts maps company_id to its number of articles.
+    """
+    eligible = [record for record in records if has_card_metrics(record, news_counts)]
+    eligible.sort(key=lambda record: reviews(record, "all"), reverse=True)
+    chosen, taken = [], {}
+    for record in eligible:
+        if taken.get(record["sector"], 0) < per_sector:
+            chosen.append(record)
+            taken[record["sector"]] = taken.get(record["sector"], 0) + 1
+        if len(chosen) == n:
+            break
+    return chosen

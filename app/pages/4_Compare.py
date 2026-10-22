@@ -20,7 +20,7 @@ import streamlit as st  # noqa: E402
 
 from app.state import init_state, remove_from_compare  # noqa: E402
 from app.ui.charts import SENTIMENT_COLOURS, theme_groups  # noqa: E402
-from app.ui.components import PAGES, empty_state, freshness_note  # noqa: E402
+from app.ui.components import PAGES, empty_state, freshness_note, open_company  # noqa: E402
 from jmsa.compare import MAX_COMPANIES, MIN_COMPANIES, compare_table  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.freshness import freshness_notes  # noqa: E402
@@ -101,8 +101,7 @@ for column, company_id in zip(st.columns(len(picked)), picked):
     with column, st.container(border=True):
         if st.button(names[company_id], key=f"open_{company_id}", type="tertiary",
                      icon=":material/arrow_forward:", help="Open this company's page"):
-            st.session_state.selected_company = company_id
-            st.switch_page(PAGES["company"])
+            open_company(company_id)
         st.button("Remove", key=f"remove_{company_id}", on_click=remove_from_compare, args=(company_id,),
                   icon=":material/close:")
 

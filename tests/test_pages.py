@@ -246,3 +246,51 @@ def test_under_20_reviews_the_company_shows_the_count_not_a_score(small_db):
     assert metrics["Employee sentiment"] == "Fewer than 20 reviews (n = 12)"
     assert metrics["Reviews analysed"] == "12"
     assert metrics["Published attrition"] == "Not available"
+
+
+# --- Explore: featured cards and recent articles ------------------------------
+
+@pytest.fixture
+def featured_db(small_db):
+    """small_db plus everything a featured card needs for Acme: published
+    attrition, a data-role listing and two articles (one per label)."""
+    conn = get_conn(small_db)
+    conn.execute(
+        "INSERT INTO turnover (company_id, is_proxy, period, period_end, attrition_pct, attrition_text,"
+        " basis, scope, definition, entity, source_url, source_ref, retrieved_on)"
+        " VALUES ('acme', 0, 'FY2024-25', '2025-03-31', 12.5, '12.5', 'voluntary', 'group', 'd', 'Acme Ltd',"
+        " 'https://example.com/ar', 'p. 4', '2026-10-01')"
+    )
+    conn.execute("INSERT INTO jobs (job_id, company_id, title) VALUES ('acme-1', 'acme', 'Data Analyst')")
+    conn.executemany(
+        "INSERT INTO articles (article_id, company_id, title, outlet, published_at, url, sentiment_compound,"
+        " sentiment_label) VALUES (?, ?, ?, 'Reuters', ?, 'https://example.com/n', ?, ?)",
+        [("acme:1", "acme", "Acme hires", "2026-10-19T08:00:00Z", 0.4, "positive"),
+         ("hooli:1", "hooli", "Hooli cuts", "2026-10-20T08:00:00Z", -0.5, "negative")],
+    )
+    conn.commit()
+    conn.close()
+    return small_db
+
+
+def test_a_featured_card_opens_its_company(featured_db):
+    app = open_page(PAGES["explore"]).run()
+    assert not app.exception, app.exception
+    assert "Featured companies" in [h.value for h in app.subheader]
+    app.button(key="feature_acme").click().run()
+    assert not app.exception, app.exception
+    assert app.title[0].value == "Acme"
+
+
+def test_a_company_without_every_card_figure_is_not_featured(featured_db):
+    app = open_page(PAGES["explore"]).run()
+    keys = [b.key for b in app.button]
+    assert "feature_acme" in keys and "feature_hooli" not in keys
+
+
+def test_recent_articles_tabs_count_and_open_the_company(featured_db):
+    app = open_page(PAGES["explore"]).run()
+    assert [t.label for t in app.tabs] == ["Positive (1)", "Neutral (0)", "Negative (1)"]
+    app.button(key="news_negative_hooli:1").click().run()
+    assert not app.exception, app.exception
+    assert app.title[0].value == "Hooli"

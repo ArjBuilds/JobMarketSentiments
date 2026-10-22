@@ -34,6 +34,12 @@ BADGE_COLOURS = {"positive": "blue", "neutral": "gray", "negative": "red"}
 PROXY_BADGE_COLOUR = "green"   # config.toml's greenColor is the proxy's aqua, not a sentiment
 
 
+def open_company(company_id: str) -> None:
+    """Open a company's page in this tab, keeping the session (filters, compare list)."""
+    st.session_state.selected_company = company_id
+    st.switch_page(PAGES["company"])
+
+
 def show_sector(sector: str) -> None:
     """Open Explore filtered to one sector. The other filters stay as the user left them."""
     set_filter("sectors", (sector,))

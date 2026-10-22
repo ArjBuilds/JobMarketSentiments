@@ -16,7 +16,7 @@ Use `st.navigation` with `st.Page` (not the legacy `pages/` folder auto-discover
 
 | Page | Purpose | Key content |
 |---|---|---|
-| Explore (default) | Browse and narrow the library (F1, F2) | Sidebar filters, results count, company table |
+| Explore (default) | Browse and narrow the library (F1, F2) | Featured companies, recent articles, sidebar filters, company table |
 | Company | Everything about one company (F3–F6, F8) | Header, metric row, tabs: Sentiment, Data roles & skills, News, Turnover |
 | Compare | 2–4 companies side by side (F9) | One metrics table + small multiples |
 | Market skills | Skills Indian data-role postings ask for, market-wide (F7) | One-line market-wide label, view switch (all / tools / methods), top skills bar chart |
@@ -32,7 +32,7 @@ State lives in `st.session_state`, set up in `app/state.py` by an idempotent `in
 - `filters`: dict mirroring `jmsa.library.Filters` plus the sort (period, sectors, countries, min_rating, min_sentiment, min_reviews, has_data_roles, include_missing, attrition_basis, attrition_scope, sort, descending). Store it in a plain session key, not only in widget keys, because Streamlit discards widget state when the widget is not rendered on the current page. Widgets read their default from `filters` and write back on change. There is no skill filter: no skill can be tied to a company.
 
 Links between pages:
-- Explore table: single-row selection (`st.dataframe(..., on_select="rerun", selection_mode="single-row")`). Selecting a row sets `selected_company` and calls `st.switch_page` to Company. Also offer a checkbox column or button to add to compare.
+- Explore: a featured card's full-width "Open <name>" button, an article's company button, and a click on any table cell or a row's checkbox (`selection_mode=["single-row", "single-cell"]`) all call `open_company()` in `app/ui/components.py`, which sets `selected_company` and calls `st.switch_page` to Company in the same tab. Never a LinkColumn: it opens a new tab and a new session. `st.container` has no click of its own, so a card is not clickable as a whole. The compare picker beside the table adds to compare.
 - Company page: a company selectbox at the top (so users can hop between companies without going back), "Add to compare" / "Remove from compare" button, and a "← Back to results" `st.page_link` to Explore that returns with filters intact.
 - Clickable context on Company page: the sector links back to Explore with that sector filter pre-applied (set `filters`, then switch page). The Data roles & skills tab links to Market skills, where skills live.
 - Compare page: each company name links to its Company page. Empty compare list shows a message and a link to Explore.
@@ -76,7 +76,12 @@ The app reads like a finished product a student uses, not a methods write-up. La
 If a page needs something these don't cover, add a component here rather than styling inline.
 
 ## Page specs
-**Explore.** Filters in the sidebar, drawn by Explore only, and applied to the companies table only: the main filters (sector multiselect, HQ country, min sentiment, "Has data roles" toggle, sort and descending), the rest (review period, min Glassdoor rating, min reviews, include companies with no value, published attrition basis and scope) in a "More filters" expander, then "Clear filters". Results count right above the table. Table columns via `st.column_config`: name, sector, HQ, India cities, Glassdoor rating, sentiment (the `+0.31 · Positive` text, coloured by label, so hidden and missing values still read as text), reviews scored, data-role listings (2023 snapshot), published attrition, turnover proxy (with Proxy marker). Column notes go in one-sentence header tooltips; under the table only the source-and-date note. Hide the index. The proxy is never sortable. Loads in under 3 s (use `st.cache_data` on DB reads).
+**Explore.** Top to bottom:
+- Featured companies: up to 6 bordered cards, 3 a row. `jmsa.library.featured()` picks the companies with every figure a card shows (all-time sentiment from at least 20 reviews, published attrition, data-role listings, at least one news article; no Glassdoor rating needed), by review count, at most 2 per sector. A card shows name, sector, sentiment badge with review count, published attrition, data-role listings (2023 snapshot), the mean headline sentiment of its news with the article count, and an "Open <name>" primary button.
+- Recent articles: `st.tabs` Positive / Neutral / Negative, each label with its total count, each tab the 15 newest in a fixed-height scrolling container. A row: title (external link), outlet, date, sentiment badge, and the company name as a button to its page. The GNews freshness line after the tabs.
+- All companies: the table below.
+
+Neither the cards nor the articles are filtered. Filters in the sidebar, drawn by Explore only, and applied to the companies table only: the main filters (sector multiselect, HQ country, min sentiment, "Has data roles" toggle, sort and descending), the rest (review period, min Glassdoor rating, min reviews, include companies with no value, published attrition basis and scope) in a "More filters" expander, then "Clear filters". Results count right above the table. Table columns via `st.column_config`: name, sector, HQ, India cities, Glassdoor rating, sentiment (the `+0.31 · Positive` text, coloured by label, so hidden and missing values still read as text), reviews scored, data-role listings (2023 snapshot), published attrition, turnover proxy (with Proxy marker). Column notes go in one-sentence header tooltips; under the table only the source-and-date note. Hide the index. The proxy is never sortable. Loads in under 3 s (use `st.cache_data` on DB reads).
 
 **Company.** Selectbox + Back link + Add to compare on top, then `company_header`, then a row of 4 metrics: Employee sentiment, Reviews analysed, Published attrition, Data-role listings (2023 snapshot). The attrition metric shows only a published figure or "Not available"; it never falls back to the proxy. Then `st.tabs`:
 - Sentiment: positive/neutral/negative share bar, sentiment by theme (pay, culture, WLB, management) as a horizontal bar, review date range, Glassdoor rating (labelled as a separate source). Scores show "Fewer than 20 reviews (n = X)" below the threshold; the review count is always shown.
