@@ -1,52 +1,69 @@
-# Demo script (5 minutes) and viva questions
+# Demo rehearsal script and viva questions
 
-Before the demo:
-- Run `python scripts/freeze.py` after the final commit.
-- Start `streamlit run app/app.py`.
-- Open http://localhost:8501 and click through every page once, so the caches are warm.
-- Have docs/freeze.md and docs/analysis/ open in another tab.
+The order to present in: Explore → filter → open a company → tabs → sector link → add to compare → Compare → About the data. Tick each box while rehearsing.
+
+## Before you start
+
+- [ ] Run `python scripts/freeze.py` after the final commit, so docs/freeze.md records it.
+- [ ] From the repo root: `source .venv/Scripts/activate && streamlit run app/app.py` (the theme is read from `.streamlit/` in the folder you start in).
+- [ ] Open http://localhost:8501 and click through every page once, so the caches are warm.
+- [ ] Use light mode; switch to dark once at the end.
 
 The dashboard never calls a live source, so the demo works offline.
 
-## Walkthrough
+## 1. Explore
 
-**0:00 – Home page (30 s).**
-- Say: "A student shortlisting employers has to open forty tabs. This puts review sentiment, turnover, news and the data roles a company posted in India on one page, for 82 large employers that hire in India."
-- Point at the sources table: "Every source, its dates and its licence. The dates are read from the database, not typed in. The ratings file records no date, so it says not available."
+- [ ] The app opens on **Explore companies**: one-line caption, "82 of 82 companies", the table.
+- [ ] Point out the sidebar: the five pages, "Compare list: 0 of 4", "Data last refreshed: 22 Oct 2026".
+- [ ] Hover the **Turnover proxy** header ("Not a share of staff") and **Data-role listings (2023 snapshot)** ("not live openings").
+- [ ] Sentiment colours: blue positive, orange-red negative; thin samples read "Fewer than 20 reviews (n = …)".
 
-**0:30 – Library (60 s).**
-- Show the table with every company, rating, sentiment and data-role count. Point out "not available" cells: "Where a source has nothing, we say so; we never estimate."
-- In the sidebar, under *Compare attrition like with like*:
-  - set **Published attrition basis = voluntary**
-  - set **Published attrition scope = segment**
-- Then **Sort by = Published attrition**, **Descending** on. Four IT companies remain: Wipro 13.8%, Infosys 13.0%, Cognizant 13.0%, HCLTech 12.8%.
-- Say: "Companies define attrition differently, voluntary or all exits, group or one segment. So the ranking only compares like with like. The review-based proxy is never sorted on."
+## 2. Filter
 
-**1:30 – Company page: Infosys (60 s).**
-- **Rating: not available.** "The ratings file has only Infosys BPM, a subsidiary, so we show nothing rather than a subsidiary's rating."
-- **Sentiment.** 53,188 reviews scored, with the review count and date range beside the score. Point at the theme breakdown.
-- **Turnover.** "Two headings. The published figure: 13.0% voluntary, IT services segment, last twelve months to June 2026, with the source link and page. Then the proxy: reviews that mention leaving or layoffs, per 100 reviews, never a %."
-- **Data roles.** 25 listings, "historical, late 2023, a lower bound". The careers link is separate, under "Current openings".
+- [ ] Sector **IT Services** → **Has data roles** on → Sort by **Review sentiment**, **Descending** on. The count drops.
+- [ ] Open **More filters**: review period, attrition basis and scope.
+- [ ] Sort by **Published attrition**: a one-line hint asks for a basis and scope to rank like with like.
 
-**2:30 – Three edge cases (45 s).** Switch company in the selector:
-- **Wipro**: no rating either, but for a different reason. "Its exact-name row has 2,700 reviews and a head office in Dresden: a regional page, so we rejected it."
-- **LTM (formerly LTIMindtree)**: "Its 10,545 reviews are pre-merger Mindtree, and the page says so."
-- **Intuit**: "22 reviews. It clears our 20-review cut-off, so the count is always shown beside the score."
-- Optionally **HDFC Bank**: no review text ("the dataset's 'Hdfc' is a different employer, so we rejected it"), but published attrition 23.1%.
+## 3. Open a company
 
-**3:15 – Market skills (30 s).**
-- Tools view: SQL first, then Python and Excel.
-- Toggle to Methods: Data Analysis, then Machine Learning.
-- Say: "Market-wide, not per company. The skills column in the postings belongs to other rows, so we can't tie a skill to an employer. Each distinct skill list counts once. One list was copied 187 times."
+- [ ] Click the **Infosys** row. The Company page opens; the address shows `?company=infosys`.
+- [ ] Header: name, sector link, HQ · size band · India cities. Four metrics; hover one for its tooltip.
 
-**3:45 – Compare (30 s).** Pick Infosys, TCS, Accenture and Wipro.
-- "Same labels and caveats as the other pages. Missing values read not available, never 0."
+## 4. Tabs
 
-**4:15 – About and methods (30 s).** Scroll to *What the figures can't tell you*.
-- "Reviews end mid-2023 and thin out after March. The proxy doesn't track published attrition: Spearman −0.08 across 12 companies. Kappa between VADER and TextBlob is 0.40, despite 80.5% raw agreement."
+- [ ] **Sentiment**: score badge with review count and dates, the share bar, theme bars pointing left or right of zero. Switch to **2020–2023**. The Glassdoor rating sits in its own box (a separate source).
+- [ ] **Data roles & skills**: **Current openings** button, the listings table, "See market-wide skills" (optionally click it to show Market skills, then come back).
+- [ ] **News**: article rows with sentiment badges and the "GNews · fetched …" line.
+- [ ] **Turnover**: the published figure (basis · scope · period · Source) beside the **Proxy** badge; hover the badge.
+- [ ] Edge cases, using the company picker:
+  - **Intuit**: a score from only 22 reviews, with the count shown.
+  - **Atlassian**: every metric reads Not available; hover for the reason.
+  - **LTM (formerly LTIMindtree)**: the sentiment tooltip says the reviews are pre-merger Mindtree.
 
-**4:45 – Close (15 s).**
-- "Batch pipeline into SQLite, Streamlit reads only from SQLite. Frozen on the date in docs/freeze.md, with the commit and input hashes."
+## 5. Sector link
+
+- [ ] On **Infosys**, click **IT Services** under the name. Explore opens filtered to IT Services; the other filters are as you left them.
+- [ ] **Back to results** from any company returns with the filters intact.
+
+## 6. Add to compare
+
+- [ ] On **Infosys**: **Add to compare**. The button flips to **Remove from compare**; the sidebar says 1 of 4.
+- [ ] Add **TCS** and **Wipro** the same way, then **Accenture** from **Compare list** on Explore. The link reads **Compare (4)**.
+- [ ] Optional: open a fifth company and press **Add to compare**. A "compare list is full" message appears.
+
+## 7. Compare
+
+- [ ] Click **Compare (4)**: four company boxes, the metrics table with coloured sentiment rows, **Sentiment by theme** with each bar labelled by company.
+- [ ] **Remove** one company; the table updates.
+- [ ] Click a company's name to open its page, then return to Compare from the sidebar. The list is intact.
+
+## 8. About the data
+
+- [ ] The sources table: the reviews dataset named with its CC BY-NC-SA licence; the ratings row says "date not recorded".
+- [ ] Open **How scores work**: four one-line bullets.
+- [ ] Close by switching to **Dark** mode (⋮ → Settings → Theme) on Explore or Company.
+
+Method and caveat detail for questions is in docs/methods.md; the report's numbers are in docs/analysis/.
 
 ## Ten likely viva questions
 
@@ -97,7 +114,7 @@ The dashboard never calls a live source, so the demo works offline.
    - One query per company, with workplace terms.
    - An article is kept only if its title or description names the company as a whole word with matching case: "Target" the retailer, not "target".
    - Duplicates are dropped and the 10 newest kept.
-   - The free tier searches 30 days, so the page says so.
+   - The free tier searches only 30 days, so news is never labelled "the last 12 months"; the page shows the fetch date.
 
 10. **What would you do with more time?**
     - Validate the review letter codes against the dataset card.

@@ -106,6 +106,7 @@ python -m process.turnover_proxy [--check 50]  # replaces only the proxy rows of
 python -m ingest.load_news --from-cache        # re-select from cached responses, 0 requests;
                                                # rerun after editing gnews aliases
 python scripts/time_pages.py                   # each page's first-load and rerun time (target < 3 s)
+python scripts/scan_ui.py                      # every page and company: no raw values leak (exit 1 if any)
 python -m process.analysis                     # report tables in docs/analysis/ (re-runs TextBlob on 50k)
 python -m ingest.merge_naukri --src "<folder>" # Naukri merge check; never overwrites the merged file
 python scripts/freeze.py                       # docs/freeze.md; after the final commit, before the demo

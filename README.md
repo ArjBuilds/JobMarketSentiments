@@ -102,6 +102,7 @@ Pages, in the sidebar: Explore (the company library, where the app opens), Compa
 ```bash
 pytest                          # all tests; they use in-memory databases, never data/jmsa.db
 python scripts/time_pages.py    # each page's load time against the real database (target: under 3 s)
+python scripts/scan_ui.py       # every page and company: no None, nan, raw column names or reprs shown
 ```
 
 Report material: docs/report_notes.md (every number traced to its source), docs/demo_script.md (5-minute walkthrough and viva questions), docs/analysis/ (tables).
