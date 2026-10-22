@@ -1,6 +1,6 @@
 # Database freeze
 
-Frozen on **2026-10-22** at git commit `c4764e66c71d70eba87659339404324bfeb1953b`.
+Frozen on **2026-10-22** at git commit `cdc57c8a29952f7570d6b672790e7ecab5fbb7ce`.
 
 Written by `python scripts/freeze.py`. Rerun it after any reload; don't edit by hand.
 
@@ -8,7 +8,7 @@ Written by `python scripts/freeze.py`. Rerun it after any reload; don't edit by 
 
 | file | bytes | SHA-256 |
 |---|---|---|
-| jmsa.db | 769,093,632 | `8103c4c668de473101043f34a7bed9d7ad520d25cd8d266241f0b862d9207e13` |
+| jmsa.db | 769,097,728 | `7bc8c2caeb77f9bc8e290146bbd808a758f77fceda990eb5c8711e6b8f670cb2` |
 
 ## Rows per table
 
@@ -22,7 +22,7 @@ Written by `python scripts/freeze.py`. Rerun it after any reload; don't edit by 
 | review_summary | 156 |
 | reviews | 1,799,628 |
 | skill_counts | 296 |
-| turnover | 109 |
+| turnover | 115 |
 
 ## Sources and dates
 
@@ -35,7 +35,7 @@ As the dashboard shows them (jmsa/freshness.py, read from the database).
 | Naukri postings, data/raw/naukri_jobs_merged.csv: three exports merged (NaukriData_Data_Science, NaukriData_data_analytics, Naukri_Data_Scientist_and_Data_Analytics_Jobs_Data) | Data-role listings | collected in or after 27 Oct 2023 (the newest Naukri job-ID date among the stored links; the third export has no links and is undated); loaded 21 Oct 2026 | Kaggle dataset, downloaded October 2026; exact dataset page not recorded; licence unknown. Used only for non-commercial coursework |
 | The same Naukri snapshot as the data-role listings | Market-wide data-role skills | collected in or after 27 Oct 2023 (the newest Naukri job-ID date among the stored links; the third export has no links and is undated); loaded 21 Oct 2026 | Kaggle dataset, downloaded October 2026; exact dataset page not recorded; licence unknown. Used only for non-commercial coursework |
 | GNews API (https://gnews.io), free tier | News coverage and headline sentiment | fetched 21 Oct 2026 – 22 Oct 2026 for 82 of 82 companies; each article published in the 30 days before its company's fetch | GNews free tier: non-commercial use only |
-| Companies' own annual reports, BRSR, quarterly results or fact sheets and official ESG reports, copied by hand into data/turnover.csv | Published attrition | periods vary by company (shown with each figure); retrieved 22 Oct 2026 | Public company documents, cited per figure with a source link and page reference |
+| Companies' own annual reports (including SEC 10-K and 20-F filings), BRSR, quarterly results or fact sheets, official ESG reports and SEC proxy statements, copied by hand into data/turnover.csv | Published attrition | periods vary by company (shown with each figure); retrieved 22 Oct 2026 | Public company documents, cited per figure with a source link and page reference |
 | The Glassdoor review dataset above | Turnover proxy | reviews dated Apr 2021 – Mar 2023 | CC BY-NC-SA 4.0: non-commercial, share-alike; this project is non-commercial coursework |
 
 ## Input files
@@ -53,5 +53,5 @@ The raw inputs the loaders read, then the committed CSVs in data/. data/raw/all_
 | data/news_queries.csv | 13,789 | `a753a740128a3fe88e370cbf761a593a88ac393f97d6175acfc2f3dd7ab9f1a4` |
 | data/skills.csv | 3,603 | `aeb16f393337f8e8416fe4d23456e92c59344726a135fce49437c7476cb49c54` |
 | data/themes.csv | 706 | `79491c42fd1debbf837661ae20a9c9fc3e8a12ed6ed4a880065849b51e5832ee` |
-| data/turnover.csv | 10,402 | `2c2012be560d31e41e17a6aebdc8165f54b1fc62747a222dd5337524ca50db8c` |
+| data/turnover.csv | 12,861 | `64b941692e52e1cb8f2faeeaf543cdfabbd65153f5788c804e66e7ca73a84ff8` |
 | data/turnover_keywords.csv | 740 | `4b509e1c0f1500fdd16a21b41e93df4a220166839b0ebd09688a69fd357d5bf3` |
