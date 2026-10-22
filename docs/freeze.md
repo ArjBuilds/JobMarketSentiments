@@ -1,6 +1,6 @@
 # Database freeze
 
-Frozen on **2026-10-22** at git commit `f299844cbc03ad04c839ea3b0504207ac1a06adb`.
+Frozen on **2026-10-22** at git commit `c4764e66c71d70eba87659339404324bfeb1953b`.
 
 Written by `python scripts/freeze.py`. Rerun it after any reload; don't edit by hand.
 
