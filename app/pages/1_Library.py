@@ -116,6 +116,7 @@ def store_compare() -> None:
 
 
 st.title("Explore companies")
+st.caption("Large employers that hire in India: filter, sort and open any company.")
 
 # app/app.py has already checked the database exists and has companies.
 records = library()

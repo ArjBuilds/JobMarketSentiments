@@ -26,7 +26,7 @@ import streamlit as st  # noqa: E402
 from app.state import add_to_compare, init_state, remove_from_compare  # noqa: E402
 from app.ui.charts import share_bar, theme_bars  # noqa: E402
 from app.ui.components import (  # noqa: E402
-    PAGES, company_header, freshness_note, label_badge, metric_or_na, proxy_tag,
+    PAGES, company_header, freshness_note, label_badge, metric_or_na, proxy_tag, sentiment_badge,
 )
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.display import NOT_AVAILABLE  # noqa: E402
@@ -193,7 +193,8 @@ with sentiment_tab:
             st.markdown(f"**{hidden(chart['reviews'])}**")
         else:
             with st.container(border=True):
-                st.markdown(f"**{view['average']}** from {view['reviews']} reviews · dated {view['range']}")
+                st.markdown(f"{sentiment_badge(chart['average'])} from {view['reviews']} reviews · "
+                            f"dated {view['range']}")
                 st.plotly_chart(share_bar(chart["shares"]), width="stretch", key="share_bar")
             shown_themes = [t for t in chart["themes"] if t["score"] is not None]
             with st.container(border=True):

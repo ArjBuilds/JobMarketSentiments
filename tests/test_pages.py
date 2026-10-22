@@ -179,7 +179,7 @@ def test_explore_with_no_match_offers_clear_filters(small_db):
     app.button[0].click().run()
     assert app.session_state.filters["has_data_roles"] is False
     assert not app.info
-    assert app.caption[0].value == "2 of 2 companies"
+    assert "2 of 2 companies" in [c.value for c in app.caption]
 
 
 def test_the_explore_compare_picker_fills_the_compare_list(small_db):

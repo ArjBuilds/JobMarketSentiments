@@ -213,7 +213,7 @@ def column_headers(period: str) -> dict[str, str]:
         # The Glassdoor ratings snapshot: a star rating and how many ratings it
         # rests on. A different source from the review text scored below.
         "rating": "Glassdoor rating",
-        "rating_count": "Glassdoor ratings",
+        "rating_count": "Number of Glassdoor ratings",
         "sentiment": f"Review sentiment ({title})",
         "reviews": f"Reviews scored ({title})",
         "data_roles": ROLES_LABEL,

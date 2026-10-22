@@ -75,6 +75,7 @@ def store_compare() -> None:
 
 
 st.title("Compare companies")
+st.caption(f"Up to {MAX_COMPANIES} companies side by side.")
 
 # app/app.py has already checked the database exists and has companies.
 records = library()
