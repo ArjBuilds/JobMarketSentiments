@@ -1,6 +1,6 @@
 # Demo rehearsal script and viva questions
 
-The order to present in: Explore → filter → open a company → tabs → sector link → add to compare → Compare → About the data. Tick each box while rehearsing.
+The order to present in: Explore (featured cards, recent articles) → open a company → tabs → sector link → filter in the sidebar → add to compare → Compare → About the data. Tick each box while rehearsing.
 
 ## Before you start
 
@@ -13,26 +13,27 @@ The dashboard never calls a live source, so the demo works offline.
 
 ## 1. Explore
 
-- [ ] The app opens on **Explore companies**: one-line caption, "82 of 82 companies", the table.
-- [ ] Point out the sidebar: the five pages, "Compare list: 0 of 4", "Data last refreshed: 22 Oct 2026".
-- [ ] Hover the **Turnover proxy** header ("Not a share of staff") and **Data-role listings (2023 snapshot)** ("not live openings").
-- [ ] Sentiment colours: blue positive, orange-red negative; thin samples read "Fewer than 20 reviews (n = …)".
+- [ ] The app opens on **Explore companies**. Point out the sidebar: the five pages in order (Explore, Company, Compare, Market skills, About the data), "Data last refreshed: …", and the **Filters** under them.
+- [ ] **Featured companies**: six cards (TCS, Cognizant, Siemens, Nestlé, Unilever, Reliance Industries). Each has every figure a card shows, at most two per sector. Read one card: sentiment badge with its review count, published attrition with basis · scope · period, data-role listings (2023 snapshot), news sentiment with its article count.
+- [ ] **Recent articles**: the Positive / Neutral / Negative tabs carry their counts. Scroll inside one tab, then click a company name on a row. Its Company page opens in the same tab. Come back with **Back to results**.
 
-## 2. Filter
+## 2. Open a company
 
-- [ ] Sector **IT Services** → **Has data roles** on → Sort by **Review sentiment**, **Descending** on. The count drops.
-- [ ] Open **More filters**: review period, attrition basis and scope.
-- [ ] Sort by **Published attrition**: a one-line hint asks for a basis and scope to rank like with like.
-
-## 3. Open a company
-
-- [ ] Click the **Infosys** row. The Company page opens; the address shows `?company=infosys`.
+- [ ] Click **Open Tata Consultancy Services** on its card. The Company page opens; the address shows `?company=tata-consultancy-services`.
 - [ ] Header: name, sector link, HQ · size band · India cities. Four metrics; hover one for its tooltip.
+
+## 3. Filter and the table
+
+- [ ] Back on Explore, scroll to **All companies**. Hover the **Turnover proxy** header ("Not a share of staff") and **Data-role listings (2023 snapshot)** ("not live openings"). Sentiment colours: blue positive, orange-red negative; thin samples read "Fewer than 20 reviews (n = …)".
+- [ ] In the sidebar: Sector **IT Services** → **Has data roles** on → Sort by **Review sentiment**, **Descending** on. The count above the table drops; the cards and articles stay as they were (filters narrow the table only).
+- [ ] Open **More filters**: review period, attrition basis and scope. Sort by **Published attrition**: a one-line hint asks for a basis and scope to rank like with like.
+- [ ] Click **Infosys**'s name in the table (any cell works). Its Company page opens in the same tab.
+- [ ] Optional: double-click a cell in the Compare or data-roles table. No popup opens, so nothing sticks on screen while you scroll.
 
 ## 4. Tabs
 
 - [ ] **Sentiment**: score badge with review count and dates, the share bar, theme bars pointing left or right of zero. Switch to **2020–2023**. The Glassdoor rating sits in its own box (a separate source).
-- [ ] **Data roles & skills**: **Current openings** button, the listings table, "See market-wide skills" (optionally click it to show Market skills, then come back).
+- [ ] **Data roles & skills**: the full-width violet **View current openings at Infosys ↗** button at the top (the live careers site), then the listings table, "See market-wide skills" (optionally click it to show Market skills, then come back).
 - [ ] **News**: article rows with sentiment badges and the "GNews · fetched …" line.
 - [ ] **Turnover**: the published figure (basis · scope · period · Source) beside the **Proxy** badge; hover the badge.
 - [ ] Edge cases, using the company picker:
@@ -43,11 +44,11 @@ The dashboard never calls a live source, so the demo works offline.
 ## 5. Sector link
 
 - [ ] On **Infosys**, click **IT Services** under the name. Explore opens filtered to IT Services; the other filters are as you left them.
-- [ ] **Back to results** from any company returns with the filters intact.
+- [ ] **Back to results** from any company returns with the filters intact, still set in the sidebar.
 
 ## 6. Add to compare
 
-- [ ] On **Infosys**: **Add to compare**. The button flips to **Remove from compare**; the sidebar says 1 of 4.
+- [ ] On **Infosys**: **Add to compare**. The button flips to **Remove from compare**.
 - [ ] Add **TCS** and **Wipro** the same way, then **Accenture** from **Compare list** on Explore. The link reads **Compare (4)**.
 - [ ] Optional: open a fifth company and press **Add to compare**. A "compare list is full" message appears.
 
@@ -60,7 +61,7 @@ The dashboard never calls a live source, so the demo works offline.
 ## 8. About the data
 
 - [ ] The sources table: the reviews dataset named with its CC BY-NC-SA licence; the ratings row says "date not recorded".
-- [ ] Open **How scores work**: four one-line bullets.
+- [ ] Open **How scores work**: a short headed section for each calculation (review and theme sentiment, thresholds, rating vs sentiment, published attrition, turnover proxy, news sentiment, data-role listings, skills counts).
 - [ ] Close by switching to **Dark** mode (⋮ → Settings → Theme) on Explore or Company.
 
 Method and caveat detail for questions is in docs/methods.md; the report's numbers are in docs/analysis/.

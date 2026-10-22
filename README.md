@@ -12,7 +12,7 @@ Built as a mini-project for the Web and Social Media Analytics course. The analy
 
 | Feature | What it does | Works |
 | --- | --- | --- |
-| F1 Company library | Every company in one table | yes |
+| F1 Company library | Every company in one table, under six featured companies and the latest articles | yes |
 | F2 Sort and filter | Sector, country, rating, sentiment, reviews, data roles, attrition basis/scope | yes |
 | F3 Company page | Everything about one company, plus a link to its careers site | yes |
 | F4 Review sentiment | VADER over 1.8M Glassdoor reviews, overall and by theme | yes (78 of 82 companies) |
@@ -24,7 +24,7 @@ Built as a mini-project for the Web and Social Media Analytics course. The analy
 
 Milestone 9 added a source and date line under every section (read from the database), the Compare page, and an About and methods page.
 
-After milestone 10 the dashboard was redesigned to [DESIGN.md](DESIGN.md): one router with shared state, so filters, the chosen company and the compare list survive moving between pages; a company page with metrics and tabs; a colour-blind-safe palette; and labels, tooltips and one source-and-date line in place of method text, which moved to [docs/methods.md](docs/methods.md).
+After milestone 10 the dashboard was redesigned to [DESIGN.md](DESIGN.md): one router with shared state, so filters, the chosen company and the compare list survive moving between pages; a company page with metrics and tabs; a colour-blind-safe palette; and labels, tooltips and one source-and-date line in place of method text, which moved to [docs/methods.md](docs/methods.md). A later pass added Explore's featured companies and recent articles, moved its filters to the sidebar, made the careers link a prominent button, drew read-only tables with st.table (no stuck cell popup), and put a full "How scores work" explanation in About the data's expander.
 
 ## How it works
 
@@ -95,7 +95,7 @@ Each loader writes a report to `data/raw/` (e.g. `naukri_match_report.txt`). To 
 streamlit run app/app.py    # http://localhost:8501
 ```
 
-Pages, in the sidebar: Explore (the company library, where the app opens), Company, Market skills, Compare, and About the data, which lists every source with its dates. After reloading the database, restart Streamlit (or press C in the browser) to clear its cache.
+Pages, in the sidebar: Explore (where the app opens: featured companies, recent articles by sentiment, and the company library, filtered from the sidebar), Company, Compare, Market skills, and About the data, which lists every source with its dates and explains how each score is calculated. After reloading the database, restart Streamlit (or press C in the browser) to clear its cache.
 
 ## Tests and checks
 
