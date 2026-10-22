@@ -4,7 +4,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from ingest.load_reviews import load_reviews
 from jmsa.aliases import read_aliases
 from jmsa.display import NOT_AVAILABLE
-from jmsa.sentiment import combine, label, read_summary
+from jmsa.sentiment import combine, label, read_summary, summary_numbers
 from process.review_sentiment import (
     THEMES_CSV,
     ThemesError,
@@ -211,3 +211,27 @@ def test_checks_fetch_reads_sampled_reviews(library, write_reviews):
     reviews = fetch(library, ["gd-0000001", "gd-0000003"])
     assert sorted(reviews["review_id"]) == ["gd-0000001", "gd-0000003"]
     assert reviews["sentiment_compound"].notna().all()
+
+
+# --- the numbers behind the Company page's charts ----------------------------
+
+def test_summary_numbers_hold_the_20_review_rule_like_the_text(library, write_reviews):
+    reviews = (rows("acme", 19) + rows("globex", 19, pros="Good salary and nice team")
+               + rows("globex", 1, pros="Nice team"))
+    run(library, write_reviews, reviews)
+    acme = summary_numbers(library, "acme")["all"]
+    assert acme["reviews"] == 19 and acme["average"] is None and acme["shares"] is None
+    globex = summary_numbers(library, "globex")["all"]
+    assert globex["reviews"] == 20 and globex["average"] is not None
+    assert sum(globex["shares"].values()) == pytest.approx(1)
+    themes = {t["theme"]: t for t in globex["themes"]}
+    assert themes["Pay"] == {"theme": "Pay", "mentions": 19, "score": None}   # 19 mentions: hidden
+    assert themes["Culture"]["score"] is not None
+
+
+def test_summary_numbers_are_none_for_a_period_without_reviews(library, write_reviews):
+    run(library, write_reviews, rows("acme", 20, review_date="2015-03-01"))
+    numbers = summary_numbers(library, "acme")
+    assert numbers["all"]["reviews"] == 20
+    assert numbers["2020-2023"] is None
+    assert summary_numbers(library, "globex") == {"all": None, "2020-2023": None}

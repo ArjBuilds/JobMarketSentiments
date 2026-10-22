@@ -5,7 +5,9 @@ from pathlib import Path
 
 import plotly.graph_objects as go
 
-from app.ui.charts import ACCENT, NEGATIVE, NEUTRAL, POSITIVE, PROXY, SENTIMENT_COLOURS, TEMPLATE
+from app.ui.charts import (
+    ACCENT, NEGATIVE, NEUTRAL, POSITIVE, PROXY, SENTIMENT_COLOURS, TEMPLATE, share_bar, theme_bars,
+)
 
 CONFIG = Path(__file__).resolve().parents[1] / ".streamlit" / "config.toml"
 
@@ -31,3 +33,20 @@ def test_a_figure_on_the_template_keeps_streamlits_layer_and_adds_ours():
     # the viewer's light or dark mode.
     assert layout.coloraxis.colorscale[0][1] == "#000011"
     assert figure.layout.template.data.bar[0].marker.cornerradius == 4
+
+
+def test_share_bar_labels_every_segment_with_its_name():
+    figure = share_bar({"positive": 0.6, "neutral": 0.25, "negative": 0.15})
+    assert [trace.marker.color for trace in figure.data] == [POSITIVE, NEUTRAL, NEGATIVE]
+    assert [trace.text[0] for trace in figure.data] == ["60% positive", "25% neutral", "15% negative"]
+    assert figure.layout.xaxis.title.text == "Share of reviews"
+
+
+def test_theme_bars_colour_and_label_each_score_by_its_sentiment():
+    figure = theme_bars([{"theme": "Pay", "score": 0.31, "mentions": 120},
+                         {"theme": "Management", "score": -0.12, "mentions": 80}])
+    bar = figure.data[0]
+    assert list(bar.marker.color) == [POSITIVE, NEGATIVE]
+    assert list(bar.text) == ["+0.31 · Positive", "-0.12 · Negative"]
+    low, high = figure.layout.xaxis.range
+    assert low == -high   # zero stays in the middle, so the sign shows in the bar's direction

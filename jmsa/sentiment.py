@@ -146,3 +146,37 @@ def read_summary(conn: sqlite3.Connection, company_id: str) -> dict:
         "note": note,
         "periods": [period_view(period, rows.get(period)) for period in PERIODS],
     }
+
+
+def summary_numbers(conn: sqlite3.Connection, company_id: str) -> dict[str, dict | None]:
+    """The same figures as read_summary, as numbers for the charts. period -> dict, or None
+    for a period with no reviews.
+
+    The 20-review rule holds here too: average and shares are None below 20
+    reviews, and a theme's score is None below 20 mentions, so a chart can
+    never draw a figure the text would hide.
+    """
+    rows = {
+        row["period"]: row
+        for row in conn.execute("SELECT * FROM review_summary WHERE company_id = ?", (company_id,))
+    }
+    numbers = {}
+    for period in PERIODS:
+        row = rows.get(period)
+        if row is None:
+            numbers[period] = None
+            continue
+        shown = is_shown(row["review_count"])
+        themes = []
+        for theme in THEMES:
+            mentions = row[f"{theme}_count"] or 0
+            themes.append({"theme": THEME_NAMES[theme], "mentions": mentions,
+                           "score": row[f"{theme}_compound"] if is_shown(mentions) else None})
+        numbers[period] = {
+            "reviews": row["review_count"],
+            "average": row["avg_compound"] if shown else None,
+            "shares": {"positive": row["share_positive"], "neutral": row["share_neutral"],
+                       "negative": row["share_negative"]} if shown else None,
+            "themes": themes,
+        }
+    return numbers

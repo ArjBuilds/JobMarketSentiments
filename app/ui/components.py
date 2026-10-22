@@ -42,7 +42,7 @@ def show_sector(sector: str) -> None:
 
 def company_header(company: dict) -> None:
     """Name, then the sector as a link to Explore filtered by it, HQ, size band and India cities."""
-    st.header(company["name"], anchor=False)
+    st.title(company["name"], anchor=False)
     sector, details = st.columns([1, 4], vertical_alignment="center")
     with sector:
         if company["sector"] and st.button(company["sector"], type="tertiary", icon=":material/filter_list:",

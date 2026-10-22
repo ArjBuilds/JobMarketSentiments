@@ -160,3 +160,61 @@ def test_the_explore_compare_picker_fills_the_compare_list(small_db):
     assert app.session_state.compare_ids == ["acme", "hooli"]
     app.switch_page(PAGES["compare"]).run()
     assert not app.exception, app.exception
+
+
+# --- Company: which company, compare list, sector link, thin samples ---------
+
+def test_the_url_opens_its_company_in_a_new_session(small_db):
+    """A refresh or a shared link: no company chosen yet, so ?company= wins."""
+    app = AppTest.from_file(str(ROOT / "app/app.py"), default_timeout=30)
+    app.query_params["company"] = "hooli"
+    app.run()
+    app.switch_page(PAGES["company"]).run()
+    assert not app.exception, app.exception
+    assert app.title[0].value == "Hooli"
+    assert app.query_params["company"] == ["hooli"] or app.query_params["company"] == "hooli"
+
+
+def test_an_unknown_company_in_the_url_is_ignored(small_db):
+    app = AppTest.from_file(str(ROOT / "app/app.py"), default_timeout=30)
+    app.query_params["company"] = "no-such-company"
+    app.run()
+    app.switch_page(PAGES["company"]).run()
+    assert not app.exception, app.exception
+    assert app.title[0].value == "Acme"
+
+
+def test_company_adds_to_and_removes_from_the_compare_list(small_db):
+    app = open_page(PAGES["company"]).run()
+    next(b for b in app.button if b.label == "Add to compare").click().run()
+    assert app.session_state.compare_ids == ["acme"]
+    next(b for b in app.button if b.label == "Remove from compare").click().run()
+    assert app.session_state.compare_ids == []
+
+
+def test_the_sector_link_opens_explore_filtered_to_it(small_db):
+    app = open_page(PAGES["company"]).run()
+    next(b for b in app.button if b.label == "IT Services").click().run()
+    assert not app.exception, app.exception
+    assert app.title[0].value == "Explore companies"
+    assert app.multiselect(key="filter_sectors").value == ["IT Services"]
+
+
+def test_under_20_reviews_the_company_shows_the_count_not_a_score(small_db):
+    conn = get_conn(small_db)
+    conn.execute(
+        "INSERT INTO review_summary (company_id, period, review_count, first_date, last_date,"
+        " avg_compound, share_positive, share_neutral, share_negative, pre_merger_count)"
+        " VALUES ('hooli', 'all', 12, '2022-01-01', '2023-01-01', 0.4, 0.7, 0.2, 0.1, 0)"
+    )
+    conn.commit()
+    conn.close()
+    app = AppTest.from_file(str(ROOT / "app/app.py"), default_timeout=30)
+    app.query_params["company"] = "hooli"
+    app.run()
+    app.switch_page(PAGES["company"]).run()
+    assert not app.exception, app.exception
+    metrics = {m.label: m.value for m in app.metric}
+    assert metrics["Employee sentiment"] == "Fewer than 20 reviews (n = 12)"
+    assert metrics["Reviews analysed"] == "12"
+    assert metrics["Published attrition"] == "Not available"
