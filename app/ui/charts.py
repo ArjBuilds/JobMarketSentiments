@@ -20,7 +20,7 @@ import plotly.graph_objects as go
 import plotly.io as pio
 import streamlit  # noqa: F401  registers Streamlit's "streamlit" Plotly template, which TEMPLATE builds on
 
-from jmsa.sentiment import label, score_text
+from jmsa.sentiment import hidden, label, score_text
 
 POSITIVE = "#2a78d6"   # blue
 NEUTRAL = "#9E9E9E"    # grey
@@ -86,6 +86,40 @@ def theme_bars(themes: list[dict]) -> go.Figure:
         hovertemplate="%{y}: %{text} (%{customdata} reviews mention it)<extra></extra>",
     ))
     figure.update_layout(template=TEMPLATE, height=60 + 42 * len(themes),
+                         xaxis={"title": "Average sentiment (−1 to +1)", "range": [-reach, reach],
+                                "zeroline": True, "tickformat": "+.1f"},
+                         yaxis={"autorange": "reversed", "showgrid": False})
+    return figure
+
+
+def theme_groups(companies: list[tuple[str, list[dict]]]) -> go.Figure:
+    """Theme sentiment for 2-4 companies: one group of bars per theme, one bar per company.
+
+    companies is (name, summary_numbers themes) pairs. Colour means sentiment,
+    as on every other chart, so companies are told apart by the label on each
+    bar ("Infosys +0.31") rather than by a colour of their own. A theme with
+    fewer than 20 mentions gets no bar, only its label with the count.
+    """
+    figure = go.Figure()
+    scores = [t["score"] for _, themes in companies for t in themes if t["score"] is not None]
+    reach = max(0.3, max((abs(s) for s in scores), default=0) * 2.6)   # room for the labels
+    for name, themes in companies:
+        figure.add_trace(go.Bar(
+            y=[t["theme"] for t in themes],
+            x=[t["score"] if t["score"] is not None else 0 for t in themes],
+            orientation="h", name=name,
+            marker={"color": [SENTIMENT_COLOURS[label(t["score"])] if t["score"] is not None else NEUTRAL
+                              for t in themes]},
+            text=[f"{name} {t['score']:+.2f}" if t["score"] is not None else f"{name}: {hidden(t['mentions'])}"
+                  for t in themes],
+            textposition="outside", cliponaxis=False,
+            customdata=[score_text(t["score"]) if t["score"] is not None else hidden(t["mentions"])
+                        for t in themes],
+            hovertemplate=f"{name} · %{{y}}: %{{customdata}}<extra></extra>",
+        ))
+    rows = sum(len(themes) for _, themes in companies)
+    figure.update_layout(template=TEMPLATE, barmode="group", bargap=0.3, bargroupgap=0.1,
+                         showlegend=False, height=80 + 24 * rows,
                          xaxis={"title": "Average sentiment (−1 to +1)", "range": [-reach, reach],
                                 "zeroline": True, "tickformat": "+.1f"},
                          yaxis={"autorange": "reversed", "showgrid": False})

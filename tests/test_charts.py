@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 
 from app.ui.charts import (
     ACCENT, NEGATIVE, NEUTRAL, POSITIVE, PROXY, SENTIMENT_COLOURS, TEMPLATE, share_bar, theme_bars,
+    theme_groups,
 )
 
 CONFIG = Path(__file__).resolve().parents[1] / ".streamlit" / "config.toml"
@@ -50,3 +51,15 @@ def test_theme_bars_colour_and_label_each_score_by_its_sentiment():
     assert list(bar.text) == ["+0.31 · Positive", "-0.12 · Negative"]
     low, high = figure.layout.xaxis.range
     assert low == -high   # zero stays in the middle, so the sign shows in the bar's direction
+
+
+def test_theme_groups_label_each_bar_with_its_company_and_keep_hidden_themes_as_text():
+    figure = theme_groups([
+        ("Acme", [{"theme": "Pay", "score": 0.31, "mentions": 120}, {"theme": "Culture", "score": None, "mentions": 5}]),
+        ("Hooli", [{"theme": "Pay", "score": -0.12, "mentions": 80}, {"theme": "Culture", "score": 0.0, "mentions": 40}]),
+    ])
+    acme, hooli = figure.data
+    assert list(acme.text) == ["Acme +0.31", "Acme: Fewer than 20 reviews (n = 5)"]
+    assert list(acme.x) == [0.31, 0]          # a hidden theme draws no bar
+    assert list(hooli.marker.color) == [NEGATIVE, NEUTRAL]
+    assert figure.layout.showlegend is False   # companies are named on their bars, not by colour

@@ -15,6 +15,7 @@ from dataclasses import asdict
 
 import streamlit as st
 
+from jmsa.compare import MAX_COMPANIES
 from jmsa.library import Filters
 
 
@@ -31,6 +32,23 @@ def set_filter(name: str, value) -> None:
     """
     st.session_state.filters = {**st.session_state.filters, name: value}
     st.session_state.pop(f"filter_{name}", None)
+
+
+def add_to_compare(company_id: str) -> None:
+    """Add a company to the compare list. A full list is left as it is and
+    compare_notice says why, for the page to show; nothing fails silently."""
+    ids = st.session_state.compare_ids
+    if company_id in ids:
+        return
+    if len(ids) >= MAX_COMPANIES:
+        st.session_state.compare_notice = (f"The compare list is full ({MAX_COMPANIES} companies). "
+                                           "Remove one on Compare first.")
+        return
+    st.session_state.compare_ids = [*ids, company_id]
+
+
+def remove_from_compare(company_id: str) -> None:
+    st.session_state.compare_ids = [c for c in st.session_state.compare_ids if c != company_id]
 
 
 def init_state() -> None:

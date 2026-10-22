@@ -23,12 +23,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import streamlit as st  # noqa: E402
 
-from app.state import init_state  # noqa: E402
+from app.state import add_to_compare, init_state, remove_from_compare  # noqa: E402
 from app.ui.charts import share_bar, theme_bars  # noqa: E402
 from app.ui.components import (  # noqa: E402
     PAGES, company_header, freshness_note, label_badge, metric_or_na, proxy_tag,
 )
-from jmsa.compare import MAX_COMPANIES  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.display import NOT_AVAILABLE  # noqa: E402
 from jmsa.freshness import freshness_notes  # noqa: E402
@@ -107,14 +106,6 @@ def pick_company() -> None:
     st.session_state.selected_company = st.session_state.company_pick
 
 
-def add_to_compare(company_id: str) -> None:
-    st.session_state.compare_ids = [*st.session_state.compare_ids, company_id]
-
-
-def remove_from_compare(company_id: str) -> None:
-    st.session_state.compare_ids = [c for c in st.session_state.compare_ids if c != company_id]
-
-
 # app/app.py has already checked the database exists and has companies.
 library = companies()
 by_id = {c["company_id"]: c for c in library}
@@ -143,10 +134,13 @@ with compare_col:
         st.button("Remove from compare", on_click=remove_from_compare, args=(company_id,),
                   icon=":material/remove:", width="stretch")
     else:
-        full = len(st.session_state.compare_ids) >= MAX_COMPANIES
         st.button("Add to compare", on_click=add_to_compare, args=(company_id,), icon=":material/add:",
-                  type="primary", width="stretch", disabled=full,
-                  help=f"The compare list holds {MAX_COMPANIES} companies." if full else None)
+                  type="primary", width="stretch")
+# Set by add_to_compare when the list is already full; shown once.
+notice = st.session_state.pop("compare_notice", None)
+if notice:
+    st.warning(notice, icon=":material/info:")
+    st.page_link(PAGES["compare"], label="Go to Compare", icon=":material/compare_arrows:")
 
 company_header(company)
 

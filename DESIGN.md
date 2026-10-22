@@ -86,7 +86,7 @@ If a page needs something these don't cover, add a component here rather than st
 
 **Market skills.** A one-line market-wide label, the view switch and one bar chart of the top skills (share of distinct skill lists). No company appears on this page.
 
-**Compare.** Table with companies as columns and metrics as rows, same formatting and badges as elsewhere; a small grouped bar of theme sentiment. Remove buttons per company.
+**Compare.** Shows `compare_ids`, the list built on Explore and Company, with a picker to change it. One box per company: its name opens its Company page, plus a Remove button. Table with companies as columns and metrics as rows, same formatting and colours as elsewhere; a grouped bar of theme sentiment where colour means sentiment and each bar is labelled with its company. Fewer than 2 companies: a message and a link to Explore. The list holds 4; Add to compare on a full list says so rather than doing nothing.
 
 **About the data.** A clean, short page: a table of sources (source, what it is used for, dates) and at most one collapsed "How scores work" expander with no more than 4 one-line bullets. No paragraphs. It still opens when the database is missing.
 

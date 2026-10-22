@@ -111,12 +111,40 @@ def test_about_opens_without_a_database(tmp_path, monkeypatch):
     assert not missing.exists()
 
 
-def test_compare_asks_for_two_companies_then_shows_the_table(small_db):
+def test_compare_shows_the_list_built_elsewhere_or_points_to_explore(small_db):
     app = open_page(PAGES["compare"]).run()
-    assert "Pick 2 to 4 companies" in app.info[0].value
-    app.multiselect[0].select("acme").select("hooli").run()
+    assert app.info[0].value == "Your compare list is empty."
+    assert any(link.label == "Go to Explore" for link in app.get("page_link"))
+    app.session_state["compare_ids"] = ["acme"]
+    app.run()
+    assert app.info[0].value == "Add one more company to compare with Acme."
+    app.session_state["compare_ids"] = ["acme", "hooli"]
+    app.run()
     assert not app.exception, app.exception
-    assert len(app.dataframe) >= 1
+    assert list(app.dataframe[0].value.columns) == ["Metric", "Acme", "Hooli"]
+    assert app.multiselect(key="compare_pick").value == ["acme", "hooli"]
+
+
+def test_compare_removes_a_company_and_opens_one_by_name(small_db):
+    app = open_page(PAGES["compare"]).run()
+    app.session_state["compare_ids"] = ["acme", "hooli"]
+    app.run()
+    app.button(key="remove_hooli").click().run()
+    assert app.session_state.compare_ids == ["acme"]
+    app.session_state["compare_ids"] = ["acme", "hooli"]
+    app.run()
+    app.button(key="open_hooli").click().run()
+    assert not app.exception, app.exception
+    assert app.title[0].value == "Hooli"
+
+
+def test_a_full_compare_list_says_so_instead_of_adding(small_db):
+    app = open_page(PAGES["company"]).run()
+    app.session_state["compare_ids"] = ["hooli", "x1", "x2", "x3"]
+    app.run()
+    next(b for b in app.button if b.label == "Add to compare").click().run()
+    assert app.session_state.compare_ids == ["hooli", "x1", "x2", "x3"]
+    assert "compare list is full" in app.warning[0].value
 
 
 # --- Explore: filters and the compare list survive leaving the page ----------
