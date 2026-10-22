@@ -23,6 +23,16 @@ def default_filters() -> dict:
     return {**asdict(Filters()), "sort": "name", "descending": False}
 
 
+def set_filter(name: str, value) -> None:
+    """Set one Explore filter from another page (e.g. the Company page's sector link).
+
+    The Explore widget's own key is dropped too, so the next visit refills
+    the widget from the new value instead of keeping the one it showed last.
+    """
+    st.session_state.filters = {**st.session_state.filters, name: value}
+    st.session_state.pop(f"filter_{name}", None)
+
+
 def init_state() -> None:
     """Fill each shared key that isn't set yet; never overwrite one that is."""
     st.session_state.setdefault("selected_company", None)   # a company_id slug

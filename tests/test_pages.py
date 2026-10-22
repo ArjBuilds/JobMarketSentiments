@@ -117,3 +117,46 @@ def test_compare_asks_for_two_companies_then_shows_the_table(small_db):
     app.multiselect[0].select("acme").select("hooli").run()
     assert not app.exception, app.exception
     assert len(app.dataframe) >= 1
+
+
+# --- Explore: filters and the compare list survive leaving the page ----------
+
+def test_explore_filters_survive_a_trip_to_another_page(small_db):
+    app = open_page(PAGES["explore"]).run()
+    app.toggle(key="filter_descending").set_value(True).run()
+    app.multiselect(key="filter_sectors").select("IT Services").run()
+    app.switch_page(PAGES["compare"]).run()
+    app.switch_page(PAGES["explore"]).run()
+    assert not app.exception, app.exception
+    assert app.multiselect(key="filter_sectors").value == ["IT Services"]
+    assert app.toggle(key="filter_descending").value is True
+    assert app.session_state.filters["sectors"] == ("IT Services",)
+
+
+def test_a_filter_set_from_another_page_reaches_the_explore_widget(small_db):
+    """What the Company page's sector link does (app.state.set_filter)."""
+    app = open_page(PAGES["explore"]).run()
+    app.multiselect(key="filter_sectors").select("IT Services").run()
+    app.switch_page(PAGES["compare"]).run()
+    app.session_state["filters"] = {**app.session_state.filters, "sectors": ()}
+    del app.session_state["filter_sectors"]
+    app.switch_page(PAGES["explore"]).run()
+    assert app.multiselect(key="filter_sectors").value == []
+
+
+def test_explore_with_no_match_offers_clear_filters(small_db):
+    app = open_page(PAGES["explore"]).run()
+    app.toggle(key="filter_has_data_roles").set_value(True).run()   # the small database has no jobs
+    assert app.info[0].value == "No companies match these filters."
+    app.button[0].click().run()
+    assert app.session_state.filters["has_data_roles"] is False
+    assert not app.info
+    assert app.caption[0].value == "2 of 2 companies"
+
+
+def test_the_explore_compare_picker_fills_the_compare_list(small_db):
+    app = open_page(PAGES["explore"]).run()
+    app.multiselect(key="explore_compare").select("acme").select("hooli").run()
+    assert app.session_state.compare_ids == ["acme", "hooli"]
+    app.switch_page(PAGES["compare"]).run()
+    assert not app.exception, app.exception

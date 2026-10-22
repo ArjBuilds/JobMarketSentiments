@@ -14,6 +14,7 @@ so no meaning rests on colour alone.
 
 import streamlit as st
 
+from app.state import set_filter
 from jmsa.display import NOT_AVAILABLE, show
 from jmsa.jobs import cities_text
 from jmsa.sentiment import label, score_text
@@ -35,7 +36,7 @@ PROXY_BADGE_COLOUR = "green"   # config.toml's greenColor is the proxy's aqua, n
 
 def show_sector(sector: str) -> None:
     """Open Explore filtered to one sector. The other filters stay as the user left them."""
-    st.session_state.filters = {**st.session_state.filters, "sectors": (sector,)}
+    set_filter("sectors", (sector,))
     st.switch_page(PAGES["explore"])
 
 
