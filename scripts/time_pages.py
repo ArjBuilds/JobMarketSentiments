@@ -2,9 +2,9 @@
 
 Run from the repo root:  python scripts/time_pages.py
 
-Each page is run headlessly with Streamlit's own AppTest, twice: the first
-run is the page's first load (nothing cached yet), the second a rerun, as
-when a filter changes. It measures the page script, not the browser's
+Each page is opened headlessly through the router (app/app.py) with
+Streamlit's own AppTest, then run twice: the first run is the page's first
+load (nothing cached yet), the second a rerun, as when a filter changes. It measures the page script, not the browser's
 rendering, so also open each page in the browser. The PRD asks for under 3 s.
 """
 
@@ -18,10 +18,8 @@ sys.path.insert(0, str(ROOT))
 
 from streamlit.testing.v1 import AppTest  # noqa: E402
 
+from app.ui.components import PAGES  # noqa: E402
 from jmsa.config import DB_PATH  # noqa: E402
-
-PAGES = ["app/app.py", "app/pages/1_Library.py", "app/pages/2_Company.py",
-         "app/pages/3_Market_skills.py", "app/pages/4_Compare.py", "app/pages/5_About_and_methods.py"]
 LIMIT_SECONDS = 3.0
 
 
@@ -31,8 +29,9 @@ def main() -> int:
         return 1
     print(f"database: {DB_PATH}")
     slow = 0
-    for page in PAGES:
-        app = AppTest.from_file(str(ROOT / page), default_timeout=60)
+    for page in PAGES.values():
+        app = AppTest.from_file(str(ROOT / "app/app.py"), default_timeout=60)
+        app.switch_page(page)
         started = time.perf_counter()
         app.run()
         first = time.perf_counter() - started

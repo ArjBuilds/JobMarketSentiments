@@ -69,8 +69,7 @@ with st.sidebar:
     st.caption(f"Compare list: {len(st.session_state.compare_ids)} of {MAX_COMPANIES}")
     if refreshed:
         st.page_link(about, label=f"Data last refreshed: {refreshed}", icon=":material/update:",
-                     help="The newest load, fetch or retrieval date. Each source's own dates are on "
-                          "About the data.")
+                     help="Each source's own dates are on About the data.")
 
 # Every page but About needs the database. About's methods text doesn't, so
 # it still opens and says which dates it can't show.

@@ -21,7 +21,7 @@ BEFORE_REVIEWS = ("sector", "hq_country", "rating", "rating_count")
 REVIEW_KEYS = ("sentiment", "reviews")
 AFTER_REVIEWS = ("data_roles", "attrition", "proxy", "proxy_split")
 
-NEWS_ARTICLES = "News articles (up to 10, published in the 30 days before the fetch)"
+NEWS_ARTICLES = "News articles"
 NEWS_FETCHED = "News fetched on"
 
 

@@ -18,9 +18,9 @@ Use `st.navigation` with `st.Page` (not the legacy `pages/` folder auto-discover
 |---|---|---|
 | Explore (default) | Browse and narrow the library (F1, F2) | Filter bar, results count, company table |
 | Company | Everything about one company (F3–F6, F8) | Header, metric row, tabs: Sentiment, Data roles & skills, News, Turnover |
-| Market skills | Skills Indian data-role postings ask for, market-wide (F7) | Top skills bar chart, view switch (all / tools / methods), export comparison |
+| Market skills | Skills Indian data-role postings ask for, market-wide (F7) | One-line market-wide label, view switch (all / tools / methods), top skills bar chart |
 | Compare | 2–4 companies side by side (F9) | One metrics table + small multiples |
-| About the data | Sources, methods, date ranges, refresh dates | Sources and freshness table, dataset names and licences, VADER cut-offs, proxy definition, caveats |
+| About the data | Sources and their dates | Sources table (source, used for, dates) and one collapsed "How scores work" expander |
 
 Sidebar: app name, page nav, a "Compare (n)" indicator, and a data-freshness line ("Data last refreshed: <newest source date>", linking to About the data, where each source's own date is listed). The date is read from `jmsa/freshness.py`, never typed in. No filters in the sidebar; filters live on Explore.
 
@@ -42,9 +42,11 @@ Links between pages:
 - Style: dense, calm, analytical. Think a clean research tool, not a marketing site.
 - Theme lives in `.streamlit/config.toml` (`[theme]`: base, primaryColor, backgroundColor, secondaryBackgroundColor, textColor, font). One accent colour, used for primary actions and selection only. Support Streamlit's light and dark modes; do not hard-code white backgrounds in charts.
 - Custom CSS: avoid. If unavoidable, keep it in one `app/ui/styles.py` injected once, under 30 lines, and never target auto-generated class names.
-- Semantic colours are fixed and reused everywhere (tables, badges, every chart):
-  - positive `#2E7D32`, neutral `#9E9E9E`, negative `#C62828`
-  - proxy/estimate marker: amber `#B26A00`
+- Semantic colours are fixed and reused everywhere (tables, badges, every chart), chosen to stay distinct for colour-blind viewers in light and dark mode (checked with a CVD validator, one hex each for both modes):
+  - positive blue `#2a78d6`, neutral grey `#9E9E9E`, negative orange-red `#d95926`
+  - proxy marker: aqua `#199e70`
+  - accent (primary buttons, selection, a single-series chart): violet `#6250d6`, so no control reads as a sentiment
+  - In `.streamlit/config.toml` they are Streamlit's `blueColor`, `grayColor`, `redColor` and `greenColor` (the proxy), so `:blue-badge[...]` etc. match the charts.
 - One shared Plotly template in `app/ui/charts.py` (font, margins, gridlines, transparent background, semantic colours). Every chart uses it. No 3D, no pie charts for more than 3 slices, no chart without axis labels and units.
 - Layout: `layout="wide"`. Content in `st.columns` and `st.container(border=True)` groups. Max one row of 4 metrics at the top of a page.
 - Numbers:
@@ -53,32 +55,40 @@ Links between pages:
   - Turnover proxy: "per 100 reviews", never with a `%` sign, always with the Proxy tag.
   - Counts with thousands separators. Dates as `21 Oct 2026` in UI (ISO in the DB); every date comes from `jmsa/freshness.py`, never typed into a caption or constant.
 - Missing values read "Not available" (the `NOT_AVAILABLE` constant in `jmsa/display.py`, applied through `show()`).
-- Copy: plain, specific labels ("Data-role listings (dataset snapshot)", not "Opportunities"). Postings are a 2023 snapshot: never "open now", "hiring now" or "open roles". Data-role counts always carry the lower-bound note. Buttons use verbs ("Add to compare"). Emoji only as page icons in navigation, nowhere else.
+- Copy: plain, specific labels ("Data-role listings (2023 snapshot)", not "Opportunities"). Postings are a 2023 snapshot: never "open now", "hiring now" or "open roles". Buttons use verbs ("Add to compare"). Emoji only as page icons in navigation, nowhere else.
+
+## Text on pages
+The app reads like a finished product a student uses, not a methods write-up. Labels, one-sentence tooltips and a one-line source-and-date note per data block; never method or caveat paragraphs, long captions, export file names, or mention of the course or assignment. The method and caveats live in docs/methods.md.
+- Proxy: a "Proxy" tag beside every proxy number, tooltip "Reviews mentioning people leaving, per 100 reviews. Not a share of staff."
+- Data roles: "Data-role listings (2023 snapshot)", tooltip "From a 2023 dataset, not live openings."
+- Missing and thin data: "Not available" and "Fewer than 20 reviews (n = X)".
+- Freshness: source name + date only, e.g. "Glassdoor reviews · to Jul 2023", "GNews · fetched 22 Oct 2026".
+- Column tooltips: one short sentence at most.
 
 ## Shared components (build once in `app/ui/components.py`, reuse everywhere)
 - `company_header(company)`: name, sector link, HQ country, India cities, size band.
 - `metric_or_na(label, value, help, source=None)`: renders `st.metric` or a consistent "Not available" with the reason in the tooltip.
 - `sentiment_badge(compound)`: label + colour from the fixed cut-offs in `jmsa/sentiment.py` (≥0.05 positive, ≤−0.05 negative).
-- `proxy_tag()`: amber "Proxy" label with the definition on hover. Shown next to every proxy turnover number, in tables too.
-- `freshness_note(source_key)`: small caption under any data block, built from `jmsa.freshness.source_line` so the source name and dates come from the database.
+- `proxy_tag()`: aqua "Proxy" badge with the one-line tooltip on hover. Shown next to every proxy turnover number, in tables too.
+- `freshness_note(notes, *keys)`: one small caption under a data block, "Glassdoor reviews · to Jul 2023", from `jmsa.freshness.freshness_notes()` so the dates come from the database.
 - `empty_state(message, action_label=None, target_page=None)`: one sentence plus one next action.
 
 If a page needs something these don't cover, add a component here rather than styling inline.
 
 ## Page specs
-**Explore.** Filter bar above the table: one row of columns for the main filters (sector multiselect, HQ country, min sentiment, "Has data roles in the dataset" toggle, sort and descending), and the rest (review period, min Glassdoor rating, min reviews, include companies with no value, published attrition basis and scope) in a "More filters" expander below it. Results count and "Clear filters" right above the table. Table columns via `st.column_config`: name, sector, HQ, India cities, Glassdoor rating, sentiment (the `+0.31 · Positive` text, coloured by label, so hidden and missing values still read as text), reviews scored, data-role listings (dataset snapshot), published attrition, turnover proxy (with Proxy marker). Column notes go in header tooltips, not in a paragraph under the table. Hide the index. The proxy is never sortable. Loads in under 3 s (use `st.cache_data` on DB reads).
+**Explore.** Filter bar above the table: one row of columns for the main filters (sector multiselect, HQ country, min sentiment, "Has data roles in the dataset" toggle, sort and descending), and the rest (review period, min Glassdoor rating, min reviews, include companies with no value, published attrition basis and scope) in a "More filters" expander below it. Results count and "Clear filters" right above the table. Table columns via `st.column_config`: name, sector, HQ, India cities, Glassdoor rating, sentiment (the `+0.31 · Positive` text, coloured by label, so hidden and missing values still read as text), reviews scored, data-role listings (2023 snapshot), published attrition, turnover proxy (with Proxy marker). Column notes go in one-sentence header tooltips; under the table only the source-and-date note. Hide the index. The proxy is never sortable. Loads in under 3 s (use `st.cache_data` on DB reads).
 
-**Company.** Selectbox + Back link + Add to compare on top, then `company_header`, then a row of 4 metrics: Employee sentiment, Reviews analysed, Published attrition, Data-role listings (dataset snapshot). The attrition metric shows only a published figure or "Not available"; it never falls back to the proxy. Then `st.tabs`:
-- Sentiment: positive/neutral/negative share bar, sentiment by theme (pay, culture, WLB, management) as a horizontal bar, review date range, Glassdoor rating (labelled as a separate source). Scores hidden with an explanation if fewer than 20 reviews; the review count is always shown.
-- Data roles & skills: "Current openings" link to the official careers site; data-role listings table with title, employer as posted and city only (never link or posted time), with the lower-bound and snapshot notes; then the note that skills are market-wide only, with a link to Market skills.
-- News: up to 10 articles from the 30 days before the fetch date, each as a row: title (link), outlet, date, sentiment badge; plus the fetch date.
-- Turnover: published attrition (value, basis, scope, period, entity, definition, source link) and, under its own heading, the review-based proxy with its Proxy tag, split and definition. Neither stands in for the other.
+**Company.** Selectbox + Back link + Add to compare on top, then `company_header`, then a row of 4 metrics: Employee sentiment, Reviews analysed, Published attrition, Data-role listings (2023 snapshot). The attrition metric shows only a published figure or "Not available"; it never falls back to the proxy. Then `st.tabs`:
+- Sentiment: positive/neutral/negative share bar, sentiment by theme (pay, culture, WLB, management) as a horizontal bar, review date range, Glassdoor rating (labelled as a separate source). Scores show "Fewer than 20 reviews (n = X)" below the threshold; the review count is always shown.
+- Data roles & skills: "Current openings" link to the official careers site; data-role listings table with title, employer as posted and city only (never link or posted time), under the "Data-role listings (2023 snapshot)" label and its tooltip; then skills "Not available" for one company, with a link to Market skills.
+- News: up to 10 articles, each as a row: title (link), outlet, date, sentiment badge; the note "GNews · fetched <date>".
+- Turnover: published attrition (value, basis, scope, period, source link) and, under its own heading, the review-based proxy with its Proxy tag and split. Neither stands in for the other.
 
-**Market skills.** One bar chart of the top skills (share of distinct skill lists), the view switch, and the export comparison in an expander. No company appears on this page.
+**Market skills.** A one-line market-wide label, the view switch and one bar chart of the top skills (share of distinct skill lists). No company appears on this page.
 
 **Compare.** Table with companies as columns and metrics as rows, same formatting and badges as elsewhere; a small grouped bar of theme sentiment. Remove buttons per company.
 
-**About the data.** Every source with name, date range, licence/terms note, and method summary. This page is part of the grade; keep it tidy. Its static methods text shows even when the database is missing.
+**About the data.** A clean, short page: a table of sources (source, what it is used for, dates) and at most one collapsed "How scores work" expander with no more than 4 one-line bullets. No paragraphs. It still opens when the database is missing.
 
 ## Required states
 - Default with real data.
@@ -105,6 +115,7 @@ Default unstyled `st.write` dumps of DataFrames, raw column names (`sentiment_co
 - The sector link on a company page opens Explore pre-filtered.
 - Sentiment colours and labels are identical on every page and chart.
 - Every proxy number carries the Proxy tag; every missing value says "Not available".
-- No data-role count is presented as current openings, and every one carries the lower-bound note.
+- No data-role count is presented as current openings; every one is labelled "Data-role listings (2023 snapshot)".
+- No page has a method or caveat paragraph; each data block ends in one source-and-date line.
 - No raw DB column names or Python reprs are visible.
 - Works in Streamlit light and dark themes.

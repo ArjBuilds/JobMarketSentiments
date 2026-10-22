@@ -7,7 +7,7 @@ review_summary, and the data-role counts from jobs (ingest.load_jobs). The
 turnover columns come from turnover: the proxy from process.turnover_proxy,
 published attrition from ingest.load_turnover. Filtering, sorting and
 formatting live in jmsa.library; this page only draws the controls and the
-table. The source lines and dates under it come from jmsa.freshness.
+table. The source-and-date line under it comes from jmsa.freshness.
 """
 
 import sys
@@ -19,7 +19,8 @@ import streamlit as st  # noqa: E402
 
 from app.state import init_state  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
-from jmsa.freshness import read_freshness, review_end, source_line  # noqa: E402
+from app.ui.components import freshness_note  # noqa: E402
+from jmsa.freshness import freshness_notes  # noqa: E402
 from jmsa.library import (  # noqa: E402
     REVIEW_MINIMUMS,
     SORT_KEYS,
@@ -32,9 +33,9 @@ from jmsa.library import (  # noqa: E402
     minimum_steps,
     sentiment,
 )
-from jmsa.jobs import LOWER_BOUND_NOTE  # noqa: E402
-from jmsa.turnover import BASES, BASIS_NAMES, PROXY_CHECK_NOTE, SCOPE_NAMES, SCOPES  # noqa: E402
-from jmsa.sentiment import MIN_REVIEWS, PERIOD_TITLES, PERIODS  # noqa: E402
+from jmsa.jobs import ROLES_HELP  # noqa: E402
+from jmsa.turnover import BASES, BASIS_NAMES, PROXY_HELP, SCOPE_NAMES, SCOPES  # noqa: E402
+from jmsa.sentiment import PERIOD_TITLES, PERIODS  # noqa: E402
 
 init_state()
 
@@ -60,11 +61,11 @@ def library() -> list[dict]:
 
 
 @st.cache_data
-def sources() -> tuple[dict, str]:
-    """Each source's dates, and when the reviews end, read from the database."""
+def notes() -> dict[str, str]:
+    """Each source's short name and date, read from the database."""
     conn = get_conn()
     try:
-        return read_freshness(conn), review_end(conn)
+        return freshness_notes(conn)
     finally:
         conn.close()
 
@@ -95,32 +96,27 @@ with st.sidebar:
         "Minimum reviews scored",
         REVIEW_MINIMUMS,
         format_func=lambda v: f"{v:,}",
-        help=f"{MIN_REVIEWS} is the standing rule: below it a score is hidden. "
-             "Raise it to drop companies whose score rests on a small sample.",
+        help="Drop companies whose score rests on few reviews.",
     )
     has_data_roles = st.checkbox(
         "Has data roles in the dataset",
-        help="Keep only companies with at least one data-science or analytics posting "
-             "in the Naukri snapshot.",
+        help=ROLES_HELP,
     )
     include_missing = st.toggle(
         "Include companies with no value for a minimum you've set",
-        help="Off: a company with no rating, no sentiment or no reviews is left out "
-             "when you set a minimum on that field. On: it stays in, shown as Not available.",
+        help="Keep companies that have no value for a field you've set a minimum on.",
     )
 
     st.header("Compare attrition like with like")
     attrition_basis = st.selectbox(
         "Published attrition basis", [ANY, *BASES],
         format_func=lambda v: v if v == ANY else BASIS_NAMES[v],
-        help="Keep only companies whose latest published figure has this basis. "
-             "\"Basis not stated\" means the document doesn't say voluntary or total.",
+        help="Voluntary exits, all exits, or not stated by the company.",
     )
     attrition_scope = st.selectbox(
         "Published attrition scope", [ANY, *SCOPES],
         format_func=lambda v: v if v == ANY else SCOPE_NAMES[v],
-        help="Keep only companies whose latest published figure covers this: the group, one "
-             "segment of it, or its listed India subsidiary.",
+        help="The whole group, one segment, or the India subsidiary.",
     )
 
     st.header("Sort")
@@ -143,34 +139,15 @@ shown = apply(records, filters, sort_key, descending)
 
 st.caption(f"{len(shown)} of {len(records)} companies")
 if not shown:
-    st.info("No companies match these filters. Remove a sector or country, lower a minimum, "
-            "or turn on the toggle that includes companies with no value.")
+    st.info("No companies match these filters.")
     st.stop()
 
 if sort_key == "attrition" and (filters.attrition_basis is None or filters.attrition_scope is None):
-    st.warning("Published attrition figures use different definitions and cover different entities, "
-               "as each cell says. Choose a basis and a scope under \"Compare attrition like with "
-               "like\" to rank only comparable figures.")
-freshness, reviews_end = sources()
+    st.caption("Pick a basis and scope to rank like with like.")
 headers = column_headers(period)
 # The tooltip on both proxy columns, so the proxy is never read without it.
-proxy_help = st.column_config.Column(help=PROXY_CHECK_NOTE)
+proxy_help = st.column_config.Column(help=PROXY_HELP)
 st.dataframe([display_row(record, period) for record in shown], hide_index=True,
-             column_config={headers["proxy"]: proxy_help, headers["proxy_split"]: proxy_help})
-st.caption(
-    "Use **Sort** in the sidebar: it sorts by the numbers and always puts \"Not available\" last. "
-    "Clicking a column header sorts the cells as text. "
-    "The Glassdoor rating comes from a ratings snapshot; review sentiment is VADER over a "
-    "separate set of review texts, from −1 to +1, so a company can have one without the other. "
-    f"Scores based on fewer than {MIN_REVIEWS} reviews are hidden. Reviews end {reviews_end}. "
-    "Data-role listings are distinct Naukri data-science and analytics listings in India in the "
-    "dataset snapshot, not roles open now. "
-    f"{LOWER_BOUND_NOTE} "
-    "Published attrition is each company's latest figure from its own reports; the proxy is never "
-    "part of that ranking. "
-    "The turnover proxy counts reviews whose headline or cons mention people leaving, attrition "
-    "or layoffs, per 100 reviews; it is not a share of staff, so it can't be sorted here. "
-    "A review can mention both kinds, so the split can add up to more than the total. "
-    f"{PROXY_CHECK_NOTE}"
-)
-st.caption("  \n".join(source_line(freshness, key) for key in ("ratings", "reviews", "roles", "attrition", "proxy")))
+             column_config={headers["proxy"]: proxy_help, headers["proxy_split"]: proxy_help,
+                            headers["data_roles"]: st.column_config.Column(help=ROLES_HELP)})
+freshness_note(notes(), "ratings", "reviews", "roles", "attrition", "proxy")

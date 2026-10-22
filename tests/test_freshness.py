@@ -5,6 +5,7 @@ import pytest
 from jmsa.display import NOT_AVAILABLE
 from jmsa.freshness import (
     attrition_dates,
+    freshness_notes,
     freshness_table,
     last_refreshed,
     naukri_dates,
@@ -15,6 +16,7 @@ from jmsa.freshness import (
     review_range,
     snapshot_month,
     source_line,
+    sources_rows,
     sparse_note,
 )
 from jmsa.jobs import link_date
@@ -173,3 +175,40 @@ def test_source_line_names_the_source_and_its_dates(library, key):
     freshness = read_freshness(library)
     line = source_line(freshness, key)
     assert line == f"Source: {freshness[key]['Source']}; {freshness[key]['Dates']}."
+
+
+# --- the short form the pages show ---------------------------------------------
+
+def test_freshness_notes_are_source_and_date_only(library):
+    add_summary(library, "acme", "2012-03-04", "2023-07-06")
+    add_job(library, 1, url=LINK.format(id="271023100002"))
+    add_fetch(library, "acme", "2026-10-22T08:00:00Z")
+    add_published(library, "acme", "FY2025-26", "2026-03-31", "2026-10-22")
+    add_proxy(library, "acme")
+    notes = freshness_notes(library)
+    assert notes == {
+        "reviews": "Glassdoor reviews · to Jul 2023",
+        "proxy": "Glassdoor reviews · Apr 2021 – Mar 2023",
+        "ratings": "Glassdoor ratings · date not recorded",
+        "roles": "Naukri postings · Oct 2023 snapshot",
+        "skills": "Naukri postings · Oct 2023 snapshot",
+        "news": "GNews · fetched 22 Oct 2026",
+        "attrition": "Company reports · retrieved 22 Oct 2026",
+    }
+
+
+def test_freshness_notes_say_not_available_on_an_empty_database(library):
+    notes = freshness_notes(library)
+    assert notes["reviews"] == f"Glassdoor reviews · {NOT_AVAILABLE}"
+    assert notes["news"] == f"GNews · {NOT_AVAILABLE}"
+    assert notes["ratings"] == "Glassdoor ratings · date not recorded"
+
+
+def test_sources_rows_name_the_review_dataset_and_its_licence(library):
+    add_summary(library, "acme", "2008-01-31", "2023-07-06")
+    rows = sources_rows(library)
+    assert set(rows[0]) == {"Source", "Used for", "Dates"}
+    reviews = rows[0]
+    assert "davidgauthier/glassdoor-job-reviews-2" in reviews["Source"] and "CC BY-NC-SA 4.0" in reviews["Source"]
+    assert reviews["Dates"] == "Jan 2008 – Jul 2023"
+    assert [r["Dates"] for r in rows if r["Used for"] == "Glassdoor rating"] == ["Date not recorded"]

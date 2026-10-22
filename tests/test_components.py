@@ -11,8 +11,8 @@ from jmsa.display import NOT_AVAILABLE
 
 
 def test_sentiment_badge_colour_follows_the_vader_cut_offs_and_keeps_the_sign():
-    assert sentiment_badge(0.31) == ":green-badge[+0.31 · Positive]"
-    assert sentiment_badge(0.05) == ":green-badge[+0.05 · Positive]"
+    assert sentiment_badge(0.31) == ":blue-badge[+0.31 · Positive]"
+    assert sentiment_badge(0.05) == ":blue-badge[+0.05 · Positive]"
     assert sentiment_badge(0.0) == ":gray-badge[+0.00 · Neutral]"
     assert sentiment_badge(-0.12) == ":red-badge[-0.12 · Negative]"
 

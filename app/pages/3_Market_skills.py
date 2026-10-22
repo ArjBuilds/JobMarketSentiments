@@ -16,23 +16,21 @@ import streamlit as st  # noqa: E402
 
 from app.state import init_state  # noqa: E402
 from app.ui.charts import ACCENT, TEMPLATE  # noqa: E402
+from app.ui.components import freshness_note  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.display import NOT_AVAILABLE  # noqa: E402
-from jmsa.freshness import naukri_dates  # noqa: E402
-from jmsa.skills import (  # noqa: E402
-    MARKET_SKILLS_NOTE, MIN_SCORED_POSTINGS, TOP_N, VIEWS,
-    read_export_comparison, read_market_skills, read_scope_sizes,
-)
+from jmsa.freshness import freshness_notes  # noqa: E402
+from jmsa.skills import MARKET_SKILLS_LABEL, TOP_N, VIEWS, read_market_skills  # noqa: E402
 
 init_state()
 
 
 # Cached results, not connections, for the reason given on the Library page.
 @st.cache_data
-def snapshot_dates() -> str:
+def notes() -> dict[str, str]:
     conn = get_conn()
     try:
-        return naukri_dates(conn)
+        return freshness_notes(conn)
     finally:
         conn.close()
 
@@ -42,15 +40,6 @@ def market(view: str) -> dict:
     conn = get_conn()
     try:
         return read_market_skills(conn, view)
-    finally:
-        conn.close()
-
-
-@st.cache_data
-def comparison(view: str) -> tuple[list[dict], list[dict]]:
-    conn = get_conn()
-    try:
-        return read_export_comparison(conn, view), read_scope_sizes(conn)
     finally:
         conn.close()
 
@@ -84,30 +73,15 @@ def bar_chart(rows: list[dict]) -> go.Figure:
 
 
 st.title("Market skills")
-st.markdown("What Indian data-role postings ask for. **Market-wide, not any one company's.**")
+st.caption(MARKET_SKILLS_LABEL)
 
 view = st.radio("Show", list(VIEWS), horizontal=True,
-                help="Tools are named products and languages; methods are techniques. "
-                     "All three views share one base: every distinct skill list scored.")
+                help="Tools are named products and languages; methods are techniques.")
 skills = market(view)
 
 st.subheader(f"Top {TOP_N} {view.lower() if view != 'All' else 'skills'}")
 if not skills["available"]:
-    st.markdown(
-        f"Market skills: **{NOT_AVAILABLE}**. Fewer than {MIN_SCORED_POSTINGS} skill lists have been "
-        "scored. Count them with:\n\n```bash\npython -m process.skill_counts\n```"
-    )
+    st.markdown(f"Market skills: **{NOT_AVAILABLE}**")
 else:
     st.plotly_chart(bar_chart(skills["rows"]), width="stretch")
-    st.caption(f"Based on {skills['scored']:,} distinct skill lists from the two data-science exports. "
-               + MARKET_SKILLS_NOTE + f" Snapshot {snapshot_dates()}.")
-
-    with st.expander("Compare the three exports"):
-        rows, sizes = comparison(view)
-        st.markdown(
-            "Each export's distinct skill lists, counted on their own. The headline pools the two "
-            "data-science exports, whose titles are 87–91% data roles, and counts a list found in both "
-            "once. The data_analytics export is left out of it: only 38% of its titles are data roles."
-        )
-        st.dataframe(rows, hide_index=True)
-        st.dataframe(sizes, hide_index=True)
+freshness_note(notes(), "skills")

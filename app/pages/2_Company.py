@@ -8,8 +8,8 @@ Skills (F7) are market-wide, so this page only points to the Market skills
 page. News (F6) comes from articles, filled by ingest.load_news, through
 jmsa.news.read_news; the page never calls GNews. Turnover (F5) comes from
 turnover through jmsa.turnover.read_turnover: published figures and the
-review-based proxy, shown separately and never mixed. Each section's source
-line and dates come from jmsa.freshness, read from the database.
+review-based proxy, shown separately and never mixed. Each section's
+source-and-date line comes from jmsa.freshness, read from the database.
 """
 
 import sys
@@ -21,16 +21,13 @@ import streamlit as st  # noqa: E402
 
 from app.state import init_state  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
+from app.ui.components import PAGES, freshness_note, proxy_tag  # noqa: E402
 from jmsa.display import NOT_AVAILABLE, show  # noqa: E402
-from jmsa.freshness import (  # noqa: E402
-    ATTRITION_SOURCE, GNEWS_SOURCE, REVIEWS_SOURCE,
-    read_freshness, review_end, snapshot_month, source_line, sparse_note,
-)
-from jmsa.jobs import DATA_ROLES_NOTE, LOWER_BOUND_NOTE, ROLES_INTRO, read_roles  # noqa: E402
-from jmsa.news import NEWS_NOTE, read_news  # noqa: E402
-from jmsa.turnover import PROXY_CHECK_NOTE, PROXY_NOTE, PUBLISHED_NOTE, read_turnover  # noqa: E402
-from jmsa.sentiment import MIN_REVIEWS, read_summary  # noqa: E402
-from jmsa.skills import COMPANY_SKILLS_NOTE  # noqa: E402
+from jmsa.freshness import freshness_notes  # noqa: E402
+from jmsa.jobs import ROLES_HELP, ROLES_LABEL, read_roles  # noqa: E402
+from jmsa.news import read_news  # noqa: E402
+from jmsa.turnover import read_turnover  # noqa: E402
+from jmsa.sentiment import read_summary  # noqa: E402
 
 init_state()
 
@@ -52,11 +49,11 @@ def companies() -> list[dict]:
 
 
 @st.cache_data
-def sources() -> tuple[dict, str, str]:
-    """Each source's dates, when the reviews end, and the postings snapshot's month."""
+def notes() -> dict[str, str]:
+    """Each source's short name and date, read from the database."""
     conn = get_conn()
     try:
-        return read_freshness(conn), review_end(conn), snapshot_month(conn)
+        return freshness_notes(conn)
     finally:
         conn.close()
 
@@ -102,7 +99,7 @@ st.title("Company")
 # app/app.py has already checked the database exists and has companies.
 library = companies()
 
-freshness, reviews_end, snapshot = sources()
+sources = notes()
 by_id = {c["company_id"]: c for c in library}
 company = by_id[st.selectbox("Company", list(by_id), format_func=lambda company_id: by_id[company_id]["name"])]
 
@@ -115,26 +112,23 @@ st.markdown(
 )
 if company["glassdoor_rating"] is not None:
     count = company["glassdoor_review_count"]
-    rating = f"{company['glassdoor_rating']:.1f} " + (f"from {count:,} ratings" if count is not None
-                                                      else f"(number of ratings {NOT_AVAILABLE})")
+    rating = f"{company['glassdoor_rating']:.1f}" + (f" from {count:,} ratings" if count is not None else "")
 else:
-    rating = (f"**{NOT_AVAILABLE}**. The ratings snapshot has no trustworthy row for this company "
-              "(only a subsidiary or regional page, or none at all).")
+    rating = NOT_AVAILABLE
 st.markdown(f"**Glassdoor rating** {rating}")
-st.caption("The rating comes from a Glassdoor ratings snapshot, a different source "
-           "from the review text scored below. " + source_line(freshness, "ratings"))
+freshness_note(sources, "ratings")
 
 st.subheader("Employee review sentiment")
 summary = sentiment(company["company_id"])
 if not summary["available"]:
-    st.markdown(f"Review sentiment: **{NOT_AVAILABLE}**. The review dataset has no reviews for this company.")
+    st.markdown(f"Review sentiment: **{NOT_AVAILABLE}**")
 else:
     if summary["note"]:
-        st.warning(summary["note"])
+        st.caption(summary["note"])
     for column, view in zip(st.columns(len(summary["periods"])), summary["periods"]):
         with column:
             st.markdown(f"#### {view['title']}")
-            st.caption(f"Reviews dated {view['range']}{sparse_note(view['last_date'])}")
+            st.caption(f"Reviews dated {view['range']}")
             st.markdown(
                 f"**Average score** {view['average']}  \n"
                 f"**Share** {view['shares']}  \n"
@@ -142,47 +136,39 @@ else:
             )
             if view["themes"]:
                 st.dataframe(view["themes"], hide_index=True)
-    st.caption(
-        "VADER scores the headline, pros and cons separately; a review's score is "
-        "mean(headline, mean(pros, cons)), from −1 (negative) to +1 (positive), labelled "
-        "positive at ≥ 0.05 and negative at ≤ −0.05. A theme's score is the VADER score of the "
-        "section that mentions it, so praise in the pros and complaints in the cons both count. "
-        f"Figures based on fewer than {MIN_REVIEWS} reviews are hidden."
-    )
-st.caption(f"Source: {REVIEWS_SOURCE}. Reviews end {reviews_end}.")
+freshness_note(sources, "reviews")
 
 # Current openings live on the company's own careers site, kept apart from
 # the historical F8 snapshot below.
 if company["careers_url"]:
-    openings = f"[{company['name']} careers page]({company['careers_url']}) (external link)"
+    openings = f"[{company['name']} careers page]({company['careers_url']})"
 else:
-    openings = f"**{NOT_AVAILABLE}**. No official careers site is recorded for this company."
+    openings = NOT_AVAILABLE
 st.markdown(f"**Current openings:** {openings}")
 
-st.subheader("Data roles posted in India")
+st.subheader(ROLES_LABEL, help=ROLES_HELP)
 posted = roles(company["company_id"])
 if not posted["available"]:
-    st.markdown(f"Data roles posted: **{NOT_AVAILABLE}**. The postings dataset has none for this company.")
+    st.markdown(f"**{NOT_AVAILABLE}**")
 else:
-    st.markdown(ROLES_INTRO.format(snapshot=snapshot))
-    st.markdown(f"**{posted['count']}** distinct listings. {LOWER_BOUND_NOTE}")
+    st.markdown(f"**{posted['count']}** listings")
     st.dataframe(posted["rows"], hide_index=True)
-st.caption(f"{DATA_ROLES_NOTE} {source_line(freshness, 'roles')}")
+freshness_note(sources, "roles")
 
 st.subheader("Data-role skills")
-st.markdown(COMPANY_SKILLS_NOTE)
+st.markdown(f"**{NOT_AVAILABLE}** for one company.")
+st.page_link(PAGES["market_skills"], label="See market-wide skills", icon=":material/arrow_forward:")
 
 st.subheader("News coverage")
 coverage = news(company["company_id"])
 if not coverage["available"]:
-    st.markdown(f"News: **{NOT_AVAILABLE}**. {coverage['message']}")
+    st.markdown(f"News: **{NOT_AVAILABLE}**")
 else:
-    st.markdown(f"News fetched on {coverage['fetched_on']}.")
     st.markdown("\n".join(
         f"- [{a['title']}]({a['url']}) · {a['outlet']} · {a['date']} · {a['sentiment']}"
         for a in coverage["rows"]
     ))
-st.caption(f"{NEWS_NOTE} Source: {GNEWS_SOURCE}.")
+freshness_note(sources, "news")
 
 # Published attrition and the proxy measure different things (a share of
 # staff, a share of reviews), so each has its own heading and neither stands
@@ -192,20 +178,14 @@ figures = turnover(company["company_id"])
 st.markdown("#### Published attrition")
 figure = figures["published"]
 if figure is None:
-    st.markdown(f"Published attrition: **{NOT_AVAILABLE}**. No figure from the company's own "
-                "reports has been recorded.")
+    st.markdown(f"**{NOT_AVAILABLE}**")
 else:
-    st.markdown(
-        f"**{figure['value']}** · {figure['period']} · {figure['basis']} · {figure['scope']}  \n"
-        f"Definition: {figure['definition']}  \n"
-        f"Entity: {figure['entity']}  \n"
-        f"[Source]({figure['source_url']}) ({figure['source_ref']}), retrieved {figure['retrieved_on']}"
-        + (f"  \nNote: {figure['note']}" if figure["note"] else "")
-    )
-st.caption(f"{PUBLISHED_NOTE} Source: {ATTRITION_SOURCE}.")
+    st.markdown(f"**{figure['value']}** · {figure['basis']} · {figure['scope']} · {figure['period']} · "
+                f"[Source]({figure['source_url']}) ({figure['source_ref']})")
+freshness_note(sources, "attrition")
 st.markdown("#### Proxy from reviews")
-st.markdown(f"**Proxy:** {figures['proxy']}")
-st.markdown(PROXY_CHECK_NOTE)
+proxy_tag()
+st.markdown(figures["proxy"])
 if figures["note"]:
-    st.warning(figures["note"])
-st.caption(f"{PROXY_NOTE} {source_line(freshness, 'proxy')}")
+    st.caption(figures["note"])
+freshness_note(sources, "proxy")

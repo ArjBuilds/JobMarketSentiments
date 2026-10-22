@@ -1,9 +1,11 @@
 """Every page runs, twice, against a small database, with no exception.
 
-Streamlit's own AppTest runs each page script headlessly. The second run
-matters: Streamlit reruns a page on another thread, which is how the home
-page's cached sqlite connection once crashed ("SQLite objects created in a
-thread can only be used in that same thread").
+Streamlit's own AppTest runs each page headlessly, through the router
+(app/app.py) as a real visit does: links between pages only resolve there,
+and the router sets up the shared state and checks the database. The second
+run matters: Streamlit reruns a page on another thread, which is how the old
+home page's cached sqlite connection once crashed ("SQLite objects created
+in a thread can only be used in that same thread").
 """
 
 from pathlib import Path
@@ -14,11 +16,17 @@ from streamlit.testing.v1 import AppTest
 
 import jmsa.config
 import jmsa.db
+from app.ui.components import PAGES
 from jmsa.db import get_conn, init_db
 
 ROOT = Path(__file__).resolve().parents[1]
-PAGES = ["app/app.py", "app/pages/1_Library.py", "app/pages/2_Company.py",
-         "app/pages/3_Market_skills.py", "app/pages/4_Compare.py", "app/pages/5_About_and_methods.py"]
+
+
+def open_page(page: str) -> AppTest:
+    """The app opened at one page (a PAGES value), through the router."""
+    app = AppTest.from_file(str(ROOT / "app/app.py"), default_timeout=30)
+    app.run()
+    return app.switch_page(page)
 
 
 @pytest.fixture
@@ -51,9 +59,9 @@ def small_db(tmp_path, monkeypatch):
     st.cache_data.clear()
 
 
-@pytest.mark.parametrize("page", PAGES)
+@pytest.mark.parametrize("page", PAGES.values())
 def test_page_runs_twice_without_an_exception(small_db, page):
-    app = AppTest.from_file(str(ROOT / page), default_timeout=30)
+    app = open_page(page)
     for _ in range(2):
         app.run()
         assert not app.exception, app.exception
@@ -94,16 +102,17 @@ def test_about_opens_without_a_database(tmp_path, monkeypatch):
     missing = tmp_path / "missing.db"
     monkeypatch.setattr(jmsa.config, "DB_PATH", missing)
     monkeypatch.setattr(jmsa.db, "DB_PATH", missing)
-    app = AppTest.from_file(str(ROOT / "app/pages/5_About_and_methods.py"), default_timeout=30)
-    app.run()
+    st.cache_data.clear()
+    app = open_page(PAGES["about"]).run()
     assert not app.exception, app.exception
-    assert app.header[0].value == "Sources"
+    assert not app.error   # the router lets About through
+    assert "No database" in app.warning[0].value
+    assert app.expander[0].label == "How scores work"
     assert not missing.exists()
 
 
 def test_compare_asks_for_two_companies_then_shows_the_table(small_db):
-    app = AppTest.from_file(str(ROOT / "app/pages/4_Compare.py"), default_timeout=30)
-    app.run()
+    app = open_page(PAGES["compare"]).run()
     assert "Pick 2 to 4 companies" in app.info[0].value
     app.multiselect[0].select("acme").select("hooli").run()
     assert not app.exception, app.exception

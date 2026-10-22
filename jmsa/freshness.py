@@ -1,7 +1,10 @@
 """Where each source's data comes from and when (milestone 9).
 
-One definition for every page's source lines, for the sources table on the
-Compare and About pages, and for the sidebar's last-refreshed date. No Streamlit here, so the tests call it
+Two levels of detail. The pages show the short form: freshness_notes()
+gives the one-line "Glassdoor reviews · to Jul 2023" under each data block,
+sources_rows() the About page's table, and last_refreshed() the sidebar's
+date. read_freshness() keeps the full citations, file names and licences for
+docs/freeze.md (scripts/freeze.py). No Streamlit here, so the tests call it
 directly. Every date is read from the database, never written into a
 caption, so a reload changes what the pages say. Every value comes back as
 display text, with the missing-data rule applied through show().
@@ -87,7 +90,7 @@ def newest_link(conn: sqlite3.Connection):
 
 
 def snapshot_month(conn: sqlite3.Connection) -> str:
-    """'Oct 2023': the month of the newest stored link, for ROLES_INTRO."""
+    """'Oct 2023': the month of the newest stored link, which dates the postings snapshot."""
     newest = newest_link(conn)
     return month_year(newest.isoformat()) if newest else NOT_AVAILABLE
 
@@ -142,6 +145,67 @@ def last_refreshed(conn: sqlite3.Connection) -> str:
     )]
     present = [d for d in dates if d]
     return day_month_year(max(present)) if present else NOT_AVAILABLE
+
+
+# The short form the pages show: each source's name, and what it is used
+# for on the About page's table. Two keys share a source where one dataset
+# feeds two figures.
+SHORT_SOURCES = {
+    "reviews": ("Glassdoor reviews", "Review sentiment"),
+    "proxy": ("Glassdoor reviews", "Turnover proxy"),
+    "ratings": ("Glassdoor ratings", "Glassdoor rating"),
+    "roles": ("Naukri postings", "Data-role listings"),
+    "skills": ("Naukri postings", "Market skills"),
+    "news": ("GNews", "News"),
+    "attrition": ("Company reports", "Published attrition"),
+}
+# On the About table the review dataset is named in full, with its licence:
+# CC BY-NC-SA asks for both wherever the data is shown.
+ABOUT_NAMES = {"reviews": "Glassdoor reviews (Kaggle: davidgauthier/glassdoor-job-reviews-2, CC BY-NC-SA 4.0)"}
+
+
+def short_dates(conn: sqlite3.Connection) -> dict[str, str]:
+    """Each source's dates in a few words: 'Jan 2008 – Jul 2023', 'Oct 2023 snapshot', 'fetched 22 Oct 2026'."""
+    first, last = conn.execute(
+        "SELECT MIN(first_date), MAX(last_date) FROM review_summary WHERE period = 'all'"
+    ).fetchone()
+    window = conn.execute(
+        "SELECT MIN(period_start), MAX(period_end) FROM turnover WHERE is_proxy = 1"
+    ).fetchone()
+    fetched = conn.execute("SELECT MIN(fetched_at), MAX(fetched_at) FROM news_fetches").fetchone()
+    retrieved = conn.execute(
+        "SELECT MIN(retrieved_on), MAX(retrieved_on) FROM turnover WHERE is_proxy = 0"
+    ).fetchone()
+    snapshot = snapshot_month(conn)
+    news = span(*fetched, day_month_year)
+    attrition = span(*retrieved, day_month_year)
+    snapshot_text = f"{snapshot} snapshot" if snapshot != NOT_AVAILABLE else NOT_AVAILABLE
+    return {
+        "reviews": show(span(first, last, month_year)),
+        "proxy": show(span(*window, month_year)),
+        "ratings": "date not recorded",
+        "roles": snapshot_text,
+        "skills": snapshot_text,
+        "news": f"fetched {news}" if news else NOT_AVAILABLE,
+        "attrition": f"retrieved {attrition}" if attrition else NOT_AVAILABLE,
+    }
+
+
+def freshness_notes(conn: sqlite3.Connection) -> dict[str, str]:
+    """'Glassdoor reviews · to Jul 2023': the one line under each data block, per source."""
+    dates = short_dates(conn)
+    last = conn.execute("SELECT MAX(last_date) FROM review_summary WHERE period = 'all'").fetchone()[0]
+    # Under a sentiment figure what matters is how recent the reviews are.
+    dates["reviews"] = f"to {month_year(last)}" if last else NOT_AVAILABLE
+    return {key: f"{name} · {dates[key]}" for key, (name, _) in SHORT_SOURCES.items()}
+
+
+def sources_rows(conn: sqlite3.Connection) -> list[dict[str, str]]:
+    """The About page's table: source, what it is used for, and its dates."""
+    dates = short_dates(conn)
+    return [{"Source": ABOUT_NAMES.get(key, name), "Used for": used_for,
+             "Dates": dates[key][:1].upper() + dates[key][1:]}
+            for key, (name, used_for) in SHORT_SOURCES.items()]
 
 
 def proxy_window(conn: sqlite3.Connection) -> str:

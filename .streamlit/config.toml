@@ -4,25 +4,26 @@
 # Both modes are set, and `base` is left out, so the viewer keeps Streamlit's
 # own light/dark switch (Settings > Theme). Backgrounds and text keep each
 # mode's defaults; only these colours change:
-# - primaryColor: the one accent, for primary buttons and selection only.
-# - green/red/gray/orange: the fixed semantic colours (positive, negative,
-#   neutral, proxy). Streamlit's :green-badge[...] and st.badge use them, so
-#   every sentiment and proxy marker matches the charts in app/ui/charts.py.
-# Keep these hex values in step with app/ui/charts.py.
+# - primaryColor: the one accent (violet), for primary buttons and selection only.
+# - blue/red/gray/green: the fixed semantic colours, by Streamlit's colour
+#   names: positive blue, negative orange-red, neutral grey, and the proxy's
+#   aqua under "green". Streamlit's :blue-badge[...] and st.badge use them,
+#   so every sentiment and proxy marker matches the charts in app/ui/charts.py.
+# Keep these hex values in step with app/ui/charts.py (tests/test_charts.py checks).
 
 [theme]
 font = "sans-serif"
 
 [theme.light]
-primaryColor = "#2a78d6"
-greenColor = "#2E7D32"
-redColor = "#C62828"
+primaryColor = "#6250d6"
+blueColor = "#2a78d6"
+redColor = "#d95926"
 grayColor = "#9E9E9E"
-orangeColor = "#B26A00"
+greenColor = "#199e70"
 
 [theme.dark]
-primaryColor = "#2a78d6"
-greenColor = "#2E7D32"
-redColor = "#C62828"
+primaryColor = "#6250d6"
+blueColor = "#2a78d6"
+redColor = "#d95926"
 grayColor = "#9E9E9E"
-orangeColor = "#B26A00"
+greenColor = "#199e70"

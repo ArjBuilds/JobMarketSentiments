@@ -15,14 +15,7 @@ from jmsa.display import show
 from jmsa.sentiment import MONTHS
 
 # The free tier searches only the last 30 days and returns 10 articles a
-# request, so "the last 12 months" isn't something this source can give.
-NEWS_NOTE = (
-    "Headline sentiment is approximate: VADER scores only the headline and GNews's short "
-    "description, not the article, and a neutral-sounding headline can report bad news. "
-    "Up to 10 most recent articles published in the 30 days before the fetch date "
-    "(GNews free tier, up to 12 hours behind), kept only if they name the company in the "
-    "title or description."
-)
+# request, so news is never labelled "the last 12 months" (docs/methods.md).
 
 
 def day_month_year(iso_date: str | None) -> str | None:

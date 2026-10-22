@@ -14,8 +14,8 @@ def test_the_theme_and_the_charts_use_the_same_colours_in_both_modes():
     theme = tomllib.loads(CONFIG.read_text(encoding="utf-8"))["theme"]
     assert "base" not in theme   # setting base would remove the viewer's light/dark switch
     for mode in ("light", "dark"):
-        assert theme[mode] == {"primaryColor": ACCENT, "greenColor": POSITIVE, "redColor": NEGATIVE,
-                               "grayColor": NEUTRAL, "orangeColor": PROXY}, mode
+        assert theme[mode] == {"primaryColor": ACCENT, "blueColor": POSITIVE, "redColor": NEGATIVE,
+                               "grayColor": NEUTRAL, "greenColor": PROXY}, mode
 
 
 def test_sentiment_colours_cover_every_label():

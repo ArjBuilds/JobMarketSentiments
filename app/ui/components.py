@@ -5,19 +5,19 @@ through these, so a sentiment, a proxy figure or a missing value looks the
 same everywhere. Formatting rules stay in jmsa (score_text, show,
 source_line); this module only decides how they are drawn.
 
-The badge colours are names ("green", "red", "gray", "orange") that
-.streamlit/config.toml maps to the fixed semantic colours, so badges and
-charts (app/ui/charts.py) always agree. Red and green look alike to
-red-green colour-blind viewers, so a badge always carries its label text.
+The badge colours are Streamlit's names ("blue", "red", "gray", "green")
+that .streamlit/config.toml maps to the fixed semantic colours (positive
+blue, negative orange-red, neutral grey, proxy aqua), so badges and charts
+(app/ui/charts.py) always agree. A badge always carries its label text too,
+so no meaning rests on colour alone.
 """
 
 import streamlit as st
 
 from jmsa.display import NOT_AVAILABLE, show
-from jmsa.freshness import source_line
 from jmsa.jobs import cities_text
 from jmsa.sentiment import label, score_text
-from jmsa.turnover import WINDOW_TITLE
+from jmsa.turnover import PROXY_HELP
 
 # Each page's file, relative to app/app.py. The router builds its st.Page
 # list from these, and links and st.switch_page use the same strings.
@@ -29,12 +29,8 @@ PAGES = {
     "about": "pages/5_About_and_methods.py",
 }
 
-BADGE_COLOURS = {"positive": "green", "neutral": "gray", "negative": "red"}
-
-PROXY_DEFINITION = (
-    "Proxy, not an attrition rate: reviews whose headline or cons mention people leaving, "
-    f"attrition or layoffs, per 100 reviews dated {WINDOW_TITLE}. It counts reviews, not people."
-)
+BADGE_COLOURS = {"positive": "blue", "neutral": "gray", "negative": "red"}
+PROXY_BADGE_COLOUR = "green"   # config.toml's greenColor is the proxy's aqua, not a sentiment
 
 
 def show_sector(sector: str) -> None:
@@ -88,12 +84,15 @@ def label_badge(sentiment_label: str | None) -> str:
 
 def proxy_tag() -> None:
     """The amber "Proxy" badge, with what the proxy is on hover. Beside every proxy figure."""
-    st.badge("Proxy", color="orange", icon=":material/info:", help=PROXY_DEFINITION)
+    st.badge("Proxy", color=PROXY_BADGE_COLOUR, icon=":material/info:", help=PROXY_HELP)
 
 
-def freshness_note(freshness: dict, key: str) -> None:
-    """The small source-and-dates line under a data block, read from the database."""
-    st.caption(source_line(freshness, key))
+def freshness_note(notes: dict[str, str], *keys: str) -> None:
+    """'Glassdoor reviews · to Jul 2023' under a data block; several sources share one line.
+
+    notes is jmsa.freshness.freshness_notes(), read from the database.
+    """
+    st.caption("  |  ".join(notes[key] for key in keys))
 
 
 def empty_state(message: str, action_label: str | None = None, target_page: str | None = None,

@@ -20,20 +20,11 @@ LINK = re.compile(r"/job-listings-(.+)-\d+-to-\d+-years-(\d{12})")
 # The postings are a fixed Naukri snapshot, never a live count. Its links
 # have expired and its relative post times ("1 Day Ago") were relative to
 # 2023, so neither is shown; both stay in jobs for verification and dedup.
-# {snapshot} is the snapshot's month, read from the database by jmsa.freshness.
-ROLES_INTRO = ("Data-role listings this company posted in the dataset snapshot ({snapshot}). "
-               "Historical, not current openings.")
-
-# ingest.load_jobs deduplicates rows without a verified link by employer and
-# title, so two genuine listings with the same title count as one.
-LOWER_BOUND_NOTE = ("This is a lower bound: same-title listings without a verified link "
-                    "are counted once.")
-
-DATA_ROLES_NOTE = (
-    "Naukri postings in India for data-science and analytics roles only, kept when the job title "
-    "names a data role. The source's columns are misaligned row by row, so a city is shown "
-    "only where the posting's link names its own title and employer."
-)
+# Every page labels the counts the same way. The year is fixed: the merged
+# Naukri file is the pinned input of record and is never rebuilt. Why the
+# counts are a lower bound, and why cities are sparse, is in docs/methods.md.
+ROLES_LABEL = "Data-role listings (2023 snapshot)"
+ROLES_HELP = "From a 2023 dataset, not live openings."
 
 
 def link_date(url: str | None) -> date | None:

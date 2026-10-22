@@ -24,9 +24,9 @@ import sqlite3
 from dataclasses import dataclass
 
 from jmsa.display import NOT_AVAILABLE, show
-from jmsa.jobs import cities_text
+from jmsa.jobs import ROLES_LABEL, cities_text
 from jmsa.sentiment import MIN_REVIEWS, PERIOD_TITLES, hidden, is_shown, score_text
-from jmsa.turnover import BASIS_NAMES, SCOPE_NAMES, WINDOW_TITLE, proxy_parts
+from jmsa.turnover import BASIS_NAMES, SCOPE_NAMES, proxy_parts
 
 # Choices for the minimum-reviews filter. The first is the 20-review rule
 # itself, which already hides small samples, so it filters nothing further.
@@ -216,10 +216,11 @@ def column_headers(period: str) -> dict[str, str]:
         "rating_count": "Glassdoor ratings",
         "sentiment": f"Review sentiment ({title})",
         "reviews": f"Reviews scored ({title})",
-        "data_roles": "Data-role listings (dataset snapshot)",
-        "attrition": "Published attrition (latest: value · basis · scope · period)",
-        "proxy": f"Turnover proxy: leaving mentions per 100 reviews ({WINDOW_TITLE})",
-        "proxy_split": "Proxy split per 100 reviews",
+        "data_roles": ROLES_LABEL,
+        # Each cell reads "value · basis · scope · period", so the header stays short.
+        "attrition": "Published attrition",
+        "proxy": "Turnover proxy (per 100 reviews)",
+        "proxy_split": "Proxy split (per 100 reviews)",
     }
 
 

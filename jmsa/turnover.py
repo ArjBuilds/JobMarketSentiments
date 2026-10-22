@@ -42,22 +42,9 @@ PROXY_DEFINITION = ("Share of Glassdoor reviews whose headline or cons mention p
                     "attrition or layoffs")
 PROXY_SOURCE_URL = "https://www.kaggle.com/datasets/davidgauthier/glassdoor-job-reviews-2"
 
-PROXY_NOTE = (
-    "The proxy counts reviews, not people: a review can mention colleagues leaving or layoffs "
-    "elsewhere, and reviewers aren't a representative sample of staff. Don't read it as an "
-    f"attrition rate. It covers reviews dated {WINDOW_TITLE}, the last two years with full "
-    "coverage in the review dataset, and searches the headline and cons only (keywords in "
-    "data/turnover_keywords.csv). A review can mention both kinds, so the two parts can add "
-    "up to more than the total."
-)
-
-# The result of the proxy comparison in ingest.load_turnover (PRD.md, "Proxy
-# comparison": Spearman -0.08 over the 12 companies with both).
-PROXY_CHECK_NOTE = (
-    "Checked against published attrition for 12 companies over the same years, the proxy showed no "
-    "relationship (rank correlation about zero), so it reflects what reviewers write about, not how "
-    "many people leave."
-)
+# The one line beside every proxy figure. What the proxy can't tell you,
+# and how it was checked against published attrition, is in docs/methods.md.
+PROXY_HELP = "Reviews mentioning people leaving, per 100 reviews. Not a share of staff."
 
 # What a published figure measures, as its document says. "not-stated" when
 # the document doesn't say voluntary or total; never inferred.
@@ -68,12 +55,6 @@ BASIS_NAMES = {"voluntary": "voluntary", "total": "total", "not-stated": "basis 
 # (e.g. IT services), or its listed India subsidiary.
 SCOPES = ("group", "segment", "india-subsidiary")
 SCOPE_NAMES = {"group": "group", "segment": "segment", "india-subsidiary": "India subsidiary"}
-
-PUBLISHED_NOTE = (
-    "Published attrition is copied from the company's own report, with its period, definition and "
-    "entity. Definitions differ: some count only voluntary exits, some all exits, and some don't say. "
-    "Some cover one segment (e.g. IT services) or the listed India subsidiary rather than the group."
-)
 
 PRE_MERGER_NOTE = ("These reviews are of Mindtree, before its 2022 merger into LTIMindtree, "
                    "and describe the pre-merger company.")

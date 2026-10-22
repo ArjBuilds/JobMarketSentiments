@@ -40,18 +40,9 @@ TOP_N = 10
 # 20-review rule for sentiment.
 MIN_SCORED_POSTINGS = 20
 
-MARKET_SKILLS_NOTE = (
-    "Market-wide: Indian data-role postings on Naukri, from the same dataset snapshot as the "
-    "data-role listings. Not specific to any company: the source's skills column is misaligned row by row "
-    "and describes other postings, so skills can't be tied to an employer. Listings were scraped "
-    "repeatedly and their skill lists copied, so each distinct skill list counts once and counts are "
-    "a lower bound. Shares in every view are of the same base: all distinct skill lists scored."
-)
-
-COMPANY_SKILLS_NOTE = (
-    f"Data-role skills for this company: **{NOT_AVAILABLE}**. The postings source doesn't tie skills "
-    "to an employer. See the **Market skills** page for market-wide data-role skills."
-)
+# Skills can't be tied to an employer (docs/methods.md), so they are shown
+# market-wide only and the Company page links here instead.
+MARKET_SKILLS_LABEL = "Across all data-role postings in the 2023 snapshot, not any one company."
 
 
 def scored(conn: sqlite3.Connection, scope: str) -> int:
