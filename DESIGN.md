@@ -1,6 +1,6 @@
 # DESIGN.md — Job Market Analyser
 
-Read this file before changing anything in `app/`. It is the design contract for the Streamlit dashboard. CLAUDE.md covers code rules; this file covers how the app looks, how pages connect, and how every state is shown. Where this file and PRD.md or CLAUDE.md disagree on what data may be shown or how, those win; fix this file to match.
+Read this file before changing anything in `app/`. It is the design contract for the Streamlit dashboard. CLAUDE.md covers code rules; this file covers how the app looks, how pages connect, and how every state is shown. Where this file and PRD.md, CLAUDE.md or docs/dev/data_sources.md disagree on what data may be shown or how, those win; fix this file to match.
 
 ## Product context
 - Product: a Streamlit dashboard where a student picks a company and sees, on one page, what it is like to work there and what data roles it posted in India (82 large global companies that hire in India).

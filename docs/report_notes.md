@@ -96,7 +96,7 @@ If a number in the report has no tag here, check it before using it.
   [raw/skill_counts_report.txt]
 
 ### News relevance
-- **Query.** One GNews query per company: the quoted name AND a group of workplace terms; at most 200 characters. Ambiguous names get narrower quoted phrases. `jobs` is never a term (Steve Jobs). [CLAUDE.md News; PRD Data sources]
+- **Query.** One GNews query per company: the quoted name AND a group of workplace terms; at most 200 characters. Ambiguous names get narrower quoted phrases. `jobs` is never a term (Steve Jobs). [docs/dev/data_sources.md GNews; PRD Data sources]
 - **Filtering.** Keep an article only if its title or description names the company or a gnews alias as a whole, case-matched word; dedupe by URL and near-identical title; keep the 10 newest.
 - **Result.** 357 returned, 4 dropped as irrelevant, 33 as duplicates, 320 kept; 60 companies have at least one article. [db: news_fetches]
 - **Window.** The free tier searches only 30 days, so F6 is labelled "up to 10 most recent articles published in the 30 days before the fetch date". [PRD F6]
@@ -151,7 +151,7 @@ If a number in the report has no tag here, check it before using it.
 - **Regional Glassdoor pages.**
   - Exact-name rows can be a regional page, e.g. Wipro: 2,700 reviews, head office Dresden. [raw/glassdoor_company_ratings.csv line 1418; PRD Matching]
   - Infosys's only row is a subsidiary, Infosys BPM. [ratings CSV line 233]
-  - Employer size is unreliable, so it isn't used to reject. The loader flags big companies with under 5,000 reviews. [CLAUDE.md]
+  - Employer size is unreliable, so it isn't used to reject. The loader flags big companies with under 5,000 reviews. [docs/dev/data_sources.md Glassdoor ratings]
 - **Subsidiary rules.** Different per source, because the questions differ:
   - Naukri counts India service centres (KPMG Global Services, Hindustan Unilever for Unilever).
   - Attrition counts only the main India operating company.

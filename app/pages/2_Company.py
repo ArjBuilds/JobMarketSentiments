@@ -162,7 +162,7 @@ else:
     score = summary["periods"][0]["average"]   # "+0.31 · Positive", all time
 sentiment_col, reviews_col, attrition_col, roles_col = st.columns(4)
 with sentiment_col:
-    # LTM's reviews are pre-merger Mindtree's: the tooltip says so (CLAUDE.md).
+    # LTM's reviews are pre-merger Mindtree's: the tooltip says so (docs/dev/data_sources.md).
     metric_or_na("Employee sentiment", score, help=summary["note"] or "All reviews, VADER from −1 to +1.",
                  reason="No reviews in the dataset.")
 with reviews_col:

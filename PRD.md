@@ -129,7 +129,7 @@ Five of the six inputs are local files; GNews is the only live API. Because the 
 | Dashboard | Streamlit + Plotly | Tables, filters and charts with no separate frontend |
 | Config | .env with python-dotenv | API keys never committed |
 
-**Repo layout:** `data/` (CSV inputs, SQLite file, `raw/` cache), `ingest/` (one script per source), `process/` (sentiment, skills, proxy), `app/` (Streamlit pages), `jmsa/` (shared config, database helper and schema, imported by the other three), `scripts/` (developer checks and the freeze record), `docs/` (report analysis tables, report notes, demo script, freeze record), `tests/`, `CLAUDE.md` (rules for the AI tool).
+**Repo layout:** `data/` (CSV inputs, SQLite file, `raw/` cache), `ingest/` (one script per source), `process/` (sentiment, skills, proxy), `app/` (Streamlit pages), `jmsa/` (shared config, database helper and schema, imported by the other three), `scripts/` (developer checks and the freeze record), `docs/` (report analysis tables, report notes, demo script, freeze record; `docs/dev/` holds the per-source rules and project state that CLAUDE.md points to), `tests/`, `CLAUDE.md` (rules for the AI tool).
 
 ## Data dictionary
 
