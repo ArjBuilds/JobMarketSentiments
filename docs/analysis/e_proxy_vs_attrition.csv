@@ -1,0 +1,13 @@
+company_id,attrition,period,basis,proxy,leaving,it_major,pre_merger
+accenture,13.0,Fiscal 2023 (Sep 2022 - Aug 2023),voluntary,1.1023504353350024,0.7996711632599679,True,False
+astrazeneca,21.06,FY2022-23,not-stated,3.282704556589907,1.910828025477707,False,False
+bosch,8.0,FY2022-23,not-stated,1.147227533460803,1.0834926704907584,False,False
+cognizant,26.0,TTM to Dec 2022 (Q4 2022),voluntary,2.074738060609658,1.7096553975839246,True,False
+hcltech,19.5,FY2022-23,voluntary,1.0129644328533092,0.9411497902256492,True,False
+honeywell,16.9,FY2022-23,not-stated,3.754682463629236,2.1778900601097657,False,False
+infosys,20.9,LTM to Mar 2023 (Q4 FY23),voluntary,0.6354334948842219,0.6138933764135702,True,False
+ltimindtree,20.2,FY2022-23,not-stated,0.7092198581560284,0.5948295584534431,True,True
+nestle,16.5,2022 (Jan - Dec 2022),not-stated,1.4377601210745365,1.2107453651153992,False,False
+tata-consultancy-services,20.1,LTM to Mar 2023 (Q4 FY23),not-stated,0.628267745336403,0.6067517266604987,True,False
+tech-mahindra,14.8,LTM to Mar 2023 (Q4 FY23),not-stated,0.8862907788044503,0.7448613992079954,True,False
+wipro,19.2,TTM to Mar 2023 (Q4 FY23),voluntary,0.8362202843148967,0.752598255883407,True,False

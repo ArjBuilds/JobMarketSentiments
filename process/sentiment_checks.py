@@ -85,22 +85,33 @@ def star_labels(ratings: pd.Series) -> pd.Series:
     )
 
 
-def method_row(name: str, scores: pd.Series, ratings: pd.Series) -> str:
+def method_stats(scores: pd.Series, ratings: pd.Series) -> dict[str, float]:
+    """How well one method's scores track the star ratings, as numbers."""
     # Spearman is Pearson on the ranks; computing it this way avoids scipy.
-    pearson = scores.corr(ratings)
-    spearman = scores.rank().corr(ratings.rank())
     shares = labels(scores).value_counts(normalize=True)
-    agree = (labels(scores) == star_labels(ratings)).mean()
-    return (f"  {name:38} {pearson:7.3f} {spearman:8.3f}   "
-            f"{shares.get('positive', 0):4.0%} {shares.get('neutral', 0):4.0%} "
-            f"{shares.get('negative', 0):4.0%}   {agree:6.1%}")
+    return {
+        "pearson": scores.corr(ratings),
+        "spearman": scores.rank().corr(ratings.rank()),
+        "positive": shares.get("positive", 0),
+        "neutral": shares.get("neutral", 0),
+        "negative": shares.get("negative", 0),
+        "agree_with_stars": (labels(scores) == star_labels(ratings)).mean(),
+    }
+
+
+def method_row(name: str, scores: pd.Series, ratings: pd.Series) -> str:
+    s = method_stats(scores, ratings)
+    return (f"  {name:38} {s['pearson']:7.3f} {s['spearman']:8.3f}   "
+            f"{s['positive']:4.0%} {s['neutral']:4.0%} "
+            f"{s['negative']:4.0%}   {s['agree_with_stars']:6.1%}")
 
 
 HEADER = (f"  {'method':38} {'pearson':>7} {'spearman':>8}   {'pos':>4} {'neu':>4} {'neg':>4}   "
           f"{'agree w/ stars':>6}")
 
 
-def compare_methods(reviews: pd.DataFrame) -> list[str]:
+def method_scores(reviews: pd.DataFrame) -> dict[str, pd.Series]:
+    """Each candidate method's score for every review, by method name."""
     analyzer = SentimentIntensityAnalyzer()
 
     def vader(text: str) -> float:
@@ -108,8 +119,7 @@ def compare_methods(reviews: pd.DataFrame) -> list[str]:
 
     h, p, c = (reviews[part].map(vader) for part in ("headline", "pros", "cons"))
     joined = (reviews["headline"] + ". " + reviews["pros"] + ". " + reviews["cons"]).map(vader)
-    ratings = reviews["rating"]
-    methods = {
+    return {
         "A headline only": h,
         "B headline+pros+cons as one text": joined,
         "C (pros - cons)/2": (p - c) / 2,
@@ -117,6 +127,11 @@ def compare_methods(reviews: pd.DataFrame) -> list[str]:
         "E (headline + pros + cons)/3": (h + p + c) / 3,
         "F (headline + (pros+cons)/2)/2  [used]": reviews["sentiment_compound"],
     }
+
+
+def compare_methods(reviews: pd.DataFrame) -> list[str]:
+    methods = method_scores(reviews)
+    ratings = reviews["rating"]
     stars = star_labels(ratings).value_counts(normalize=True)
     lines = [HEADER] + [method_row(name, scores, ratings) for name, scores in methods.items()]
     lines.append(f"  star ratings in this sample: {stars.get('positive', 0):.0%} positive, "
@@ -124,7 +139,9 @@ def compare_methods(reviews: pd.DataFrame) -> list[str]:
     return lines
 
 
-def textblob_check(reviews: pd.DataFrame) -> list[str]:
+def textblob_crosstab(reviews: pd.DataFrame) -> tuple[pd.DataFrame, float]:
+    """(table, agreement): VADER's labels (rows) against TextBlob's (columns),
+    for the reviews TextBlob could score, and the share where they agree."""
     def polarity(text: str) -> float | None:
         return TextBlob(text).sentiment.polarity if text else None
 
@@ -136,9 +153,31 @@ def textblob_check(reviews: pd.DataFrame) -> list[str]:
     tb_labels = labels(tb[scored])
     vader_labels = reviews.loc[scored, "sentiment_label"]
     agree = (tb_labels == vader_labels).mean()
-    table = pd.crosstab(vader_labels.rename("VADER"), tb_labels.rename("TextBlob"))
+    return pd.crosstab(vader_labels.rename("VADER"), tb_labels.rename("TextBlob")), agree
+
+
+def textblob_sample(conn: sqlite3.Connection) -> list[str]:
+    """The seeded sample of scored reviews the TextBlob check runs on."""
+    scored = [r[0] for r in conn.execute(
+        "SELECT review_id FROM reviews WHERE sentiment_compound IS NOT NULL ORDER BY review_id")]
+    return random.Random(METHOD_SEED).sample(scored, min(TEXTBLOB_SAMPLE, len(scored)))
+
+
+def rated_samples(conn: sqlite3.Connection) -> tuple[list[str], list[str]]:
+    """(method sample, held-out sample) of reviews with a star rating and a score."""
+    rated = [r[0] for r in conn.execute(
+        "SELECT review_id FROM reviews WHERE rating IS NOT NULL AND sentiment_compound IS NOT NULL "
+        "ORDER BY review_id")]
+    if not rated:
+        raise SystemExit("no scored reviews; run python -m ingest.load_reviews and "
+                         "python -m process.review_sentiment first")
+    return draw_samples(rated, METHOD_SAMPLE)
+
+
+def textblob_check(reviews: pd.DataFrame) -> list[str]:
+    table, agree = textblob_crosstab(reviews)
     return [
-        f"  reviews compared: {int(scored.sum()):,}",
+        f"  reviews compared: {int(table.to_numpy().sum()):,}",
         f"  VADER/TextBlob label agreement: {agree:.1%}",
         "  rows are VADER's label, columns TextBlob's:",
         *("    " + line for line in table.to_string().splitlines()),
@@ -146,13 +185,7 @@ def textblob_check(reviews: pd.DataFrame) -> list[str]:
 
 
 def build_report(conn: sqlite3.Connection) -> str:
-    rated = [r[0] for r in conn.execute(
-        "SELECT review_id FROM reviews WHERE rating IS NOT NULL AND sentiment_compound IS NOT NULL "
-        "ORDER BY review_id")]
-    if not rated:
-        raise SystemExit("no scored reviews; run python -m ingest.load_reviews and "
-                         "python -m process.review_sentiment first")
-    method_ids, held_out_ids = draw_samples(rated, METHOD_SAMPLE)
+    method_ids, held_out_ids = rated_samples(conn)
 
     lines = [
         "Review sentiment checks",
@@ -171,9 +204,7 @@ def build_report(conn: sqlite3.Connection) -> str:
     else:
         lines.append("  not enough reviews loaded for a second sample")
 
-    scored = [r[0] for r in conn.execute(
-        "SELECT review_id FROM reviews WHERE sentiment_compound IS NOT NULL ORDER BY review_id")]
-    textblob_ids = random.Random(METHOD_SEED).sample(scored, min(TEXTBLOB_SAMPLE, len(scored)))
+    textblob_ids = textblob_sample(conn)
     lines += [
         "",
         f"3. TextBlob cross-check (seed {METHOD_SEED}, {len(textblob_ids):,} scored reviews, "

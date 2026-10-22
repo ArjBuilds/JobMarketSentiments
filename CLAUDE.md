@@ -30,6 +30,11 @@ Milestone 9 (polish, F9) is built:
 - The Compare page (F9) builds its table in [jmsa/compare.py](jmsa/compare.py) from the Library's records and `display_row`, plus `read_news`, so labels and "not available" match. The About and methods page restates the PRD's sources, method and caveats.
 - `python scripts/time_pages.py` times every page against the real database; tests/test_pages.py runs every page twice headlessly.
 
+Milestone 10 (report and demo) is built:
+- `python -m process.analysis` reads only the database and writes the report's tables (markdown + CSV) to docs/analysis/. It reuses process.sentiment_checks' samples and helpers and load_turnover's `comparison_pairs`. Spearman, ranks and Cohen's kappa live in [jmsa/stats.py](jmsa/stats.py).
+- `python -m ingest.merge_naukri --src <folder>` tries to rebuild the Naukri merge into `data/raw/naukri_jobs_merged.rebuilt.csv` and writes `data/raw/naukri_merge_check.txt`. It can't be reproduced, so the pinned merged file is the input of record. Never write over it.
+- `python scripts/freeze.py` writes docs/freeze.md; run it after the final commit. docs/report_notes.md and docs/demo_script.md are the report and demo material.
+
 Five files are on disk, and none of them is a live job API:
 
 - [data/companies.csv](data/companies.csv) — 82 curated companies, the spine everything joins to.
@@ -101,6 +106,9 @@ python -m process.turnover_proxy [--check 50]  # replaces only the proxy rows of
 python -m ingest.load_news --from-cache        # re-select from cached responses, 0 requests;
                                                # rerun after editing gnews aliases
 python scripts/time_pages.py                   # each page's first-load and rerun time (target < 3 s)
+python -m process.analysis                     # report tables in docs/analysis/ (re-runs TextBlob on 50k)
+python -m ingest.merge_naukri --src "<folder>" # Naukri merge check; never overwrites the merged file
+python scripts/freeze.py                       # docs/freeze.md; after the final commit, before the demo
 
 pytest
 pytest tests/test_schema.py::test_six_tables_created   # a single test

@@ -24,7 +24,6 @@ import argparse
 import csv
 import re
 import sqlite3
-import statistics
 import sys
 from collections import Counter
 from datetime import date
@@ -34,6 +33,7 @@ from jmsa.config import DATA_DIR, RAW_DIR
 from jmsa.db import apply_schema, get_conn
 from jmsa.display import plural
 from jmsa.sentiment import is_shown
+from jmsa.stats import MIN_PAIRS, ranks, spearman  # noqa: F401 (ranks: tests import it from here)
 from jmsa.turnover import BASES, SCOPES, WINDOW_TITLE, overlaps_window
 
 TURNOVER_CSV = DATA_DIR / "turnover.csv"
@@ -46,10 +46,6 @@ REQUIRED = [c for c in COLUMNS if c != "note"]
 # A percentage as printed: digits, optionally a decimal point and digits.
 # "12,5" or "12.5%" is a typo in the file, not something to guess at.
 NUMBER = re.compile(r"\d+(\.\d+)?")
-
-# Below this many pairs a rank correlation says nothing.
-MIN_PAIRS = 3
-
 
 class TurnoverError(ValueError):
     """turnover.csv failed a check; nothing was written."""
@@ -135,35 +131,6 @@ def load_turnover(conn: sqlite3.Connection, path: str | Path = TURNOVER_CSV) -> 
 
 
 # --- the proxy comparison ---------------------------------------------------
-
-def ranks(values: list[float]) -> list[float]:
-    """1-based ranks, ties sharing the average of the ranks they span."""
-    order = sorted(range(len(values)), key=lambda i: values[i])
-    result = [0.0] * len(values)
-    i = 0
-    while i < len(order):
-        j = i
-        while j + 1 < len(order) and values[order[j + 1]] == values[order[i]]:
-            j += 1
-        for k in range(i, j + 1):
-            result[order[k]] = (i + j) / 2 + 1
-        i = j + 1
-    return result
-
-
-def spearman(xs: list[float], ys: list[float]) -> float | None:
-    """Spearman's rank correlation: Pearson's r on the ranks.
-
-    None with fewer than MIN_PAIRS pairs, or when one side has no spread
-    (every value tied), where a correlation isn't defined.
-    """
-    if len(xs) < MIN_PAIRS:
-        return None
-    rx, ry = ranks(xs), ranks(ys)
-    if len(set(rx)) < 2 or len(set(ry)) < 2:
-        return None
-    return statistics.correlation(rx, ry)
-
 
 def comparison_pairs(conn: sqlite3.Connection) -> list[dict]:
     """One pair per company with both a shown proxy and a published figure

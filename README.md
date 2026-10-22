@@ -8,7 +8,7 @@ Built as a mini-project for the Web and Social Media Analytics course. The analy
 
 ## Status
 
-**Milestones 1–9 of 10 are done.** Milestone 10 (report and demo) is next.
+**All 10 milestones are done.** Milestone 10 added the report's analysis tables (docs/analysis/), report notes, a demo script, a Naukri merge check and a freeze record.
 
 | Feature | What it does | Works |
 | --- | --- | --- |
@@ -57,7 +57,7 @@ Most source files are too large or not ours to commit, so `data/raw/` (except `c
 | `data/raw/glassdoor_company_ratings.csv` | A Kaggle dataset, downloaded October 2026; the exact dataset page was not recorded. Originally `Glassdoor_Dataset.csv` | unknown; non-commercial coursework only |
 | `data/raw/naukri_jobs_merged.csv` | A Kaggle dataset, downloaded October 2026; the exact dataset page was not recorded. Three exports merged and deduplicated: `NaukriData_Data_Science`, `NaukriData_data_analytics`, `Naukri_Data_Scientist_and_Data_Analytics_Jobs_Data` | unknown; non-commercial coursework only |
 
-No script in this repo renames the ratings file or merges the three Naukri exports; that was done by hand before the project began. The loaders check the columns they need: the ratings file needs `company_name, overall_rating, employer_size, industry, review_count`, and the postings file's columns are listed in PRD.md under "The postings snapshot".
+The ratings file was renamed by hand before the project began, and the three Naukri exports were merged by hand. The merge can't be reproduced: the exports re-downloaded in October 2026 appear to be a later version (about twice the rows, and 522 merged rows are in no export). So use the pinned `naukri_jobs_merged.csv`, whose SHA-256 is in docs/freeze.md. `python -m ingest.merge_naukri --src <folder>` repeats the check without touching the merged file. The loaders check the columns they need: the ratings file needs `company_name, overall_rating, employer_size, industry, review_count`, and the postings file's columns are listed in PRD.md under "The postings snapshot".
 
 Already in the repo: `data/companies.csv` (the library), `data/raw/company_aliases.csv` (name matching), `data/turnover.csv` (published attrition, hand-copied from company reports), and the editable keyword lists `data/themes.csv`, `data/data_role_keywords.csv`, `data/skills.csv`, `data/turnover_keywords.csv` and `data/news_queries.csv`.
 
@@ -78,7 +78,10 @@ python -m process.skill_counts            # market-wide skill counts
 python -m process.turnover_proxy          # review-based turnover proxy
 python -m ingest.load_turnover            # published attrition (after the proxy, for its comparison)
 python -m ingest.load_news                # GNews, one request per company (needs GNEWS_API_KEY)
+python -m process.analysis               # report tables in docs/analysis/ (a few minutes: re-runs TextBlob on 50k)
 ```
+
+Before a demo, commit, then freeze: `python scripts/freeze.py` writes docs/freeze.md (commit, row counts, source dates, input hashes).
 
 `load_news` uses up to 82 of the free tier's 100 daily requests. If it exits with code 3, the daily quota is used up: rerun it after 00:00 UTC and it resumes where it stopped. It skips companies fetched in the last 24 hours.
 
@@ -98,6 +101,8 @@ Pages: Library, Company, Market skills, Compare, and About and methods. The home
 pytest                          # all tests; they use in-memory databases, never data/jmsa.db
 python scripts/time_pages.py    # each page's load time against the real database (target: under 3 s)
 ```
+
+Report material: docs/report_notes.md (every number traced to its source), docs/demo_script.md (5-minute walkthrough and viva questions), docs/analysis/ (tables).
 
 ## Data and ethics
 
