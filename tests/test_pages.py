@@ -294,3 +294,9 @@ def test_recent_articles_tabs_count_and_open_the_company(featured_db):
     app.button(key="news_negative_hooli:1").click().run()
     assert not app.exception, app.exception
     assert app.title[0].value == "Hooli"
+
+
+def test_without_a_careers_site_the_openings_button_is_drawn_disabled(small_db):
+    app = open_page(PAGES["company"]).run()   # the small database has no careers URLs
+    button = app.button(key="careers_not_available")
+    assert button.label == "Careers page not available" and button.disabled

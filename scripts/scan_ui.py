@@ -27,6 +27,9 @@ from jmsa.db import get_conn  # noqa: E402
 APP = str(ROOT / "app" / "app.py")
 BAD = re.compile(r"\bNone\b|\bnan\b|\bNaN\b|not available|\{'|\[\]|\b[a-z]+_[a-z_]+\b")
 LINK = re.compile(r"\]\([^)]*\)|https?://\S+")
+# Lowercase "not available" the dashboard means to show: the Company page's
+# disabled careers button, which reads as a sentence, not a missing value.
+ALLOWED = ("Careers page not available",)
 NO_REVIEWS = ["atlassian", "workday", "jpmorgan-chase", "hdfc-bank"]
 
 
@@ -44,10 +47,16 @@ def texts(app: AppTest) -> list[tuple[str, str]]:
     return out
 
 
+def allowed_removed(text: str) -> str:
+    for phrase in ALLOWED:
+        text = text.replace(phrase, "")
+    return text
+
+
 def scan(app: AppTest, where: str) -> list[tuple[str, ...]]:
     hits = [(where, kind, match, str(value)[:120])
             for kind, value in texts(app)
-            for match in BAD.findall(LINK.sub("", str(value)))]
+            for match in BAD.findall(allowed_removed(LINK.sub("", str(value))))]
     if app.exception:
         hits.append((where, "exception", "", app.exception[0].message[:200]))
     return hits

@@ -38,6 +38,8 @@ from jmsa.turnover import read_turnover  # noqa: E402
 
 init_state()
 
+CAREERS_NOT_AVAILABLE = "Careers page not available"
+
 
 # Cached results, not connections, for the reason given on the Explore page:
 # sqlite3 won't share a connection across Streamlit's threads. Restart
@@ -217,11 +219,13 @@ with sentiment_tab:
 
 with roles_tab:
     # Current openings live on the company's own careers site, kept apart
-    # from the historical snapshot below.
+    # from the historical snapshot below. Without a site the same full-width
+    # button is drawn disabled, so the tab's layout doesn't jump.
     if company["careers_url"]:
-        st.link_button("Current openings", company["careers_url"], icon=":material/open_in_new:")
+        st.link_button(f"View current openings at {company['name']} ↗", company["careers_url"],
+                       type="primary", width="stretch")
     else:
-        st.markdown(f"Current openings: **{NOT_AVAILABLE}**")
+        st.button(CAREERS_NOT_AVAILABLE, disabled=True, width="stretch", key="careers_not_available")
     with st.container(border=True):
         st.markdown(f"**{ROLES_LABEL}**", help=ROLES_HELP)
         if posted["available"]:
