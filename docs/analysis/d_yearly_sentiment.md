@@ -1,6 +1,6 @@
 # d. Yearly average review sentiment, top 10 companies by reviews
 
-Average VADER compound per calendar year, with reviews scored in brackets. A year with fewer than 20 reviews shows "not available" (the 20-review rule).
+Average VADER compound per calendar year, with reviews scored in brackets. A year with fewer than 20 reviews shows "Not available" (the 20-review rule).
 
 | year | amazon | tata-consultancy-services | walmart | cognizant | accenture | target | infosys | hcltech | ibm | pwc |
 |---|---|---|---|---|---|---|---|---|---|---|
