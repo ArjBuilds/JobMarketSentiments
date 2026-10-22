@@ -97,10 +97,12 @@ def freshness_note(notes: dict[str, str], *keys: str) -> None:
 
 
 def empty_state(message: str, action_label: str | None = None, target_page: str | None = None,
-                on_click=None) -> None:
-    """One sentence and one next step: a link to a page, or a button that runs on_click."""
+                on_click=None, key: str | None = None) -> None:
+    """One sentence and one next step: a link to a page, or a button that runs on_click.
+
+    key tells the button apart from one with the same label elsewhere on the page."""
     st.info(message)
     if action_label and target_page:
         st.page_link(target_page, label=action_label, icon=":material/arrow_forward:")
     elif action_label and on_click:
-        st.button(action_label, on_click=on_click)
+        st.button(action_label, on_click=on_click, key=key)

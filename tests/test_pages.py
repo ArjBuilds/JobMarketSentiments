@@ -176,7 +176,7 @@ def test_explore_with_no_match_offers_clear_filters(small_db):
     app = open_page(PAGES["explore"]).run()
     app.toggle(key="filter_has_data_roles").set_value(True).run()   # the small database has no jobs
     assert app.info[0].value == "No companies match these filters."
-    app.button[0].click().run()
+    app.button(key="empty_clear_filters").click().run()
     assert app.session_state.filters["has_data_roles"] is False
     assert not app.info
     assert "2 of 2 companies" in [c.value for c in app.caption]

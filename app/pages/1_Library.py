@@ -7,7 +7,8 @@ review_summary, the data-role counts from jobs (ingest.load_jobs), and the
 turnover columns from turnover. Filtering, sorting and formatting live in
 jmsa.library; this page only draws the controls and the table.
 
-The filters live in st.session_state.filters (app.state), not only in the
+The filters are drawn in the sidebar, by this page only, and narrow the
+table only. They live in st.session_state.filters (app.state), not only in the
 widgets, because Streamlit deletes a widget's value when the user leaves its
 page. Each visit refills the widgets from that dict and writes them back, so
 the filters survive a trip to Company or Compare and back.
@@ -122,48 +123,37 @@ st.caption("Large employers that hire in India: filter, sort and open any compan
 records = library()
 names = {r["company_id"]: r["name"] for r in records}
 
-sector_col, country_col, sentiment_col, roles_col, sort_col, order_col = st.columns(
-    [3, 2.5, 2, 1.6, 2, 1.2], vertical_alignment="bottom")
-with sector_col:
+# The filters sit in the sidebar, drawn only by this page, and narrow the
+# companies table only.
+with st.sidebar:
+    st.subheader("Filters", anchor=False)
     st.multiselect("Sector", sorted({r["sector"] for r in records}), key=widget_key("sectors"))
-with country_col:
     st.multiselect("HQ country", sorted({r["hq_country"] for r in records if r["hq_country"]}),
                    key=widget_key("countries"))
-with sentiment_col:
     # "Any" as the first stop makes "no minimum" explicit, rather than
     # treating the slider's lowest number as off.
     st.select_slider("Min sentiment",
                      [ANY, *minimum_steps([sentiment(r, p) for r in records for p in PERIODS], 0.05)],
                      format_func=lambda v: v if v == ANY else f"{v:+.2f}", key=widget_key("min_sentiment"))
-with roles_col:
     st.toggle("Has data roles", key=widget_key("has_data_roles"), help=ROLES_HELP)
-with sort_col:
     st.selectbox("Sort by", list(SORT_KEYS), format_func=SORT_LABELS.get, key=widget_key("sort"))
-with order_col:
     st.toggle("Descending", key=widget_key("descending"))
 
-with st.expander("More filters"):
-    period_col, rating_col, reviews_col = st.columns(3)
-    with period_col:
+    with st.expander("More filters"):
         st.radio("Review period", list(PERIODS), format_func=PERIOD_TITLES.get, horizontal=True,
                  key=widget_key("period"))
-    with rating_col:
         st.select_slider("Min Glassdoor rating",
                          [ANY, *minimum_steps([r["glassdoor_rating"] for r in records], 0.1)],
                          format_func=lambda v: v if v == ANY else f"{v:.1f}", key=widget_key("min_rating"))
-    with reviews_col:
         st.select_slider("Min reviews scored", REVIEW_MINIMUMS, format_func=lambda v: f"{v:,}",
                          key=widget_key("min_reviews"), help="Drop companies whose score rests on few reviews.")
-    basis_col, scope_col, missing_col = st.columns(3)
-    with basis_col:
         st.selectbox("Attrition basis", [ANY, *BASES], format_func=lambda v: v if v == ANY else BASIS_NAMES[v],
                      key=widget_key("attrition_basis"), help="Voluntary exits, all exits, or not stated.")
-    with scope_col:
         st.selectbox("Attrition scope", [ANY, *SCOPES], format_func=lambda v: v if v == ANY else SCOPE_NAMES[v],
                      key=widget_key("attrition_scope"), help="The whole group, one segment, or the India subsidiary.")
-    with missing_col:
         st.toggle("Include companies with no value", key=widget_key("include_missing"),
                   help="Keep companies that have no value for a minimum you've set.")
+    st.button("Clear filters", on_click=clear_filters, key="clear_filters", width="stretch")
 store_filters()
 
 chosen = st.session_state.filters
@@ -172,14 +162,11 @@ period = filters.period
 shown = apply(records, filters, chosen["sort"], chosen["descending"])
 
 if not shown:
-    empty_state("No companies match these filters.", "Clear filters", on_click=clear_filters)
+    empty_state("No companies match these filters.", "Clear filters", on_click=clear_filters,
+                key="empty_clear_filters")
     st.stop()
 
-count_col, clear_col = st.columns([5, 1], vertical_alignment="center")
-with count_col:
-    st.caption(f"{len(shown)} of {len(records)} companies")
-with clear_col:
-    st.button("Clear filters", on_click=clear_filters, width="stretch")
+st.caption(f"{len(shown)} of {len(records)} companies")
 
 if chosen["sort"] == "attrition" and (filters.attrition_basis is None or filters.attrition_scope is None):
     st.caption("Pick an attrition basis and scope under More filters to rank like with like.")

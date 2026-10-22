@@ -16,13 +16,13 @@ Use `st.navigation` with `st.Page` (not the legacy `pages/` folder auto-discover
 
 | Page | Purpose | Key content |
 |---|---|---|
-| Explore (default) | Browse and narrow the library (F1, F2) | Filter bar, results count, company table |
+| Explore (default) | Browse and narrow the library (F1, F2) | Sidebar filters, results count, company table |
 | Company | Everything about one company (F3–F6, F8) | Header, metric row, tabs: Sentiment, Data roles & skills, News, Turnover |
-| Market skills | Skills Indian data-role postings ask for, market-wide (F7) | One-line market-wide label, view switch (all / tools / methods), top skills bar chart |
 | Compare | 2–4 companies side by side (F9) | One metrics table + small multiples |
+| Market skills | Skills Indian data-role postings ask for, market-wide (F7) | One-line market-wide label, view switch (all / tools / methods), top skills bar chart |
 | About the data | Sources and their dates | Sources table (source, used for, dates) and one collapsed "How scores work" expander |
 
-Sidebar: app name, page nav, a "Compare (n)" indicator, and a data-freshness line ("Data last refreshed: <newest source date>", linking to About the data, where each source's own date is listed). The date is read from `jmsa/freshness.py`, never typed in. No filters in the sidebar; filters live on Explore.
+Sidebar: app name, page nav in the order Explore, Company, Compare, Market skills, About the data, and a data-freshness line ("Data last refreshed: <newest source date>", linking to About the data, where each source's own date is listed). The date is read from `jmsa/freshness.py`, never typed in. The sidebar carries no compare-list count; "Compare (n)" sits beside the compare picker on Explore. Explore draws its filters in the sidebar; no other page does, because no other page filters the library.
 
 ## Cross-page connectivity (most important section)
 State lives in `st.session_state`, set up in `app/state.py` by an idempotent `init_state()`. `app/app.py` calls it before `st.navigation(...).run()`; each page also calls it at the top, so a page run on its own (as the page tests do) still has its state.
@@ -76,7 +76,7 @@ The app reads like a finished product a student uses, not a methods write-up. La
 If a page needs something these don't cover, add a component here rather than styling inline.
 
 ## Page specs
-**Explore.** Filter bar above the table: one row of columns for the main filters (sector multiselect, HQ country, min sentiment, "Has data roles in the dataset" toggle, sort and descending), and the rest (review period, min Glassdoor rating, min reviews, include companies with no value, published attrition basis and scope) in a "More filters" expander below it. Results count and "Clear filters" right above the table. Table columns via `st.column_config`: name, sector, HQ, India cities, Glassdoor rating, sentiment (the `+0.31 · Positive` text, coloured by label, so hidden and missing values still read as text), reviews scored, data-role listings (2023 snapshot), published attrition, turnover proxy (with Proxy marker). Column notes go in one-sentence header tooltips; under the table only the source-and-date note. Hide the index. The proxy is never sortable. Loads in under 3 s (use `st.cache_data` on DB reads).
+**Explore.** Filters in the sidebar, drawn by Explore only, and applied to the companies table only: the main filters (sector multiselect, HQ country, min sentiment, "Has data roles" toggle, sort and descending), the rest (review period, min Glassdoor rating, min reviews, include companies with no value, published attrition basis and scope) in a "More filters" expander, then "Clear filters". Results count right above the table. Table columns via `st.column_config`: name, sector, HQ, India cities, Glassdoor rating, sentiment (the `+0.31 · Positive` text, coloured by label, so hidden and missing values still read as text), reviews scored, data-role listings (2023 snapshot), published attrition, turnover proxy (with Proxy marker). Column notes go in one-sentence header tooltips; under the table only the source-and-date note. Hide the index. The proxy is never sortable. Loads in under 3 s (use `st.cache_data` on DB reads).
 
 **Company.** Selectbox + Back link + Add to compare on top, then `company_header`, then a row of 4 metrics: Employee sentiment, Reviews analysed, Published attrition, Data-role listings (2023 snapshot). The attrition metric shows only a published figure or "Not available"; it never falls back to the proxy. Then `st.tabs`:
 - Sentiment: positive/neutral/negative share bar, sentiment by theme (pay, culture, WLB, management) as a horizontal bar, review date range, Glassdoor rating (labelled as a separate source). Scores show "Fewer than 20 reviews (n = X)" below the threshold; the review count is always shown.

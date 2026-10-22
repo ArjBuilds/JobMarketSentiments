@@ -21,7 +21,6 @@ import streamlit as st  # noqa: E402
 
 from app.state import init_state  # noqa: E402
 from app.ui.components import PAGES  # noqa: E402
-from jmsa.compare import MAX_COMPANIES  # noqa: E402
 from jmsa.config import DB_PATH  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.freshness import last_refreshed  # noqa: E402
@@ -63,10 +62,9 @@ else:
     loaded, refreshed = database_status()
     problem = None if loaded else f"The database at `{DB_PATH}` has no companies loaded."
 
-page = st.navigation({"Job Market Analyser": [explore, company, skills, compare, about]})
+page = st.navigation({"Job Market Analyser": [explore, company, compare, skills, about]})
 
 with st.sidebar:
-    st.caption(f"Compare list: {len(st.session_state.compare_ids)} of {MAX_COMPANIES}")
     if refreshed:
         st.page_link(about, label=f"Data last refreshed: {refreshed}", icon=":material/update:",
                      help="Each source's own dates are on About the data.")
