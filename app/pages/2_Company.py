@@ -27,6 +27,7 @@ from app.state import add_to_compare, init_state, remove_from_compare  # noqa: E
 from app.ui.charts import share_bar, theme_bars  # noqa: E402
 from app.ui.components import (  # noqa: E402
     PAGES, company_header, freshness_note, label_badge, metric_or_na, proxy_tag, sentiment_badge,
+    static_table,
 )
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.display import NOT_AVAILABLE  # noqa: E402
@@ -229,7 +230,7 @@ with roles_tab:
     with st.container(border=True):
         st.markdown(f"**{ROLES_LABEL}**", help=ROLES_HELP)
         if posted["available"]:
-            st.dataframe(posted["rows"], hide_index=True)
+            static_table(posted["rows"])
         else:
             st.markdown(f"**{NOT_AVAILABLE}**")
         freshness_note(sources, "roles")

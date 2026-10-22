@@ -121,7 +121,8 @@ def test_compare_shows_the_list_built_elsewhere_or_points_to_explore(small_db):
     app.session_state["compare_ids"] = ["acme", "hooli"]
     app.run()
     assert not app.exception, app.exception
-    assert list(app.dataframe[0].value.columns) == ["Metric", "Acme", "Hooli"]
+    assert not app.dataframe   # a read-only table: st.table, so no cell popup
+    assert list(app.table[0].value.columns) == ["Metric", "Acme", "Hooli"]
     assert app.multiselect(key="compare_pick").value == ["acme", "hooli"]
 
 

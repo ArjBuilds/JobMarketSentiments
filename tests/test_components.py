@@ -6,7 +6,7 @@ draw are run headlessly with AppTest.
 
 from streamlit.testing.v1 import AppTest
 
-from app.ui.components import label_badge, sentiment_badge
+from app.ui.components import label_badge, markdown_safe, sentiment_badge
 from jmsa.display import NOT_AVAILABLE
 
 
@@ -59,3 +59,10 @@ def test_empty_state_offers_one_action_and_the_proxy_tag_draws():
     assert app.info[0].value == "No companies match these filters."
     app.button[0].click().run()
     assert app.session_state.cleared
+
+
+def test_markdown_safe_escapes_cells_but_not_kept_columns_or_numbers():
+    frame = markdown_safe([{"Metric": "Score (all)", "Acme": "Pays $5 *cash*", "n": 3}], keep=("Metric",))
+    assert frame.loc[0, "Metric"] == "Score (all)"
+    assert frame.loc[0, "Acme"] == r"Pays \$5 \*cash\*"
+    assert frame.loc[0, "n"] == 3

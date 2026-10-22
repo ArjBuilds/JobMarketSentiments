@@ -48,6 +48,7 @@ Links between pages:
   - accent (primary buttons, selection, a single-series chart): violet `#6250d6`, so no control reads as a sentiment
   - In `.streamlit/config.toml` they are Streamlit's `blueColor`, `grayColor`, `redColor` and `greenColor` (the proxy), so `:blue-badge[...]` etc. match the charts.
 - One shared Plotly template in `app/ui/charts.py` (font, margins, gridlines, transparent background, semantic colours). Every chart uses it. No 3D, no pie charts for more than 3 slices, no chart without axis labels and units.
+- Tables: `st.dataframe` only where a click selects (the Explore table). Its data grid opens a popup on a double-clicked cell that stays fixed on screen while the page scrolls; Streamlit has no option to turn it off, and hiding it with CSS/JS would target the grid's internal classes. On Explore the first click already opens the company, so the popup never appears. Every read-only table (Company data-role listings, Compare, About sources) uses `static_table()` in `app/ui/components.py`: `st.table`, with each cell escaped by `markdown_safe()` because `st.table` reads cells as Markdown, scrolling inside a fixed height past 12 rows.
 - Layout: `layout="wide"`. Content in `st.columns` and `st.container(border=True)` groups. Max one row of 4 metrics at the top of a page.
 - Numbers:
   - Sentiment: signed compound score to 2 decimals plus label, e.g. `+0.31 · Positive`, `-0.12 · Negative`. Formatted only by `score_text()` in `jmsa/sentiment.py`.

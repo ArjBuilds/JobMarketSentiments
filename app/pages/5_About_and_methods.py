@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import streamlit as st  # noqa: E402
 
 from app.state import init_state  # noqa: E402
+from app.ui.components import static_table  # noqa: E402
 from jmsa.config import DB_PATH  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.freshness import sources_rows  # noqa: E402
@@ -41,11 +42,7 @@ st.caption("Where every figure comes from; nothing is fetched live.")
 with st.container(border=True):
     st.markdown("**Sources**")
     if DB_PATH.exists():
-        st.dataframe(sources(), hide_index=True, column_config={
-            "Source": st.column_config.Column(width="large"),
-            "Used for": st.column_config.Column(width="medium"),
-            "Dates": st.column_config.Column(width="medium"),
-        })
+        static_table(sources())
     else:
         st.warning(f"No database at `{DB_PATH}`, so the sources' dates can't be shown.")
 

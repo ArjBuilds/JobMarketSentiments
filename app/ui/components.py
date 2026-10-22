@@ -12,13 +12,23 @@ blue, negative orange-red, neutral grey, proxy aqua), so badges and charts
 so no meaning rests on colour alone.
 """
 
+import pandas as pd
 import streamlit as st
 
 from app.state import set_filter
 from jmsa.display import NOT_AVAILABLE, show
 from jmsa.jobs import cities_text
+from jmsa.news import escape_markdown
 from jmsa.sentiment import label, score_text
 from jmsa.turnover import PROXY_HELP
+
+# Read-only tables are drawn with st.table, not st.dataframe: the data grid
+# behind st.dataframe opens a popup on a double-clicked cell that stays fixed
+# on screen while the page scrolls, and Streamlit has no option to turn it
+# off. st.table draws a plain table with no popup.
+TABLE_SCROLL_ROWS = 12          # a longer table scrolls inside a fixed height
+TABLE_SCROLL_HEIGHT = 420       # pixels
+
 
 # Each page's file, relative to app/app.py. The router builds its st.Page
 # list from these, and links and st.switch_page use the same strings.
@@ -112,3 +122,27 @@ def empty_state(message: str, action_label: str | None = None, target_page: str 
         st.page_link(target_page, label=action_label, icon=":material/arrow_forward:")
     elif action_label and on_click:
         st.button(action_label, on_click=on_click, key=key)
+
+
+def markdown_safe(data, keep: tuple[str, ...] = ()) -> pd.DataFrame:
+    """A table whose text st.table shows as typed. st.table reads every cell
+    as Markdown, so a "$" in a job title would start maths and a "*" italics.
+    Columns in keep are left as they are (labels a page matches on)."""
+    frame = pd.DataFrame(data)
+    for column in frame.columns:
+        if column not in keep:
+            frame[column] = frame[column].map(lambda v: escape_markdown(v) if isinstance(v, str) else v)
+    return frame
+
+
+def static_table(data, keep: tuple[str, ...] = ()) -> None:
+    """A read-only table with no index; a long one scrolls inside a fixed height.
+
+    data is rows (a list of dicts), a DataFrame, or a Styler over a frame
+    already passed through markdown_safe()."""
+    if isinstance(data, pd.io.formats.style.Styler):
+        rows = len(data.data)
+    else:
+        data = markdown_safe(data, keep)
+        rows = len(data)
+    st.table(data, hide_index=True, height=TABLE_SCROLL_HEIGHT if rows > TABLE_SCROLL_ROWS else "content")

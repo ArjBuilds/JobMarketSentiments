@@ -20,7 +20,9 @@ import streamlit as st  # noqa: E402
 
 from app.state import init_state, remove_from_compare  # noqa: E402
 from app.ui.charts import SENTIMENT_COLOURS, theme_groups  # noqa: E402
-from app.ui.components import PAGES, empty_state, freshness_note, open_company  # noqa: E402
+from app.ui.components import (  # noqa: E402
+    PAGES, empty_state, freshness_note, markdown_safe, open_company, static_table,
+)
 from jmsa.compare import MAX_COMPANIES, MIN_COMPANIES, compare_table  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.freshness import freshness_notes  # noqa: E402
@@ -105,7 +107,9 @@ for column, company_id in zip(st.columns(len(picked)), picked):
         st.button("Remove", key=f"remove_{company_id}", on_click=remove_from_compare, args=(company_id,),
                   icon=":material/close:")
 
-table = pd.DataFrame(compare_table(records, {company_id: news(company_id) for company_id in picked}, picked))
+# The metric labels stay unescaped: sentiment_colours finds its rows by them.
+table = markdown_safe(compare_table(records, {company_id: news(company_id) for company_id in picked}, picked),
+                      keep=("Metric",))
 
 
 def sentiment_colours(frame: pd.DataFrame) -> pd.DataFrame:
@@ -120,7 +124,7 @@ def sentiment_colours(frame: pd.DataFrame) -> pd.DataFrame:
     return styles
 
 
-st.dataframe(table.style.apply(sentiment_colours, axis=None), hide_index=True)
+static_table(table.style.apply(sentiment_colours, axis=None))
 
 with st.container(border=True):
     st.markdown("**Sentiment by theme**")

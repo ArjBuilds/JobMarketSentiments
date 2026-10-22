@@ -40,7 +40,7 @@ def texts(app: AppTest) -> list[tuple[str, str]]:
         out += [(kind, element.value) for element in getattr(app, kind)]
     out += [("metric", f"{m.label}: {m.value} | {m.help}") for m in app.metric]
     out += [("button", f"{b.label} | {b.help}") for b in app.button]
-    for frame in app.dataframe:
+    for frame in [*app.dataframe, *app.table]:
         data = getattr(frame.value, "data", frame.value)   # a Styler holds its frame in .data
         out += [("table header", str(column)) for column in data.columns]
         out += [("table cell", str(value)) for value in data.astype(str).to_numpy().ravel()]
