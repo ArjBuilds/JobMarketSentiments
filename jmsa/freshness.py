@@ -39,8 +39,9 @@ NAUKRI_SOURCE = ("Naukri postings, data/raw/naukri_jobs_merged.csv: three export
 GNEWS_SOURCE = "GNews API (https://gnews.io), free tier"
 GNEWS_LICENCE = "GNews free tier: non-commercial use only"
 
-ATTRITION_SOURCE = ("Companies' own annual reports, BRSR, quarterly results or fact sheets and "
-                    "official ESG reports, copied by hand into data/turnover.csv")
+ATTRITION_SOURCE = ("Companies' own annual reports (including SEC 10-K and 20-F filings), BRSR, quarterly "
+                    "results or fact sheets, official ESG reports and SEC proxy statements, copied by hand "
+                    "into data/turnover.csv")
 ATTRITION_LICENCE = "Public company documents, cited per figure with a source link and page reference"
 
 

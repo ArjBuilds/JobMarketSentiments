@@ -16,7 +16,7 @@ LinkedIn and Glassdoor are never scraped: their terms forbid it. No reviewer nam
 | Glassdoor company ratings snapshot: data/raw/glassdoor_company_ratings.csv (originally Glassdoor_Dataset.csv) | Glassdoor rating and number of ratings | Kaggle dataset, downloaded October 2026; exact dataset page not recorded; licence unknown. Used only for non-commercial coursework |
 | Naukri postings: data/raw/naukri_jobs_merged.csv, three exports merged (NaukriData_Data_Science, NaukriData_data_analytics, Naukri_Data_Scientist_and_Data_Analytics_Jobs_Data) | Data-role listings; market-wide skills | As for the ratings file |
 | GNews API (https://gnews.io), free tier | News coverage and headline sentiment | Non-commercial use only. Only each article's headline and GNews's short description are stored, never the article text |
-| Companies' own annual reports, BRSR, quarterly results or fact sheets and official ESG reports, copied by hand into data/turnover.csv | Published attrition | Public company documents, cited per figure with a source link and page reference. Never news, Glassdoor or aggregators |
+| Companies' own annual reports (including SEC 10-K and 20-F filings), BRSR, quarterly results or fact sheets, official ESG reports and SEC proxy statements, copied by hand into data/turnover.csv | Published attrition | Public company documents, cited per figure with a source link and page reference. Never news, Glassdoor or aggregators |
 | data/companies.csv | The company library | Curated by hand for this project |
 
 ## How companies are matched
@@ -43,7 +43,7 @@ Every source names employers its own way (8,009 distinct employer names in the p
 ## Turnover: published attrition
 
 - Published attrition is copied from the company's own report, with its period, definition and entity. Definitions differ: some count only voluntary exits, some all exits, and some don't say. Some cover one segment (e.g. IT services) or the listed India subsidiary rather than the group. The dashboard shows each figure with its basis, scope and period, and only each company's latest figure.
-- Shown for 19 companies. A listed India subsidiary counts only if it is the group's main India operating company in its core business, so pfizer (a one-off rate from a business arrangement), novartis (57 permanent employees) and oracle (a niche arm) are excluded. For siemens, Siemens AG's group figure is used, because Siemens Ltd's covers an 18-month period. SAP, Capgemini, Schneider Electric and ICICI Bank couldn't be confirmed from their documents; the remaining companies weren't researched.
+- Shown for 25 companies. A listed India subsidiary counts only if it is the group's main India operating company in its core business, so pfizer (a one-off rate from a business arrangement), novartis (57 permanent employees) and oracle (a niche arm) are excluded. For siemens, Siemens AG's group figure is used, because Siemens Ltd's covers an 18-month period. Intel, SAP, Morgan Stanley, Shell, ServiceNow and Boeing come from their SEC filings (ServiceNow's from its proxy statement; Shell's excludes portfolio companies, 18.3% with them; Boeing's is 2023, "approximately 3%"). Capgemini, Schneider Electric and ICICI Bank couldn't be confirmed from their documents; the remaining companies weren't researched.
 - On the Explore page, published attrition figures use different definitions and cover different entities; the basis and scope filters let a ranking compare like with like.
 
 ## Turnover: review-based proxy
@@ -52,7 +52,7 @@ Every source names employers its own way (8,009 distinct employer names in the p
 - Pros aren't searched: "good leave policy" and "no layoffs" are praise.
 - The proxy counts reviews, not people: a review can mention colleagues leaving or layoffs elsewhere, and reviewers aren't a representative sample of staff. Don't read it as an attrition rate. A review can mention both kinds, so the two parts can add up to more than the total.
 - A hand check found 43 of 50 random matches (86%) were about people leaving, attrition or layoffs.
-- Checked against published attrition: for the 12 companies with both a proxy and a published figure overlapping April 2021 to March 2023, the Spearman rank correlation between them is −0.08 (−0.19 for the 8 IT companies): about zero. The proxy reflects what reviewers write about, not how many people leave. It is never sorted or ranked.
+- Checked against published attrition: for the 13 companies with both a proxy and a published figure overlapping April 2021 to March 2023, the Spearman rank correlation between them is −0.28 (−0.19 for the 8 IT companies): weak, and if anything negative, where a usable proxy would rank companies the same way. Boeing's 2023 figure overlaps the window by only three months. The proxy reflects what reviewers write about, not how many people leave. It is never sorted or ranked.
 
 ## Naukri postings: data roles
 

@@ -26,7 +26,7 @@ If a number in the report has no tag here, check it before using it.
 | Glassdoor review text, all_reviews.csv (davidgauthier/glassdoor-job-reviews-2) | 9,901,889 rows scanned, 1,799,628 matched to 78 companies, 2008 to mid-2023 | CC BY-NC-SA 4.0 | [raw/glassdoor_match_report.txt] |
 | Naukri postings, naukri_jobs_merged.csv | 43,630 rows in 3 exports (11,465 / 12,686 / 19,479), 8,009 employer names | Kaggle, dataset page not recorded, licence unknown | [PRD The postings snapshot] |
 | GNews API, free tier | 82 companies fetched 21–22 Oct 2026; 357 articles returned, 320 kept | non-commercial use only | [db: news_fetches, articles] |
-| Published attrition, data/turnover.csv | 19 companies with a figure, retrieved 22 Oct 2026 | public company documents, cited per figure | [PRD Published attrition; raw/turnover_load_report.txt] |
+| Published attrition, data/turnover.csv | 25 companies with a figure, retrieved 22 Oct 2026 | public company documents, cited per figure | [PRD Published attrition; raw/turnover_load_report.txt] |
 
 - **Postings date.** Collected in or after late October 2023. The newest Naukri job-ID date in the links is 28 Oct 2023, and the third export is undated. [PRD Dates]
 - **Naukri merge cannot be reproduced.** The three exports now on disk appear to be a later version than the ones merged:
@@ -108,7 +108,7 @@ If a number in the report has no tag here, check it before using it.
 - **Hand check.** 43 of 50 matches (86%) were about leaving, attrition or layoffs. "restructuring" (7 of 25) and "fired" (20 of 25, mostly "should be fired") were dropped. Pros are never searched. [PRD Turnover proxy]
 
 ### Published attrition rules
-- **Sources.** Primary documents only: annual reports, BRSR, quarterly results or fact sheets, ESG reports. Copied as printed, with a page reference; never news, Glassdoor or aggregators. [PRD Published attrition]
+- **Sources.** Primary documents only: annual reports (including SEC 10-K and 20-F filings), BRSR, quarterly results or fact sheets, ESG reports, SEC proxy statements. Copied as printed, with a page reference; never news, Glassdoor or aggregators. [PRD Published attrition]
 - **Labels.** `basis` (voluntary / total / not-stated) is taken from the document, never inferred. Only the latest figure per company is shown. [PRD Published attrition]
 - **Subsidiaries.**
   - A listed India subsidiary counts only if it is the group's main India operating company in its core business.
@@ -116,7 +116,7 @@ If a number in the report has no tag here, check it before using it.
   - siemens uses Siemens AG, because Siemens Ltd's covers 18 months.
 
   [PRD India subsidiaries]
-- **Coverage.** 19 companies. The latest figures are 5 voluntary, 3 total and 11 not-stated; by scope, 7 segment, 5 group and 7 india-subsidiary. [raw/turnover_load_report.txt]
+- **Coverage.** 25 companies. The latest figures are 9 voluntary, 5 total and 11 not-stated; by scope, 7 segment, 11 group and 7 india-subsidiary. [raw/turnover_load_report.txt]
 
 ## 5. Results
 
@@ -132,7 +132,7 @@ If a number in the report has no tag here, check it before using it.
 - **Tool agreement.** κ 0.40 next to 80.5%. [analysis/a]
 - **Themes.** They track the sub-ratings, ρ 0.83–0.95. [analysis/c]
 - **Trend.** For the 10 companies with the most reviews, yearly average sentiment is fairly flat, between about +0.12 and +0.37, with no sharp 2021–22 change. Walmart is the lowest in every year from 2010 (+0.12 to +0.21 overall). 2023 covers only Jan – Apr for these companies and is sparse after Mar 2023. [analysis/d_yearly_sentiment.md]
-- **Proxy vs published attrition.** Spearman −0.19 for the 8 IT majors and −0.08 for all 12; −0.10 and −0.03 for the leaving part only. About zero. Caveats: n = 12, periods and definitions differ, and ltimindtree's proxy is pre-merger Mindtree reviews. [analysis/e_proxy_vs_attrition.md]
+- **Proxy vs published attrition.** Spearman −0.19 for the 8 IT majors and −0.28 for all 13; −0.10 and −0.21 for the leaving part only. Weak and, if anything, negative. Caveats: n = 13, periods and definitions differ (Boeing's 2023 figure overlaps the window by three months), and ltimindtree's proxy is pre-merger Mindtree reviews. [analysis/e_proxy_vs_attrition.md]
 - **Skills.** SQL, Python and Excel are the top tools; Data Analysis and Machine Learning are the top methods. [raw/skill_counts_report.txt]
 
 ## 6. Data-quality lessons
@@ -163,8 +163,8 @@ If a number in the report has no tag here, check it before using it.
   - The fix was a list of Indian cities, not a substring test.
   - Illustration on disk: data/raw/employee_reviews.csv (the retired review file) has amazon reviews located "Indianapolis, IN", e.g. line 8776.
   - The loaded review source has no location at all, so no India-only sentiment is possible. [project owner's scouting notes; PRD The review snapshot]
-- **The proxy's zero correlation.**
-  - An intuitive measure (reviews that mention leaving) doesn't rank companies the way their published attrition does (ρ ≈ −0.08).
+- **The proxy's weak, negative correlation.**
+  - An intuitive measure (reviews that mention leaving) doesn't rank companies the way their published attrition does (ρ = −0.28, n = 13).
   - Lesson: validate a proxy before ranking on it. It is labelled "proxy" and never sorted. [analysis/e]
 - **Unreproducible upstream merge.** The exports re-downloaded today don't rebuild the merged file. Pin and hash inputs at the time of use, as docs/freeze.md now does. [raw/naukri_merge_check.txt]
 - **Empty and coded cells.** 34 reviews with no parseable date are completely empty. Sub-rating cells such as `10u0eun` are stored as NULL. [PRD The review snapshot]
@@ -178,7 +178,7 @@ If a number in the report has no tag here, check it before using it.
 - Postings are a late-2023 snapshot of data roles only. Counts are a lower bound, not open vacancies. [PRD F8]
 - Skills are market-wide, not per company. [PRD F7]
 - News covers 30 days, at most 10 articles, with headline sentiment only. [PRD F6]
-- Published attrition covers 19 companies, with mixed bases, scopes and periods. [raw/turnover_load_report.txt]
+- Published attrition covers 25 companies, with mixed bases, scopes and periods. [raw/turnover_load_report.txt]
 - VADER misreads sarcasm and Indian English. The TextBlob agreement is fair to moderate (κ 0.40), and no human-labelled sample exists. [PRD Risks; analysis/a]
 - The review letter codes (recommend, ceo_approval, business_outlook) are unverified and not used. [PRD The review snapshot]
 - Two Kaggle datasets have unrecorded pages and unknown licences. [PRD Data sources]

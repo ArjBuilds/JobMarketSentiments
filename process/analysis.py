@@ -294,10 +294,13 @@ def section_proxy(conn: sqlite3.Connection) -> tuple[str, dict[str, pd.DataFrame
         md_table(["group", "companies", "Spearman: proxy", "Spearman: leaving part only"],
                  [[c["group"], c["companies"], signed(c["proxy_total"]), signed(c["proxy_leaving"])]
                   for c in correlations]),
-        "**Finding:** the proxy doesn't track published attrition; the correlations are about zero. It "
-        "measures what reviewers write about, not how many people leave.\n\n"
-        "**Caveats:** samples this small (8 and 12) can't support a stronger claim either way. Periods "
-        "differ in length and alignment (e.g. Accenture's fiscal year ends in August), definitions "
+        "**Finding:** the proxy doesn't track published attrition; the correlations are weak and, if "
+        "anything, negative, where a usable proxy would rank companies the same way. It measures what "
+        "reviewers write about, not how many people leave.\n\n"
+        f"**Caveats:** samples this small ({' and '.join(str(c['companies']) for c in correlations)}) "
+        "can't support a stronger claim either way. Periods "
+        "differ in length and alignment (e.g. Accenture's fiscal year ends in August, and a calendar-2023 "
+        "figure overlaps the window by three months), definitions "
         "differ (basis voluntary or not stated), and ltimindtree's proxy is pre-merger Mindtree reviews "
         "compared with the merged company's figure.",
     ])

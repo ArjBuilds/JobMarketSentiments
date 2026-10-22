@@ -14,7 +14,7 @@ The dashboard never calls a live source, so the demo works offline.
 ## 1. Explore
 
 - [ ] The app opens on **Explore companies**. Point out the sidebar: the five pages in order (Explore, Company, Compare, Market skills, About the data), "Data last refreshed: …", and the **Filters** under them.
-- [ ] **Featured companies**: six cards (TCS, Cognizant, Siemens, Nestlé, Unilever, Reliance Industries). Each has every figure a card shows, at most two per sector. Read one card: sentiment badge with its review count, published attrition with basis · scope · period, data-role listings (2023 snapshot), news sentiment with its article count.
+- [ ] **Featured companies**: six cards (TCS, Cognizant, Boeing, Siemens, Intel, SAP). Each has every figure a card shows, at most two per sector. Read one card: sentiment badge with its review count, published attrition with basis · scope · period, data-role listings (2023 snapshot), news sentiment with its article count.
 - [ ] **Recent articles**: the Positive / Neutral / Negative tabs carry their counts. Scroll inside one tab, then click a company name on a row. Its Company page opens in the same tab. Come back with **Back to results**.
 
 ## 2. Open a company
@@ -88,7 +88,7 @@ Method and caveat detail for questions is in docs/methods.md; the report's numbe
 
 4. **Why does the turnover proxy not match published attrition?**
    - It counts reviews that mention leaving, not people who left.
-   - Spearman is −0.19 for 8 IT companies and −0.08 for all 12, which is about zero.
+   - Spearman is −0.19 for 8 IT companies and −0.28 for all 13: weak, and if anything negative.
    - The samples are tiny and the periods and definitions differ.
    - So it is labelled "proxy" and never ranked.
    - Source: docs/analysis/e_proxy_vs_attrition.md.

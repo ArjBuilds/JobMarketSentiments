@@ -1,6 +1,7 @@
 company_id,attrition,period,basis,proxy,leaving,it_major,pre_merger
 accenture,13.0,Fiscal 2023 (Sep 2022 - Aug 2023),voluntary,1.1023504353350024,0.7996711632599679,True,False
 astrazeneca,21.06,FY2022-23,not-stated,3.282704556589907,1.910828025477707,False,False
+boeing,3.0,2023 (Jan - Dec 2023),voluntary,4.779830167206513,1.934693162916922,False,False
 bosch,8.0,FY2022-23,not-stated,1.147227533460803,1.0834926704907584,False,False
 cognizant,26.0,TTM to Dec 2022 (Q4 2022),voluntary,2.074738060609658,1.7096553975839246,True,False
 hcltech,19.5,FY2022-23,voluntary,1.0129644328533092,0.9411497902256492,True,False

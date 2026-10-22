@@ -16,7 +16,7 @@ Built as a mini-project for the Web and Social Media Analytics course. The analy
 | F2 Sort and filter | Sector, country, rating, sentiment, reviews, data roles, attrition basis/scope | yes |
 | F3 Company page | Everything about one company, plus a link to its careers site | yes |
 | F4 Review sentiment | VADER over 1.8M Glassdoor reviews, overall and by theme | yes (78 of 82 companies) |
-| F5 Turnover | Published attrition from primary documents, and a review-based proxy | yes (19 published, 78 proxy) |
+| F5 Turnover | Published attrition from primary documents, and a review-based proxy | yes (25 published, 78 proxy) |
 | F6 News coverage | Up to 10 recent GNews articles with headline sentiment | yes |
 | F7 Data-role skills | Market-wide top skills from Naukri postings | yes |
 | F8 Data roles posted | A company's India data-role listings in the snapshot | yes (53 companies) |

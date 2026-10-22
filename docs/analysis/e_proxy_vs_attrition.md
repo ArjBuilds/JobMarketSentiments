@@ -6,6 +6,7 @@ Companies with both a shown proxy (reviews dated Apr 2021 – Mar 2023) and a pu
 |---|---|---|---|---|---|
 | accenture | 13% | voluntary | Fiscal 2023 (Sep 2022 - Aug 2023) | 1.1 | 0.8 |
 | astrazeneca | 21.06% | not-stated | FY2022-23 | 3.3 | 1.9 |
+| boeing | 3% | voluntary | 2023 (Jan - Dec 2023) | 4.8 | 1.9 |
 | bosch | 8% | not-stated | FY2022-23 | 1.1 | 1.1 |
 | cognizant | 26% | voluntary | TTM to Dec 2022 (Q4 2022) | 2.1 | 1.7 |
 | hcltech | 19.5% | voluntary | FY2022-23 | 1.0 | 0.9 |
@@ -20,8 +21,8 @@ Companies with both a shown proxy (reviews dated Apr 2021 – Mar 2023) and a pu
 | group | companies | Spearman: proxy | Spearman: leaving part only |
 |---|---|---|---|
 | IT majors (publish attrition quarterly) | 8 | -0.19 | -0.10 |
-| All companies with both | 12 | -0.08 | -0.03 |
+| All companies with both | 13 | -0.28 | -0.21 |
 
-**Finding:** the proxy doesn't track published attrition; the correlations are about zero. It measures what reviewers write about, not how many people leave.
+**Finding:** the proxy doesn't track published attrition; the correlations are weak and, if anything, negative, where a usable proxy would rank companies the same way. It measures what reviewers write about, not how many people leave.
 
-**Caveats:** samples this small (8 and 12) can't support a stronger claim either way. Periods differ in length and alignment (e.g. Accenture's fiscal year ends in August), definitions differ (basis voluntary or not stated), and ltimindtree's proxy is pre-merger Mindtree reviews compared with the merged company's figure.
+**Caveats:** samples this small (8 and 13) can't support a stronger claim either way. Periods differ in length and alignment (e.g. Accenture's fiscal year ends in August, and a calendar-2023 figure overlaps the window by three months), definitions differ (basis voluntary or not stated), and ltimindtree's proxy is pre-merger Mindtree reviews compared with the merged company's figure.
