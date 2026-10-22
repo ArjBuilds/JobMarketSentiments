@@ -65,7 +65,7 @@ def bar_chart(rows: list[dict]) -> go.Figure:
     figure.update_layout(
         template=TEMPLATE,
         height=60 + 42 * len(rows),
-        xaxis={"title": "Share of distinct skill lists", "ticksuffix": "%",
+        xaxis={"title": "Share of postings' skill lists", "ticksuffix": "%",
                "range": [0, max(shares) * 1.15], "showgrid": True},
         yaxis={"autorange": "reversed", "showgrid": False},
     )
@@ -75,13 +75,14 @@ def bar_chart(rows: list[dict]) -> go.Figure:
 st.title("Market skills")
 st.caption(MARKET_SKILLS_LABEL)
 
-view = st.radio("Show", list(VIEWS), horizontal=True,
+view = st.radio("Skill type", list(VIEWS), horizontal=True,
                 help="Tools are named products and languages; methods are techniques.")
 skills = market(view)
 
-st.subheader(f"Top {TOP_N} {view.lower() if view != 'All' else 'skills'}")
-if not skills["available"]:
-    st.markdown(f"Market skills: **{NOT_AVAILABLE}**")
-else:
-    st.plotly_chart(bar_chart(skills["rows"]), width="stretch")
-freshness_note(notes(), "skills")
+with st.container(border=True):
+    st.markdown(f"**Top {TOP_N} {view.lower() if view != 'All' else 'skills'}**")
+    if not skills["available"]:
+        st.markdown(f"**{NOT_AVAILABLE}**")
+    else:
+        st.plotly_chart(bar_chart(skills["rows"]), width="stretch", key="skills_chart")
+    freshness_note(notes(), "skills")

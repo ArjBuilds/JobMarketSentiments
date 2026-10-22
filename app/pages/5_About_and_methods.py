@@ -34,13 +34,20 @@ def sources() -> list[dict[str, str]]:
 
 
 st.title("About the data")
+st.caption("Where every figure comes from; nothing is fetched live.")
 
 # The one page that opens without a database (app/app.py lets it through).
 # Checked before connecting, because get_conn would create an empty file.
-if DB_PATH.exists():
-    st.dataframe(sources(), hide_index=True)
-else:
-    st.warning(f"No database at `{DB_PATH}`, so the sources' dates can't be shown.")
+with st.container(border=True):
+    st.markdown("**Sources**")
+    if DB_PATH.exists():
+        st.dataframe(sources(), hide_index=True, column_config={
+            "Source": st.column_config.Column(width="large"),
+            "Used for": st.column_config.Column(width="medium"),
+            "Dates": st.column_config.Column(width="medium"),
+        })
+    else:
+        st.warning(f"No database at `{DB_PATH}`, so the sources' dates can't be shown.")
 
 with st.expander("How scores work"):
     st.markdown(
