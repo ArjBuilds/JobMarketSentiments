@@ -24,6 +24,8 @@ Built as a mini-project for the Web and Social Media Analytics course. The analy
 
 Milestone 9 added a source and date line under every section (read from the database), the Compare page, and an About and methods page.
 
+After milestone 10 the dashboard was redesigned to [DESIGN.md](DESIGN.md): one router with shared state, so filters, the chosen company and the compare list survive moving between pages; a company page with metrics and tabs; a colour-blind-safe palette; and labels, tooltips and one source-and-date line in place of method text, which moved to [docs/methods.md](docs/methods.md).
+
 ## How it works
 
 Data collection is a batch pipeline, kept separate from the dashboard so a demo survives a dead or rate-limited API:

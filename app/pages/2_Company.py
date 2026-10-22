@@ -171,7 +171,7 @@ with attrition_col:
                  reason="No figure in the company's own reports.")
 with roles_col:
     metric_or_na(ROLES_LABEL, posted["count"] if posted["available"] else None, help=ROLES_HELP,
-                 reason="None in the dataset.")
+                 reason="No data-role postings in the dataset.")
 
 sources = notes()
 sentiment_tab, roles_tab, news_tab, turnover_tab = st.tabs(
