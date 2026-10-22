@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Job Market Analyser: a Streamlit dashboard of 82 large employers that hire in India (review sentiment, turnover, news, data roles and skills). All 10 PRD milestones are built.
+Shortlist: a Streamlit dashboard of 82 large employers that hire in India (review sentiment, turnover, news, data roles and skills). All 10 PRD milestones are built.
 
 ## Read before you start
 

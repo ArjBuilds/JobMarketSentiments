@@ -1,10 +1,10 @@
-# Job Market Analyser — PRD
+# Shortlist — PRD
 
 Oct 21, 2026 · Arjun
 
 ## Overview
 
-The Job Market Analyser is a Streamlit dashboard where a student picks a company and sees, on one page, what it is like to work there and what it hires for. It covers a curated library of large global companies that also hire in India.
+Shortlist is a Streamlit dashboard where a student picks a company and sees, on one page, what it is like to work there and what it hires for. It covers a curated library of large global companies that also hire in India.
 
 **Problem.** Information about employers is scattered across review sites, news, job boards and annual reports. A student comparing ten companies has to open forty tabs and still gets no consistent picture.
 

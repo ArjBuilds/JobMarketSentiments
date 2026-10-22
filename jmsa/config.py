@@ -1,4 +1,4 @@
-"""Paths and environment for the Job Market Analyser.
+"""Paths and environment for Shortlist.
 
 One definition of where the database and inputs live, so the loaders, the
 process steps and the dashboard never disagree. API keys are read from .env

@@ -135,8 +135,8 @@ def store_compare() -> None:
     st.session_state.compare_ids = list(st.session_state.explore_compare)
 
 
-st.title("Explore companies")
-st.caption("Large employers that hire in India: start with a featured company, or filter and open any.")
+st.title("Shortlist", anchor=False, text_alignment="center")
+st.markdown("Know the company before you apply.", text_alignment="center")
 
 # app/app.py has already checked the database exists and has companies.
 records = library()
@@ -224,6 +224,8 @@ freshness_note(sources, "news")
 
 # --- every company, filtered and sorted from the sidebar ---------------------
 st.subheader("All companies", anchor=False)
+# The sidebar opens collapsed (app/app.py), so say where the filters are.
+st.caption("Filters are in the sidebar (› top left)")
 
 chosen = st.session_state.filters
 filters = Filters(**{name: chosen[name] for name in Filters.__dataclass_fields__})

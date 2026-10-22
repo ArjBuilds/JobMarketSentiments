@@ -1,6 +1,6 @@
 # JobMarketSentiments
 
-**Job Market Analyser** is a Streamlit dashboard where a student picks a company and sees, on one page, what it is like to work there and what it hires for: employee review sentiment, turnover, recent news coverage, the data-role skills Indian postings ask for, and the India data roles the company posted. It covers a curated library of 82 large global employers that also hire in India.
+**Shortlist** is a Streamlit dashboard where a student picks a company and sees, on one page, what it is like to work there and what it hires for: employee review sentiment, turnover, recent news coverage, the data-role skills Indian postings ask for, and the India data roles the company posted. It covers a curated library of 82 large global employers that also hire in India.
 
 Built as a mini-project for the Web and Social Media Analytics course. The analytics core is web data collection plus sentiment analysis with spaCy, VADER and TextBlob.
 
@@ -24,22 +24,44 @@ Built as a mini-project for the Web and Social Media Analytics course. The analy
 
 Milestone 9 added a source and date line under every section (read from the database), the Compare page, and an About and methods page.
 
-After milestone 10 the dashboard was redesigned to [DESIGN.md](DESIGN.md): one router with shared state, so filters, the chosen company and the compare list survive moving between pages; a company page with metrics and tabs; a colour-blind-safe palette; and labels, tooltips and one source-and-date line in place of method text, which moved to [docs/methods.md](docs/methods.md). A later pass added Explore's featured companies and recent articles, moved its filters to the sidebar, made the careers link a prominent button, drew read-only tables with st.table (no stuck cell popup), and put a full "How scores work" explanation in About the data's expander.
+After milestone 10 the dashboard was redesigned to [DESIGN.md](DESIGN.md): one router with shared state, so filters, the chosen company and the compare list survive moving between pages; a company page with metrics and tabs; a colour-blind-safe palette; and labels, tooltips and one source-and-date line in place of method text, which moved to [docs/methods.md](docs/methods.md). A later pass added Explore's featured companies and recent articles, moved its filters to the sidebar, made the careers link a prominent button, drew read-only tables with st.table (no stuck cell popup), and put a full "How scores work" explanation in About the data's expander. The dashboard was then named Shortlist, with a centered title and tagline on Explore, and opens with the sidebar collapsed.
 
-## Run it yourself
+## Run it on your own computer
 
-To view the dashboard you need only Python 3.11 and Git. No API key and no data download: the repo carries `data/demo.db`, the dashboard's data without the review text (about 1 MB).
+You need Python 3.11 and Git. No API key and no data download: the repo carries `data/demo.db`, the dashboard's data without the review text (about 1 MB).
+
+On Windows, clone to a short path such as `C:\dev`, or turn on long paths (the Windows setting `LongPathsEnabled`). Under a long path like `C:\Users\<name>\Downloads\...`, installing spaCy fails because some of its file paths go over Windows' 260-character limit. The Windows commands below are for Git Bash.
 
 ```bash
+mkdir -p /c/dev && cd /c/dev           # Windows; any folder is fine on macOS or Linux
 git clone https://github.com/ArjBuilds/JobMarketSentiments.git
 cd JobMarketSentiments
-py -m venv .venv                       # python3 -m venv .venv on macOS or Linux
-source .venv/Scripts/activate          # source .venv/bin/activate on macOS or Linux
+py -3.11 -m venv .venv                 # macOS/Linux: python3.11 -m venv .venv
+source .venv/Scripts/activate          # macOS/Linux: source .venv/bin/activate
 python -m pip install -r requirements.txt
 streamlit run app/app.py               # opens http://localhost:8501
 ```
 
-The app uses `data/demo.db` whenever `data/jmsa.db` is missing. The pipeline below (source CSVs, spaCy model, GNews key) is only needed to rebuild the data; after a rebuild, `python scripts/make_demo_db.py` refreshes the committed copy.
+The sidebar starts collapsed: open it with › at the top left to switch pages or filter the companies table.
+
+To update later, from the repo folder with the venv active:
+
+```bash
+git pull
+python -m pip install -r requirements.txt
+```
+
+The app uses `data/demo.db` whenever `data/jmsa.db` is missing.
+
+## Rebuilding the data
+
+Only needed to rebuild the database from the sources, not to view the dashboard.
+
+1. Install the spaCy model: `python -m spacy download en_core_web_sm`.
+2. `cp .env.example .env`, then set `GNEWS_API_KEY` in `.env` (free key from https://gnews.io).
+3. Download the Kaggle datasets into `data/raw/` under the names in [Get the data](#get-the-data).
+4. Run the loaders and process steps in the order in [docs/dev/project_state.md](docs/dev/project_state.md) (also listed under [Build the database](#build-the-database)).
+5. `python scripts/make_demo_db.py` refreshes the committed `data/demo.db`.
 
 ## How it works
 
@@ -50,18 +72,6 @@ sources → ingest/   one loader per source, raw responses cached
         → process/  sentiment, skill extraction, turnover proxy
         → SQLite    data/jmsa.db
         → app/      Streamlit reads only from SQLite, never a live source
-```
-
-## Setup
-
-Git Bash on Windows, Python 3.11:
-
-```bash
-py -m venv .venv
-source .venv/Scripts/activate
-python -m pip install -r requirements.txt
-python -m spacy download en_core_web_sm
-cp .env.example .env     # then set GNEWS_API_KEY (free key from https://gnews.io)
 ```
 
 ## Get the data
@@ -110,7 +120,7 @@ Each loader writes a report to `data/raw/` (e.g. `naukri_match_report.txt`). To 
 streamlit run app/app.py    # http://localhost:8501
 ```
 
-Pages, in the sidebar: Explore (where the app opens: featured companies, recent articles by sentiment, and the company library, filtered from the sidebar), Company, Compare, Market skills, and About the data, which lists every source with its dates and explains how each score is calculated. After reloading the database, restart Streamlit (or press C in the browser) to clear its cache.
+Pages, in the sidebar (collapsed at first; open it with › at the top left): Explore (where the app opens: featured companies, recent articles by sentiment, and the company library, filtered from the sidebar), Company, Compare, Market skills, and About the data, which lists every source with its dates and explains how each score is calculated. After reloading the database, restart Streamlit (or press C in the browser) to clear its cache.
 
 ## Tests and checks
 

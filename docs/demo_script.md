@@ -1,6 +1,6 @@
 # Demo rehearsal script and viva questions
 
-The order to present in: Explore (featured cards, recent articles) → open a company → tabs → sector link → filter in the sidebar → add to compare → Compare → About the data. Tick each box while rehearsing.
+The order to present in: Explore (title, open the sidebar, featured cards, recent articles) → open a company → tabs → sector link → filter in the sidebar → add to compare → Compare → About the data. Tick each box while rehearsing.
 
 ## Before you start
 
@@ -13,7 +13,8 @@ The dashboard never calls a live source, so the demo works offline.
 
 ## 1. Explore
 
-- [ ] The app opens on **Explore companies**. Point out the sidebar: the five pages in order (Explore, Company, Compare, Market skills, About the data), "Data last refreshed: …", and the **Filters** under them.
+- [ ] The app opens on Explore with the centered title **Shortlist** and the tagline "Know the company before you apply." The browser tab also reads Shortlist.
+- [ ] The sidebar starts collapsed. Open it with **›** at the top left and point out: the **Shortlist** heading over the five pages in order (Explore, Company, Compare, Market skills, About the data), "Data last refreshed: …", and the **Filters** under them. Leave it open for the rest of the demo.
 - [ ] **Featured companies**: six cards (TCS, Cognizant, Boeing, Siemens, Intel, SAP). Each has every figure a card shows, at most two per sector. Read one card: sentiment badge with its review count, published attrition with basis · scope · period, data-role listings (2023 snapshot), news sentiment with its article count.
 - [ ] **Recent articles**: the Positive / Neutral / Negative tabs carry their counts. Scroll inside one tab, then click a company name on a row. Its Company page opens in the same tab. Come back with **Back to results**.
 
@@ -24,7 +25,7 @@ The dashboard never calls a live source, so the demo works offline.
 
 ## 3. Filter and the table
 
-- [ ] Back on Explore, scroll to **All companies**. Hover the **Turnover proxy** header ("Not a share of staff") and **Data-role listings (2023 snapshot)** ("not live openings"). Sentiment colours: blue positive, orange-red negative; thin samples read "Fewer than 20 reviews (n = …)".
+- [ ] Back on Explore, scroll to **All companies**. The caption "Filters are in the sidebar (› top left)" sits under the heading (if you closed the sidebar, reopen it now). Hover the **Turnover proxy** header ("Not a share of staff") and **Data-role listings (2023 snapshot)** ("not live openings"). Sentiment colours: blue positive, orange-red negative; thin samples read "Fewer than 20 reviews (n = …)".
 - [ ] In the sidebar: Sector **IT Services** → **Has data roles** on → Sort by **Review sentiment**, **Descending** on. The count above the table drops; the cards and articles stay as they were (filters narrow the table only).
 - [ ] Open **More filters**: review period, attrition basis and scope. Sort by **Published attrition**: a one-line hint asks for a basis and scope to rank like with like.
 - [ ] Click **Infosys**'s name in the table (any cell works). Its Company page opens in the same tab.

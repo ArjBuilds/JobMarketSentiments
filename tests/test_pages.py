@@ -230,7 +230,7 @@ def test_the_sector_link_opens_explore_filtered_to_it(small_db):
     app = open_page(PAGES["company"]).run()
     next(b for b in app.button if b.label == "IT Services").click().run()
     assert not app.exception, app.exception
-    assert app.title[0].value == "Explore companies"
+    assert app.title[0].value == "Shortlist"
     assert app.multiselect(key="filter_sectors").value == ["IT Services"]
 
 

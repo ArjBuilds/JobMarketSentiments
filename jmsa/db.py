@@ -1,4 +1,4 @@
-"""SQLite access for the Job Market Analyser.
+"""SQLite access for Shortlist.
 
 The dashboard never calls a live source; it reads this database, which the
 ingest and process steps fill in. Create an empty one with:

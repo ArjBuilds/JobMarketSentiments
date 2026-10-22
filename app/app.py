@@ -1,4 +1,4 @@
-"""Job Market Analyser dashboard entry point: the router every page runs through.
+"""Shortlist dashboard entry point: the router every page runs through.
 
 Run from the repo root:  streamlit run app/app.py
 
@@ -36,7 +36,10 @@ from jmsa.config import DB_PATH  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.freshness import last_refreshed  # noqa: E402
 
-st.set_page_config(page_title="Job Market Analyser", page_icon="📊", layout="wide")
+# The sidebar starts collapsed so Explore opens on its content; Explore's
+# caption above the table points to the filters inside it.
+st.set_page_config(page_title="Shortlist", page_icon="📊", layout="wide",
+                   initial_sidebar_state="collapsed")
 init_state()
 
 # File paths come from app.ui.components.PAGES, which links and
@@ -73,7 +76,7 @@ else:
     loaded, refreshed = database_status()
     problem = None if loaded else f"The database at `{DB_PATH}` has no companies loaded."
 
-page = st.navigation({"Job Market Analyser": [explore, company, compare, skills, about]})
+page = st.navigation({"Shortlist": [explore, company, compare, skills, about]})
 
 with st.sidebar:
     if refreshed:
