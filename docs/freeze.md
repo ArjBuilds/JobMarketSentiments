@@ -1,6 +1,6 @@
 # Database freeze
 
-Frozen on **2026-10-22** at git commit `5c194bc03d8d946f2e32d0d75fead40f0be55d0d`.
+Frozen on **2026-10-22** at git commit `f299844cbc03ad04c839ea3b0504207ac1a06adb`.
 
 Written by `python scripts/freeze.py`. Rerun it after any reload; don't edit by hand.
 
@@ -30,7 +30,7 @@ As the dashboard shows them (jmsa/freshness.py, read from the database).
 
 | source | used for | dates | licence |
 |---|---|---|---|
-| Glassdoor company ratings snapshot, data/raw/glassdoor_company_ratings.csv (originally Glassdoor_Dataset.csv) | Glassdoor rating and number of ratings | not available: the file records no snapshot date | Kaggle dataset, downloaded October 2026; exact dataset page not recorded; licence unknown. Used only for non-commercial coursework |
+| Glassdoor company ratings snapshot, data/raw/glassdoor_company_ratings.csv (originally Glassdoor_Dataset.csv) | Glassdoor rating and number of ratings | Not available: the file records no snapshot date | Kaggle dataset, downloaded October 2026; exact dataset page not recorded; licence unknown. Used only for non-commercial coursework |
 | Glassdoor reviews, Kaggle dataset davidgauthier/glassdoor-job-reviews-2 (all_reviews.csv) | Review sentiment and themes | reviews dated Jan 2008 – Jul 2023 (sparse after Mar 2023) | CC BY-NC-SA 4.0: non-commercial, share-alike; this project is non-commercial coursework |
 | Naukri postings, data/raw/naukri_jobs_merged.csv: three exports merged (NaukriData_Data_Science, NaukriData_data_analytics, Naukri_Data_Scientist_and_Data_Analytics_Jobs_Data) | Data-role listings | collected in or after 27 Oct 2023 (the newest Naukri job-ID date among the stored links; the third export has no links and is undated); loaded 21 Oct 2026 | Kaggle dataset, downloaded October 2026; exact dataset page not recorded; licence unknown. Used only for non-commercial coursework |
 | The same Naukri snapshot as the data-role listings | Market-wide data-role skills | collected in or after 27 Oct 2023 (the newest Naukri job-ID date among the stored links; the third export has no links and is undated); loaded 21 Oct 2026 | Kaggle dataset, downloaded October 2026; exact dataset page not recorded; licence unknown. Used only for non-commercial coursework |
