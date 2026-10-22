@@ -46,3 +46,9 @@ GNEWS_API_KEY = os.getenv("GNEWS_API_KEY") or None
 
 # Override with JMSA_DB_PATH to point at a frozen database for the demo.
 DB_PATH = Path(os.getenv("JMSA_DB_PATH") or DATA_DIR / "jmsa.db")
+
+# The committed copy of the dashboard's data, without the review text
+# (scripts/make_demo_db.py). Only the dashboard falls back to it, in
+# app/app.py; the loaders and process steps always use DB_PATH, so they
+# never write into it.
+DEMO_DB_PATH = DATA_DIR / "demo.db"

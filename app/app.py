@@ -8,14 +8,25 @@ one place that sets up shared state (app.state), draws the sidebar, and
 checks the database is there.
 """
 
+import os
 import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
 
 # Streamlit puts this script's own directory on sys.path, not the repo root,
 # so `import jmsa` and `import app` need the root added first. Only needed
 # here and in the pages: the ingest and process steps run as `python -m ...`
 # from the root.
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(ROOT))
+
+# A fresh clone has no data/jmsa.db (770 MB, gitignored), only the committed
+# data/demo.db. Point the dashboard at it then, before jmsa.config reads
+# JMSA_DB_PATH. Only the dashboard does this, so a loader never writes into
+# the demo copy. An explicit JMSA_DB_PATH always wins.
+if (not os.getenv("JMSA_DB_PATH") and not (ROOT / "data" / "jmsa.db").exists()
+        and (ROOT / "data" / "demo.db").exists()):
+    os.environ["JMSA_DB_PATH"] = str(ROOT / "data" / "demo.db")
 
 import streamlit as st  # noqa: E402
 

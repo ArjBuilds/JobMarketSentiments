@@ -109,6 +109,8 @@ python scripts/time_pages.py                   # each page's first-load and reru
 python scripts/scan_ui.py                      # every page and company: no raw values leak (exit 1 if any)
 python -m process.analysis                     # report tables in docs/analysis/ (re-runs TextBlob on 50k)
 python -m ingest.merge_naukri --src "<folder>" # Naukri merge check; never overwrites the merged file
+python scripts/make_demo_db.py                 # data/demo.db: jmsa.db minus review text, committed; app/app.py
+                                               # falls back to it when data/jmsa.db is missing (fresh clone)
 python scripts/freeze.py                       # docs/freeze.md; after the final commit, before the demo
 
 pytest
@@ -176,5 +178,5 @@ Work one PRD milestone at a time, run it, and commit before starting the next. W
 - Windows, Git Bash terminal. Run Python with `py`; venv in `.venv`, activated with `source .venv/Scripts/activate`.
 - Pin versions in requirements.txt.
 - `GNEWS_API_KEY` is the only key the project needs. It lives only in .env; .env.example keeps it as an empty placeholder.
-- .gitignore must include .env, .venv/, __pycache__/, data/raw/ and data/*.db.
+- .gitignore must include .env, .venv/, __pycache__/, data/raw/ and data/*.db, with one exception: data/demo.db (from scripts/make_demo_db.py, about 1 MB) is committed so a clone runs without the pipeline. Only the dashboard falls back to it; loaders never write to it.
 - Stack is fixed per PRD.md; ask before adding a library.

@@ -26,6 +26,21 @@ Milestone 9 added a source and date line under every section (read from the data
 
 After milestone 10 the dashboard was redesigned to [DESIGN.md](DESIGN.md): one router with shared state, so filters, the chosen company and the compare list survive moving between pages; a company page with metrics and tabs; a colour-blind-safe palette; and labels, tooltips and one source-and-date line in place of method text, which moved to [docs/methods.md](docs/methods.md). A later pass added Explore's featured companies and recent articles, moved its filters to the sidebar, made the careers link a prominent button, drew read-only tables with st.table (no stuck cell popup), and put a full "How scores work" explanation in About the data's expander.
 
+## Run it yourself
+
+To view the dashboard you need only Python 3.11 and Git. No API key and no data download: the repo carries `data/demo.db`, the dashboard's data without the review text (about 1 MB).
+
+```bash
+git clone https://github.com/ArjBuilds/JobMarketSentiments.git
+cd JobMarketSentiments
+py -m venv .venv                       # python3 -m venv .venv on macOS or Linux
+source .venv/Scripts/activate          # source .venv/bin/activate on macOS or Linux
+python -m pip install -r requirements.txt
+streamlit run app/app.py               # opens http://localhost:8501
+```
+
+The app uses `data/demo.db` whenever `data/jmsa.db` is missing. The pipeline below (source CSVs, spaCy model, GNews key) is only needed to rebuild the data; after a rebuild, `python scripts/make_demo_db.py` refreshes the committed copy.
+
 ## How it works
 
 Data collection is a batch pipeline, kept separate from the dashboard so a demo survives a dead or rate-limited API:
@@ -83,7 +98,7 @@ python -m ingest.load_news                # GNews, one request per company (need
 python -m process.analysis               # report tables in docs/analysis/ (a few minutes: re-runs TextBlob on 50k)
 ```
 
-Before a demo, commit, then freeze: `python scripts/freeze.py` writes docs/freeze.md (commit, row counts, source dates, input hashes).
+Then `python scripts/make_demo_db.py` writes `data/demo.db` (the committed copy a fresh clone opens). Before a demo, commit, then freeze: `python scripts/freeze.py` writes docs/freeze.md (commit, row counts, source dates, input hashes).
 
 `load_news` uses up to 82 of the free tier's 100 daily requests. If it exits with code 3, the daily quota is used up: rerun it after 00:00 UTC and it resumes where it stopped. It skips companies fetched in the last 24 hours.
 
