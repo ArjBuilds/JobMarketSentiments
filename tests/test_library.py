@@ -183,14 +183,14 @@ def test_display_formats_numbers(records):
     headers = column_headers("all")
     acme = rows_by_id(records)["acme"]
     assert acme[headers["rating"]] == "4.0"
-    assert acme[headers["sentiment"]] == "+0.30 (positive)"
+    assert acme[headers["sentiment"]] == "+0.30 · Positive"
     assert acme[headers["reviews"]] == "500"
 
 
 def test_display_hides_a_score_under_20_but_shows_its_count(records):
     headers = column_headers("all")
     tiny = rows_by_id(records)["tiny"]
-    assert tiny[headers["sentiment"]] == "hidden: fewer than 20 reviews (12)"
+    assert tiny[headers["sentiment"]] == "Fewer than 20 reviews (n = 12)"
     assert tiny[headers["reviews"]] == "12"
 
 
@@ -204,7 +204,7 @@ def test_pre_merger_reviews_are_marked(db):
     db.commit()
     [record] = load_library(db)
     assert display_row(record, "all")[column_headers("all")["sentiment"]] == (
-        "+0.26 (positive) · pre-merger Mindtree reviews")
+        "+0.26 · Positive · pre-merger Mindtree reviews")
 
 
 # --- data roles ------------------------------------------------------------

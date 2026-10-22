@@ -75,11 +75,17 @@ def is_shown(count: int) -> bool:
 
 
 def hidden(count: int) -> str:
-    return f"hidden: fewer than {MIN_REVIEWS} reviews ({count})"
+    """'Fewer than 20 reviews (n = 12)': what shows in place of a hidden figure."""
+    return f"Fewer than {MIN_REVIEWS} reviews (n = {count:,})"
 
 
 def score_text(compound: float) -> str:
-    return f"{compound:+.2f} ({label(compound)})"
+    """'+0.31 · Positive': the one way every page writes a sentiment score.
+
+    The sign is always shown, so a score near zero is never read as missing.
+    label() itself stays lowercase: that is the value stored in the database.
+    """
+    return f"{compound:+.2f} · {label(compound).capitalize()}"
 
 
 def period_view(period: str, row: sqlite3.Row | None) -> dict:

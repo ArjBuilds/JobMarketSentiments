@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import streamlit as st  # noqa: E402
 
 from app.state import init_state  # noqa: E402
+from app.ui.components import PAGES  # noqa: E402
 from jmsa.compare import MAX_COMPANIES  # noqa: E402
 from jmsa.config import DB_PATH  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
@@ -28,14 +29,14 @@ from jmsa.freshness import last_refreshed  # noqa: E402
 st.set_page_config(page_title="Job Market Analyser", page_icon="📊", layout="wide")
 init_state()
 
-PAGES = Path(__file__).parent / "pages"
-explore = st.Page(PAGES / "1_Library.py", title="Explore", icon=":material/search:", default=True)
-company = st.Page(PAGES / "2_Company.py", title="Company", icon=":material/business:", url_path="company")
-skills = st.Page(PAGES / "3_Market_skills.py", title="Market skills", icon=":material/bar_chart:",
+# File paths come from app.ui.components.PAGES, which links and
+# st.switch_page use too, relative to this file.
+explore = st.Page(PAGES["explore"], title="Explore", icon=":material/search:", default=True)
+company = st.Page(PAGES["company"], title="Company", icon=":material/business:", url_path="company")
+skills = st.Page(PAGES["market_skills"], title="Market skills", icon=":material/bar_chart:",
                  url_path="market-skills")
-compare = st.Page(PAGES / "4_Compare.py", title="Compare", icon=":material/compare_arrows:", url_path="compare")
-about = st.Page(PAGES / "5_About_and_methods.py", title="About the data", icon=":material/info:",
-                url_path="about")
+compare = st.Page(PAGES["compare"], title="Compare", icon=":material/compare_arrows:", url_path="compare")
+about = st.Page(PAGES["about"], title="About the data", icon=":material/info:", url_path="about")
 
 
 # Cached results, not a connection: sqlite3 refuses to use a connection from

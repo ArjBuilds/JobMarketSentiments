@@ -106,7 +106,7 @@ with st.sidebar:
     include_missing = st.toggle(
         "Include companies with no value for a minimum you've set",
         help="Off: a company with no rating, no sentiment or no reviews is left out "
-             "when you set a minimum on that field. On: it stays in, shown as not available.",
+             "when you set a minimum on that field. On: it stays in, shown as Not available.",
     )
 
     st.header("Compare attrition like with like")
@@ -158,7 +158,7 @@ proxy_help = st.column_config.Column(help=PROXY_CHECK_NOTE)
 st.dataframe([display_row(record, period) for record in shown], hide_index=True,
              column_config={headers["proxy"]: proxy_help, headers["proxy_split"]: proxy_help})
 st.caption(
-    "Use **Sort** in the sidebar: it sorts by the numbers and always puts \"not available\" last. "
+    "Use **Sort** in the sidebar: it sorts by the numbers and always puts \"Not available\" last. "
     "Clicking a column header sorts the cells as text. "
     "The Glassdoor rating comes from a ratings snapshot; review sentiment is VADER over a "
     "separate set of review texts, from −1 to +1, so a company can have one without the other. "

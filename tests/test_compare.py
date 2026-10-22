@@ -82,7 +82,7 @@ def test_a_company_with_every_figure(records):
     headers = column_headers("all")
     assert cells[headers["rating"]] == "4.1"
     assert cells[headers["rating_count"]] == "2,500"
-    assert cells[headers["sentiment"]] == "+0.21 (positive)"
+    assert cells[headers["sentiment"]] == "+0.21 · Positive"
     assert cells[headers["reviews"]] == "1,200"
     assert cells[column_headers("2020-2023")["reviews"]] == "400"
     assert cells[headers["data_roles"]] == "3"
@@ -109,7 +109,7 @@ def test_news_fetched_with_no_articles_is_not_available_not_zero(records):
 
 def test_under_20_reviews_is_hidden_but_shows_its_count(records):
     cells = table(records, ["acme", "tiny"])
-    assert cells[column_headers("all")["sentiment"]]["Tiny"] == "hidden: fewer than 20 reviews (12)"
+    assert cells[column_headers("all")["sentiment"]]["Tiny"] == "Fewer than 20 reviews (n = 12)"
     assert cells[column_headers("all")["reviews"]]["Tiny"] == "12"
 
 

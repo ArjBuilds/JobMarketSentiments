@@ -85,7 +85,8 @@ def per_100(count: int, total: int) -> str:
 
 
 def proxy_parts(row) -> dict[str, str] | None:
-    """The proxy as display text: total, split and size. None if there is no row.
+    """The proxy as display text: total, split and size, plus whether the
+    figures are shown at all. None if there is no row.
 
     Below 20 reviews in the window the figures are hidden, but the count is
     still shown, as with review sentiment.
@@ -94,11 +95,12 @@ def proxy_parts(row) -> dict[str, str] | None:
         return None
     n = row["reviews_in_window"]
     if not is_shown(n):
-        return {"total": hidden(n), "split": hidden(n), "reviews": f"{n:,}"}
+        return {"total": hidden(n), "split": hidden(n), "reviews": f"{n:,}", "shown": False}
     return {
         "total": per_100(row["reviews_matched"], n),
         "split": " · ".join(f"{KIND_NAMES[kind]} {per_100(row[f'reviews_{kind}'], n)}" for kind in KINDS),
         "reviews": f"{n:,}",
+        "shown": True,
     }
 
 
@@ -106,7 +108,7 @@ def proxy_text(parts: dict[str, str] | None) -> str:
     """'6.1 per 100 reviews (leaving/attrition 4.0, layoffs 2.1), from 41,203 reviews dated ...'."""
     if parts is None:
         return NOT_AVAILABLE
-    if parts["total"].startswith("hidden"):
+    if not parts["shown"]:
         return parts["total"]
     split = parts["split"].replace(" · ", ", ")
     return (f"{parts['total']} per 100 reviews ({split}), from {parts['reviews']} reviews "

@@ -22,7 +22,7 @@ def test_freeze_text(library):
     assert "Frozen on **2026-10-22** at git commit `1e67f4f`." in text
     assert "| companies | 3 |" in text
     assert "| data/raw/naukri_jobs_merged.csv | missing | missing |" in text
-    assert "not available: the file records no snapshot date" in text   # the ratings source
+    assert "Not available: the file records no snapshot date" in text   # the ratings source
     assert "Warning" not in text
     assert "Warning" in freeze.freeze_text(library, "2026-10-22", "1e67f4f", True, database, files)
 

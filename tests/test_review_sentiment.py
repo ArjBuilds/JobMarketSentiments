@@ -139,8 +139,8 @@ def test_limit_stops_early(library, write_reviews):
 def test_fewer_than_20_reviews_is_hidden_and_20_is_shown(library, write_reviews):
     run(library, write_reviews, rows("acme", 19) + rows("globex", 20))
     acme, globex = periods(library, "acme")["All time"], periods(library, "globex")["All time"]
-    assert acme["average"] == "hidden: fewer than 20 reviews (19)"
-    assert acme["shares"] == "hidden: fewer than 20 reviews (19)"
+    assert acme["average"] == "Fewer than 20 reviews (n = 19)"
+    assert acme["shares"] == "Fewer than 20 reviews (n = 19)"
     assert acme["reviews"] == "19"          # the count is shown even when the score isn't
     assert globex["average"].startswith("+0.")
     assert globex["reviews"] == "20"
@@ -151,7 +151,7 @@ def test_theme_with_fewer_than_20_mentions_is_hidden(library, write_reviews):
     run(library, write_reviews, reviews)
     themes = {t["Theme"]: t for t in periods(library, "acme")["All time"]["themes"]}
     assert themes["Pay"]["Reviews mentioning"] == "19"
-    assert themes["Pay"]["Score"] == "hidden: fewer than 20 reviews (19)"
+    assert themes["Pay"]["Score"] == "Fewer than 20 reviews (n = 19)"
     assert themes["Culture"]["Score"].startswith("+")
 
 

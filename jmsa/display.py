@@ -1,6 +1,6 @@
 """How the dashboard shows a value, including one that is missing.
 
-The missing-data rule (PRD.md): a field with no data reads "not available",
+The missing-data rule (PRD.md): a field with no data reads "Not available",
 never None, NaN, a blank or an estimate. Every page formats values through
 show() so the rule lives in one place.
 """
@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import math
 
-NOT_AVAILABLE = "not available"
+NOT_AVAILABLE = "Not available"
 
 
 def show(value):

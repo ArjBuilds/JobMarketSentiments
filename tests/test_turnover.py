@@ -46,7 +46,7 @@ def test_the_proxy_is_per_100_reviews_with_its_split_and_never_a_percentage(libr
 
 def test_under_20_reviews_the_proxy_is_hidden_with_its_count(library):
     add_proxy(library, "acme", 19, 5, 5, 0)
-    assert read_turnover(library, "acme")["proxy"] == "hidden: fewer than 20 reviews (19)"
+    assert read_turnover(library, "acme")["proxy"] == "Fewer than 20 reviews (n = 19)"
     add_proxy(library, "globex", 20, 5, 5, 0)
     assert read_turnover(library, "globex")["proxy"].startswith("25.0 per 100 reviews")
 
@@ -95,7 +95,7 @@ def test_library_shows_the_proxy_total_and_split_as_two_columns(library):
     headers = column_headers("all")
     assert rows["acme"][headers["proxy"]] == "6.1"
     assert rows["acme"][headers["proxy_split"]] == "leaving/attrition 4.0 · layoffs 2.1"
-    assert rows["globex"][headers["proxy"]] == "hidden: fewer than 20 reviews (10)"
+    assert rows["globex"][headers["proxy"]] == "Fewer than 20 reviews (n = 10)"
     assert rows["initech"][headers["proxy"]] == NOT_AVAILABLE
     assert "proxy" in headers["proxy"].lower()
 

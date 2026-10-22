@@ -108,7 +108,7 @@ For the Naukri postings the rule is different, because F8 is about hiring in Ind
 
 **Turnover proxy.** Share of a company's reviews dated April 2021 to March 2023 whose headline or cons mention people leaving, attrition or layoffs (keywords in data/turnover_keywords.csv, whole words, any case), shown per 100 reviews with its split: leaving/attrition and layoffs. The window is the last 24 months with full coverage: reviews fall from about 21,000 in March 2023 to 4,311 in April and about 250 a month after. Pros are not searched ("good leave policy", "no layoffs" are praise). The split matters because the window spans the 2021–22 resignation wave and the late-2022 layoffs. Hidden below 20 reviews in the window. Always labelled "proxy" and never sorted on: it counts reviews, not people. It can be computed for the 78 companies that have review text; the other four show published attrition or "not available". ltimindtree's proxy comes from pre-merger Mindtree reviews and says so. Hand-checked: 43 of 50 random matches (86%) are about people leaving, attrition or layoffs; "restructuring" (7 of 25) and "fired" (20 of 25) were dropped as keywords.
 
-**Missing data rule.** If a source returns nothing for a company, the dashboard shows "not available" for that field. No field is ever estimated or filled with a default.
+**Missing data rule.** If a source returns nothing for a company, the dashboard shows "Not available" for that field (written lowercase elsewhere in this document, the same text). No field is ever estimated or filled with a default.
 
 ## Architecture and stack
 

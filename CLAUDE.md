@@ -119,7 +119,7 @@ pytest tests/test_schema.py::test_six_tables_created   # a single test
 - `company_id` is a lowercase slug (`tata-consultancy-services`) and is the join key everywhere. Every source must be matched back to it; add a row to `data/raw/company_aliases.csv` rather than fuzzy-matching names at query time.
 - `india_cities` and other multi-value CSV fields are semicolon-separated.
 - All dates are ISO 8601.
-- `sentiment_label` uses the standard VADER cut-offs: positive at compound ≥ 0.05, negative at ≤ −0.05, neutral otherwise. These live in one shared helper, [jmsa/sentiment.py](jmsa/sentiment.py), with `label()`, `combine()` and the 20-review rule; don't re-derive them per loader.
+- `sentiment_label` uses the standard VADER cut-offs: positive at compound ≥ 0.05, negative at ≤ −0.05, neutral otherwise. These live in one shared helper, [jmsa/sentiment.py](jmsa/sentiment.py), with `label()`, `combine()` and the 20-review rule; don't re-derive them per loader. Its `score_text()` writes every score as `+0.31 · Positive` and `hidden()` every hidden figure as `Fewer than 20 reviews (n = 12)`; `label()` stays lowercase because that is the stored value.
 - A review's score is `mean(headline, mean(pros, cons))`, each part scored by VADER on its own. Don't subtract cons: VADER already scores them negative, and pros − cons had zero correlation with star ratings. A review with no text gets NULL, not 0.
 - Theme keywords live in [data/themes.csv](data/themes.csv). The four theme names are fixed, and the keywords are editable. A theme's score is the VADER score of the section (headline, pros or cons) that mentions it.
 - The meanings of the review letter codes (`recommend`, `ceo_approval`, `business_outlook`: v, r, o, x) are unverified; check them against the Kaggle dataset card before interpreting them.
@@ -142,7 +142,7 @@ pytest tests/test_schema.py::test_six_tables_created   # a single test
 
 ## Rules the data layer must hold to
 
-- **Missing-data rule.** If a source returns nothing for a company, the field shows "not available". Never estimate, default or backfill a value.
+- **Missing-data rule.** If a source returns nothing for a company, the field shows "Not available" (`NOT_AVAILABLE` in [jmsa/display.py](jmsa/display.py); lowercase quotes elsewhere in these docs mean the same text). Never estimate, default or backfill a value.
 - Hide review sentiment for a company with fewer than 20 reviews.
 - Review-text sentiment (F4) covers 78 of the 82 companies. **atlassian**, **workday**, **jpmorgan-chase** and **hdfc-bank** have no reviews and must show "not available" — the last two because the dataset's `Chase` and `Hdfc` are different companies and were rejected rather than guessed.
 - **ltimindtree**'s 10,545 reviews are pre-merger **Mindtree** rows, flagged `is_pre_merger`. Say so wherever they are shown. Its display name is "LTM (formerly LTIMindtree)"; its company_id stays `ltimindtree`, and its ratings row is reached by the `LTIMindtree` alias, not by name.

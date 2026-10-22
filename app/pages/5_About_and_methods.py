@@ -40,7 +40,7 @@ st.markdown(
     "A mini-project for the Web and Social Media Analytics course. For each of 82 large employers that "
     "also hire in India, the dashboard shows employee review sentiment, turnover, recent news, and the "
     "data roles and skills in a postings snapshot. Every figure comes from a source below; where a "
-    "source has nothing for a company, the dashboard says **not available** rather than estimating."
+    "source has nothing for a company, the dashboard says **Not available** rather than estimating."
 )
 
 # The one page that opens without a database (app/app.py lets it through):
@@ -124,7 +124,7 @@ st.markdown(
     "rows, so listings are deduplicated, and same-title listings without a verified link count once. "
     "They are listings in a 2023 snapshot, not roles open now.\n"
     "- **Skills are market-wide only.** The skills column describes other rows' postings, so no "
-    "skill can be tied to a company. The Company page says \"not available\" and points to the "
+    "skill can be tied to a company. The Company page says \"Not available\" and points to the "
     "Market skills page.\n"
     "- **News covers only 30 days.** The free tier searches the 30 days before the fetch and returns "
     "at most 10 articles a request, so a company's news is up to 10 articles from those 30 days, "
