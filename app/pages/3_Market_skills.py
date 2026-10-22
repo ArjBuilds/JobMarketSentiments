@@ -15,6 +15,7 @@ import plotly.graph_objects as go  # noqa: E402
 import streamlit as st  # noqa: E402
 
 from app.state import init_state  # noqa: E402
+from app.ui.charts import ACCENT, TEMPLATE  # noqa: E402
 from jmsa.db import get_conn  # noqa: E402
 from jmsa.display import NOT_AVAILABLE  # noqa: E402
 from jmsa.freshness import naukri_dates  # noqa: E402
@@ -24,9 +25,6 @@ from jmsa.skills import (  # noqa: E402
 )
 
 init_state()
-
-# One series, so one hue (the palette's first categorical slot) and no legend.
-BAR_COLOUR = "#2a78d6"
 
 
 # Cached results, not connections, for the reason given on the Library page.
@@ -58,13 +56,17 @@ def comparison(view: str) -> tuple[list[dict], list[dict]]:
 
 
 def bar_chart(rows: list[dict]) -> go.Figure:
-    """Horizontal bars, largest at the top, each labelled with its share."""
+    """Horizontal bars, largest at the top, each labelled with its share.
+
+    One series, so one colour (the accent) and no legend; the shared
+    template sets the background, margins and bar shape.
+    """
     shares = [row["Share"] * 100 for row in rows]
     figure = go.Figure(go.Bar(
         x=shares,
         y=[row["Skill"] for row in rows],
         orientation="h",
-        marker={"color": BAR_COLOUR, "cornerradius": 4},
+        marker={"color": ACCENT},
         text=[f"{share:.1f}%" for share in shares],
         textposition="outside",
         cliponaxis=False,
@@ -72,9 +74,8 @@ def bar_chart(rows: list[dict]) -> go.Figure:
         hovertemplate="%{y}: %{x:.1f}% of skill lists (%{customdata:,} lists)<extra></extra>",
     ))
     figure.update_layout(
+        template=TEMPLATE,
         height=60 + 42 * len(rows),
-        bargap=0.45,               # keeps each bar about 23 px thick
-        margin={"l": 10, "r": 40, "t": 10, "b": 40},
         xaxis={"title": "Share of distinct skill lists", "ticksuffix": "%",
                "range": [0, max(shares) * 1.15], "showgrid": True},
         yaxis={"autorange": "reversed", "showgrid": False},

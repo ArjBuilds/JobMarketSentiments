@@ -1,0 +1,28 @@
+# The dashboard's theme (DESIGN.md, "Visual direction"). Streamlit reads this
+# from the folder `streamlit run` is started in, so run the app from the repo root.
+#
+# Both modes are set, and `base` is left out, so the viewer keeps Streamlit's
+# own light/dark switch (Settings > Theme). Backgrounds and text keep each
+# mode's defaults; only these colours change:
+# - primaryColor: the one accent, for primary buttons and selection only.
+# - green/red/gray/orange: the fixed semantic colours (positive, negative,
+#   neutral, proxy). Streamlit's :green-badge[...] and st.badge use them, so
+#   every sentiment and proxy marker matches the charts in app/ui/charts.py.
+# Keep these hex values in step with app/ui/charts.py.
+
+[theme]
+font = "sans-serif"
+
+[theme.light]
+primaryColor = "#2a78d6"
+greenColor = "#2E7D32"
+redColor = "#C62828"
+grayColor = "#9E9E9E"
+orangeColor = "#B26A00"
+
+[theme.dark]
+primaryColor = "#2a78d6"
+greenColor = "#2E7D32"
+redColor = "#C62828"
+grayColor = "#9E9E9E"
+orangeColor = "#B26A00"
