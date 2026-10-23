@@ -2,7 +2,7 @@
 
 **Shortlist** is a Streamlit dashboard where a student picks a company and sees, on one page, what it is like to work there and what it hires for: employee review sentiment, turnover, recent news coverage, the data-role skills Indian postings ask for, and the India data roles the company posted. It covers a curated library of 82 large global employers that also hire in India.
 
-Built as a mini-project for the Web and Social Media Analytics course. The analytics core is web data collection plus sentiment analysis with spaCy, VADER and TextBlob.
+The analytics core is web data collection plus sentiment analysis with spaCy, VADER and TextBlob.
 
 [PRD.md](PRD.md) is the specification: features, data sources, schema and build order.
 
