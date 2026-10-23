@@ -1,6 +1,6 @@
 # Database freeze
 
-Frozen on **2026-10-22** at git commit `9f8bbba3c179bcc20826dda8bed9aa3e245670ab`.
+Frozen on **2026-10-23** at git commit `694902d7c9623e505deef5f67b81a05df3a1456b`.
 
 Written by `python scripts/freeze.py`. Rerun it after any reload; don't edit by hand.
 
@@ -8,13 +8,13 @@ Written by `python scripts/freeze.py`. Rerun it after any reload; don't edit by 
 
 | file | bytes | SHA-256 |
 |---|---|---|
-| jmsa.db | 769,097,728 | `7bc8c2caeb77f9bc8e290146bbd808a758f77fceda990eb5c8711e6b8f670cb2` |
+| jmsa.db | 769,122,304 | `b6b9fa03564a37761348aad9391c1ddff28d614a015aac0efb22ecd3e4b03456` |
 
 ## Rows per table
 
 | table | rows |
 |---|---|
-| articles | 320 |
+| articles | 328 |
 | companies | 82 |
 | job_skills | 0 |
 | jobs | 976 |
@@ -34,7 +34,7 @@ As the dashboard shows them (jmsa/freshness.py, read from the database).
 | Glassdoor reviews, Kaggle dataset davidgauthier/glassdoor-job-reviews-2 (all_reviews.csv) | Review sentiment and themes | reviews dated Jan 2008 – Jul 2023 (sparse after Mar 2023) | CC BY-NC-SA 4.0: non-commercial, share-alike; this project is non-commercial coursework |
 | Naukri postings, data/raw/naukri_jobs_merged.csv: three exports merged (NaukriData_Data_Science, NaukriData_data_analytics, Naukri_Data_Scientist_and_Data_Analytics_Jobs_Data) | Data-role listings | collected in or after 27 Oct 2023 (the newest Naukri job-ID date among the stored links; the third export has no links and is undated); loaded 21 Oct 2026 | Kaggle dataset, downloaded October 2026; exact dataset page not recorded; licence unknown. Used only for non-commercial coursework |
 | The same Naukri snapshot as the data-role listings | Market-wide data-role skills | collected in or after 27 Oct 2023 (the newest Naukri job-ID date among the stored links; the third export has no links and is undated); loaded 21 Oct 2026 | Kaggle dataset, downloaded October 2026; exact dataset page not recorded; licence unknown. Used only for non-commercial coursework |
-| GNews API (https://gnews.io), free tier | News coverage and headline sentiment | fetched 21 Oct 2026 – 22 Oct 2026 for 82 of 82 companies; each article published in the 30 days before its company's fetch | GNews free tier: non-commercial use only |
+| GNews API (https://gnews.io), free tier | News coverage and headline sentiment | fetched 23 Oct 2026 for 82 of 82 companies; each article published in the 30 days before its company's fetch | GNews free tier: non-commercial use only |
 | Companies' own annual reports (including SEC 10-K and 20-F filings), BRSR, quarterly results or fact sheets, official ESG reports and SEC proxy statements, copied by hand into data/turnover.csv | Published attrition | periods vary by company (shown with each figure); retrieved 22 Oct 2026 | Public company documents, cited per figure with a source link and page reference |
 | The Glassdoor review dataset above | Turnover proxy | reviews dated Apr 2021 – Mar 2023 | CC BY-NC-SA 4.0: non-commercial, share-alike; this project is non-commercial coursework |
 
