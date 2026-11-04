@@ -68,7 +68,6 @@ The speedup was done in Python. Profiling showed the skill matcher was the slowe
 - **Edited postings** keep their first stored version. Closed postings are not removed.
 - **No aggregate rebuild command.** The materialized views count only rows inserted after they exist.
 - **ClickHouse is set up for local development only**: it listens on localhost and the default user has no password.
-- **API bug with ClickHouse.** In `backend.api`, the live and synthetic pollers share one ClickHouse client, so their queries sometimes overlap ("concurrent queries within the same session"). In one 20-second check, 6 of about 20 polls failed. Each failure is logged and retried 2 s later, and both feeds still delivered. The fix is one client per poller.
 - **Skill matching** is a word list, so generic terms such as "Artificial Intelligence" are over-counted.
 - **Not part of the library.** The 15 Greenhouse boards are global employers outside the 82-company library.
 - **Project rule.** The project rules (CLAUDE.md, PRD.md) still name GNews as the only API. They would need updating before this branch is merged.

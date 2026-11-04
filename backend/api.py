@@ -71,14 +71,18 @@ async def poll(hub: Hub, store) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    store = open_store(config.STORE, config.SQLITE_PATH)
     datasets = DATASETS if config.STORE == "clickhouse" else ("live",)
     app.state.hubs = {d: Hub(d) for d in datasets}
-    tasks = [asyncio.create_task(poll(hub, store)) for hub in app.state.hubs.values()]
+    # One store per poller: a clickhouse-connect client is one session, and
+    # ClickHouse refuses a second query on a session that is still running one.
+    stores = [open_store(config.STORE, config.SQLITE_PATH) for _ in app.state.hubs]
+    tasks = [asyncio.create_task(poll(hub, store)) for hub, store in zip(app.state.hubs.values(), stores)]
     yield
     for task in tasks:
         task.cancel()
-    store.close()
+    await asyncio.gather(*tasks, return_exceptions=True)
+    for store in stores:
+        store.close()
 
 
 app = FastAPI(title="Job postings live aggregates", lifespan=lifespan)
