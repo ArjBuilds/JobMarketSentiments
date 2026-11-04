@@ -1,0 +1,77 @@
+{
+  "measured_at": "2026-11-04 12:42",
+  "hardware": {
+    "os": "Windows-10-10.0.26300-SP0",
+    "python": "3.11.0",
+    "logical_cpus": 20,
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13650HX",
+    "physical_cores": 14,
+    "ram_gb": 23.7,
+    "clickhouse": "25.8.33.6",
+    "clickhouse_cpus": 20,
+    "clickhouse_ram_gb": 11.5
+  },
+  "source": "cache",
+  "skill_matching": {
+    "postings": 3968,
+    "tokens": 3732056,
+    "repeats": 5,
+    "identical_output": true,
+    "before_s": 1.6980690999989747,
+    "after_s": 0.16990199999963806,
+    "speedup": 9.994403244238397
+  },
+  "profile": {
+    "before_s": 6.184547700000621,
+    "after_s": 2.181606699999975
+  },
+  "worker": {
+    "rows": 3968,
+    "seconds": 2.222486500000741,
+    "rows_per_s": 1785.3876727704203
+  },
+  "synthetic": {
+    "rows": 10000000,
+    "seed": 42,
+    "batch": 500000,
+    "generate_s": 12.528448700000808,
+    "insert_s": 23.654255200004627,
+    "generate_rows_per_s": 798183.417552674,
+    "insert_rows_per_s": 422756.91690339264,
+    "end_to_end_rows_per_s": 276375.1439813899,
+    "table_rows": 10000000
+  },
+  "queries": {
+    "api_snapshot (materialized views)": {
+      "runs": 300,
+      "p50_ms": 19.370949999029108,
+      "p99_ms": 26.978001999996195
+    },
+    "top 10 skills, 30 days (materialized view)": {
+      "runs": 300,
+      "p50_ms": 4.9595500004215864,
+      "p99_ms": 7.197621999293915
+    },
+    "top 10 skills, 30 days (raw table)": {
+      "runs": 300,
+      "p50_ms": 9.327399999165209,
+      "p99_ms": 13.503162000761222
+    },
+    "daily volume, 2 years (materialized view)": {
+      "runs": 300,
+      "p50_ms": 3.6925999993400183,
+      "p99_ms": 5.162416000512167
+    },
+    "daily volume, 2 years (raw table)": {
+      "runs": 300,
+      "p50_ms": 7.65159999991738,
+      "p99_ms": 9.091339998849435
+    },
+    "one employer's daily volume, 90 days (raw table)": {
+      "runs": 300,
+      "p50_ms": 7.322950000343553,
+      "p99_ms": 9.54868900045767
+    },
+    "_table_rows": 10000000
+  }
+}

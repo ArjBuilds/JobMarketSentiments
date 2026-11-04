@@ -42,8 +42,40 @@ def synonym_table(path: str = str(SKILLS_CSV)) -> tuple[dict[tuple[str, ...], st
     return table, max(len(k) for k in table)
 
 
+@lru_cache(maxsize=1)
+def first_tokens() -> frozenset[str]:
+    """Every token a synonym can start with: about 140 of them."""
+    return frozenset(key[0] for key in synonym_table()[0])
+
+
 def match_tokens(toks: list[str]) -> list[str]:
-    """Skills named in a token list, longest synonym first, each once, sorted."""
+    """Skills named in a token list, longest synonym first, each once, sorted.
+
+    The profiled hot spot of the worker (docs/BACKEND.md). Almost no token
+    starts a skill name, so one set lookup per token, done in a list
+    comprehension, finds the few places worth trying; only there are the
+    1..N-token tuples built and looked up. Same result as
+    match_tokens_reference, which tries every width at every token.
+    """
+    table, longest = synonym_table()
+    starts = first_tokens()
+    found: set[str] = set()
+    n = len(toks)
+    free = 0  # tokens before this belong to a match already made
+    for i in [i for i, t in enumerate(toks) if t in starts]:
+        if i < free:
+            continue
+        for width in range(min(longest, n - i), 0, -1):
+            skill = table.get(tuple(toks[i:i + width]))
+            if skill:
+                found.add(skill)
+                free = i + width
+                break
+    return sorted(found)
+
+
+def match_tokens_reference(toks: list[str]) -> list[str]:
+    """The original match_tokens, kept as the benchmark's "before" and its correctness check."""
     table, longest = synonym_table()
     found: set[str] = set()
     i, n = 0, len(toks)

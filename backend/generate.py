@@ -125,23 +125,30 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--batch", type=int, default=500_000)
     parser.add_argument("--replace", action="store_true", help="empty synthetic_postings and its aggregates first")
     args = parser.parse_args(argv)
+    timing = generate(args.rows, args.seed, args.batch, args.replace)
+    print(f"SYNTHETIC: {args.rows:,} rows; generate {timing['generate_rows_per_s']:,.0f} rows/s, "
+          f"insert {timing['insert_rows_per_s']:,.0f} rows/s, "
+          f"end to end {timing['end_to_end_rows_per_s']:,.0f} rows/s; table now holds {timing['table_rows']:,}")
+    return 0
 
+
+def generate(rows: int, seed: int = 42, batch: int = 500_000, replace: bool = False) -> dict:
+    """Write the rows; return the seconds and rows/sec of generating and of inserting."""
     from backend.store import COLUMNS, ClickHouseStore
 
     store = ClickHouseStore(config.CLICKHOUSE_DB)
-    if args.replace:
+    if replace:
         # The aggregates too: the materialized views would add the new rows to the old counts.
         for table in ("synthetic_postings", "synthetic_volume_daily", "synthetic_skill_daily"):
             store.client.command(f"TRUNCATE TABLE {table}")
-    rng = np.random.default_rng(args.seed)
+    rng = np.random.default_rng(seed)
     combos = skill_combos(rng)
     gen_s = insert_s = 0.0
-    print(f"SYNTHETIC: generating {args.rows:,} rows (seed {args.seed}) into "
-          f"{config.CLICKHOUSE_DB}.synthetic_postings")
-    for start in range(0, args.rows, args.batch):
-        n = min(args.batch, args.rows - start)
+    print(f"SYNTHETIC: generating {rows:,} rows (seed {seed}) into {config.CLICKHOUSE_DB}.synthetic_postings")
+    for start in range(0, rows, batch):
+        n = min(batch, rows - start)
         t0 = time.perf_counter()
-        columns = generate_batch(rng, args.seed, start, n, combos)
+        columns = generate_batch(rng, seed, start, n, combos)
         t1 = time.perf_counter()
         store.client.insert("synthetic_postings", columns, column_names=list(COLUMNS), column_oriented=True)
         t2 = time.perf_counter()
@@ -149,11 +156,10 @@ def main(argv: list[str] | None = None) -> int:
         insert_s += t2 - t1
         print(f"  {start + n:>12,} rows", file=sys.stderr)
     total = store.client.command("SELECT count() FROM synthetic_postings")
-    print(f"SYNTHETIC: {args.rows:,} rows; generate {args.rows / gen_s:,.0f} rows/s, "
-          f"insert {args.rows / insert_s:,.0f} rows/s, end to end {args.rows / (gen_s + insert_s):,.0f} rows/s; "
-          f"table now holds {total:,}")
     store.close()
-    return 0
+    return {"rows": rows, "seed": seed, "batch": batch, "generate_s": gen_s, "insert_s": insert_s,
+            "generate_rows_per_s": rows / gen_s, "insert_rows_per_s": rows / insert_s,
+            "end_to_end_rows_per_s": rows / (gen_s + insert_s), "table_rows": total}
 
 
 if __name__ == "__main__":

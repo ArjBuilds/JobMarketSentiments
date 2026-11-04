@@ -21,6 +21,7 @@ The analytics core is web data collection plus sentiment analysis with spaCy, VA
 | F7 Data-role skills | Market-wide top skills from Naukri postings | yes |
 | F8 Data roles posted | A company's India data-role listings in the snapshot | yes (53 companies) |
 | F9 Compare | 2–4 companies side by side | yes |
+| Backend (branch `feature/realtime-backend`) | Greenhouse worker with retries, checkpoints and dedupe; ClickHouse; live aggregates over a WebSocket on a "Live postings" page | yes, see [docs/BACKEND.md](docs/BACKEND.md) |
 
 Milestone 9 added a source and date line under every section (read from the database), the Compare page, and an About and methods page.
 

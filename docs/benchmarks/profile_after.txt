@@ -1,0 +1,24 @@
+worker pass, match_tokens, 2.18 s under cProfile
+         3699814 function calls in 2.182 seconds
+
+   Ordered by: internal time
+   List reduced from 52 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    11665    0.524    0.000    1.000    0.000 {method 'sub' of 're.Pattern' objects}
+     3968    0.461    0.000    0.461    0.000 {method 'findall' of 're.Pattern' objects}
+  1381711    0.364    0.000    0.476    0.000 __init__.py:91(_replace_charref)
+     3968    0.280    0.000    0.280    0.000 skills.py:65(<listcomp>)
+     3968    0.174    0.000    0.507    0.000 skills.py:51(match_tokens)
+  1381711    0.108    0.000    0.108    0.000 {method 'group' of 're.Match' objects}
+     3968    0.073    0.000    0.073    0.000 {method 'lower' of 'str' objects}
+   509488    0.038    0.000    0.038    0.000 {method 'get' of 'dict' objects}
+     7968    0.029    0.000    0.029    0.000 {method 'strftime' of 'datetime.date' objects}
+     3968    0.021    0.000    2.068    0.001 skills.py:94(extract_skills)
+       15    0.016    0.001    2.133    0.142 greenhouse.py:100(parse_board)
+   158374    0.015    0.000    0.015    0.000 {built-in method builtins.min}
+       34    0.015    0.000    0.015    0.000 {method 'executemany' of 'sqlite3.Connection' objects}
+     3986    0.010    0.000    0.010    0.000 {method 'execute' of 'sqlite3.Connection' objects}
+       17    0.008    0.000    0.047    0.003 store.py:50(write_rows)
+
+
