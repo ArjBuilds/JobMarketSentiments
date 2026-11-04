@@ -33,6 +33,30 @@ class SQLiteStore:
     def count(self) -> int:
         return self.conn.execute("SELECT COUNT(*) FROM postings").fetchone()[0]
 
+    def keys(self) -> list[str]:
+        """Every stored dedupe_key, duplicates included (the kill check counts them)."""
+        return [k for (k,) in self.conn.execute("SELECT dedupe_key FROM postings")]
+
+    def start_or_resume_run(self, started_at: str) -> tuple[int, set[str] | None]:
+        """The unfinished run and its done boards, or a new run and None."""
+        row = self.conn.execute("SELECT run_id FROM runs WHERE finished_at IS NULL ORDER BY run_id DESC").fetchone()
+        if row:
+            done = {b for (b,) in self.conn.execute(
+                "SELECT board FROM checkpoints WHERE run_id = ? AND status = 'done'", row)}
+            return row[0], done
+        with self.conn:
+            run_id = self.conn.execute("INSERT INTO runs (started_at) VALUES (?)", (started_at,)).lastrowid
+        return run_id, None
+
+    def checkpoint(self, run_id: int, board: str, status: str, postings: int, at: str) -> None:
+        with self.conn:
+            self.conn.execute("INSERT OR REPLACE INTO checkpoints VALUES (?, ?, ?, ?, ?)",
+                              (run_id, board, status, postings, at))
+
+    def finish_run(self, run_id: int, at: str) -> None:
+        with self.conn:
+            self.conn.execute("UPDATE runs SET finished_at = ? WHERE run_id = ?", (at, run_id))
+
     def close(self) -> None:
         self.conn.close()
 
