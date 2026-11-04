@@ -1,0 +1,59 @@
+{
+ "_note": "SYNTHETIC FIXTURE: hand-made for tests and offline runs. Not real Greenhouse data.",
+ "jobs": [
+  {
+   "id": 9000100,
+   "title": "Data Scientist",
+   "company_name": "Fixture Beta",
+   "location": {
+    "name": "Bengaluru, India"
+   },
+   "departments": [
+    {
+     "name": "Data"
+    }
+   ],
+   "first_published": "2026-10-02T08:00:00Z",
+   "updated_at": "2026-10-02T08:00:00Z",
+   "absolute_url": "https://example.invalid/fixture-beta/0",
+   "content": "&lt;p&gt;Python, R&amp;amp;D, statistics, Excel.&lt;/p&gt;"
+  },
+  {
+   "id": 9000101,
+   "title": "Backend Engineer",
+   "company_name": "Fixture Beta",
+   "location": {
+    "name": "Bengaluru, India"
+   },
+   "departments": [
+    {
+     "name": "Data"
+    }
+   ],
+   "first_published": "2026-10-02T23:30:00-02:00",
+   "updated_at": "2026-10-02T23:30:00-02:00",
+   "absolute_url": "https://example.invalid/fixture-beta/1",
+   "content": "&lt;p&gt;Java, Kubernetes, Docker, PostgreSQL.&lt;/p&gt;"
+  },
+  {
+   "id": 9000102,
+   "title": "BI Analyst",
+   "company_name": "Fixture Beta",
+   "location": {
+    "name": "Bengaluru, India"
+   },
+   "departments": [
+    {
+     "name": "Data"
+    }
+   ],
+   "first_published": "2026-10-03T12:00:00Z",
+   "updated_at": "2026-10-03T12:00:00Z",
+   "absolute_url": "https://example.invalid/fixture-beta/2",
+   "content": "&lt;p&gt;Power BI and SQL.&lt;/p&gt;"
+  }
+ ],
+ "meta": {
+  "total": 3
+ }
+}

@@ -1,0 +1,76 @@
+{
+ "_note": "SYNTHETIC FIXTURE: hand-made for tests and offline runs. Not real Greenhouse data.",
+ "jobs": [
+  {
+   "id": 9000000,
+   "title": "Data Engineer",
+   "company_name": "Fixture Alpha",
+   "location": {
+    "name": "Bengaluru, India"
+   },
+   "departments": [
+    {
+     "name": "Data"
+    }
+   ],
+   "first_published": "2026-10-01T09:00:00-04:00",
+   "updated_at": "2026-10-01T09:00:00-04:00",
+   "absolute_url": "https://example.invalid/fixture-alpha/0",
+   "content": "&lt;p&gt;Python, SQL and Apache Spark on AWS.&lt;/p&gt;"
+  },
+  {
+   "id": 9000001,
+   "title": "Analytics Engineer",
+   "company_name": "Fixture Alpha",
+   "location": {
+    "name": "Bengaluru, India"
+   },
+   "departments": [
+    {
+     "name": "Data"
+    }
+   ],
+   "first_published": "2026-10-01T15:30:00+05:30",
+   "updated_at": "2026-10-01T15:30:00+05:30",
+   "absolute_url": "https://example.invalid/fixture-alpha/1",
+   "content": "&lt;p&gt;dbt, SQL Server and Tableau.&lt;/p&gt;"
+  },
+  {
+   "id": 9000002,
+   "title": "ML Engineer",
+   "company_name": "Fixture Alpha",
+   "location": {
+    "name": "Bengaluru, India"
+   },
+   "departments": [
+    {
+     "name": "Data"
+    }
+   ],
+   "first_published": "2026-10-02T10:00:00Z",
+   "updated_at": "2026-10-02T10:00:00Z",
+   "absolute_url": "https://example.invalid/fixture-alpha/2",
+   "content": "&lt;p&gt;PyTorch, Machine learning, Python.&lt;/p&gt;"
+  },
+  {
+   "id": 9000003,
+   "title": "Recruiter",
+   "company_name": "Fixture Alpha",
+   "location": {
+    "name": "Bengaluru, India"
+   },
+   "departments": [
+    {
+     "name": "Data"
+    }
+   ],
+   "first_published": "2026-10-03T10:00:00Z",
+   "updated_at": "2026-10-03T10:00:00Z",
+   "absolute_url": "https://example.invalid/fixture-alpha/3",
+   "content": "&lt;p&gt;Hire great people.&lt;/p&gt;"
+  }
+ ],
+ "meta": {
+  "total": 4
+ }
+}
