@@ -123,14 +123,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--rows", type=int, default=DEFAULT_ROWS)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--batch", type=int, default=500_000)
-    parser.add_argument("--replace", action="store_true", help="empty synthetic_postings first")
+    parser.add_argument("--replace", action="store_true", help="empty synthetic_postings and its aggregates first")
     args = parser.parse_args(argv)
 
     from backend.store import COLUMNS, ClickHouseStore
 
     store = ClickHouseStore(config.CLICKHOUSE_DB)
     if args.replace:
-        store.client.command("TRUNCATE TABLE synthetic_postings")
+        # The aggregates too: the materialized views would add the new rows to the old counts.
+        for table in ("synthetic_postings", "synthetic_volume_daily", "synthetic_skill_daily"):
+            store.client.command(f"TRUNCATE TABLE {table}")
     rng = np.random.default_rng(args.seed)
     combos = skill_combos(rng)
     gen_s = insert_s = 0.0

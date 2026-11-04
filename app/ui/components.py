@@ -38,6 +38,7 @@ PAGES = {
     "market_skills": "pages/3_Market_skills.py",
     "compare": "pages/4_Compare.py",
     "about": "pages/5_About_and_methods.py",
+    "live": "pages/6_Live_postings.py",
 }
 
 BADGE_COLOURS = {"positive": "blue", "neutral": "gray", "negative": "red"}

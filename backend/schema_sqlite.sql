@@ -38,3 +38,18 @@ CREATE TABLE IF NOT EXISTS checkpoints (
     finished_at TEXT NOT NULL,
     PRIMARY KEY (run_id, board)
 );
+
+-- Real-time aggregates (M4), the SQLite twin of ClickHouse's materialized
+-- views: SQLiteStore.write_rows adds each new posting to them in the same
+-- transaction as the posting, so they always match the postings table.
+CREATE TABLE IF NOT EXISTS volume_daily (
+    day      TEXT PRIMARY KEY,
+    postings INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS skill_daily (
+    day      TEXT NOT NULL,
+    skill    TEXT NOT NULL,
+    postings INTEGER NOT NULL,
+    PRIMARY KEY (day, skill)
+);

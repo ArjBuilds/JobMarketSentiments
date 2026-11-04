@@ -7,7 +7,8 @@ the production store (docker-compose.yml). Both expose the same methods.
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime, timezone
+from collections import Counter
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 SQLITE_SCHEMA = Path(__file__).resolve().parent / "schema_sqlite.sql"
@@ -15,21 +16,72 @@ SQLITE_SCHEMA = Path(__file__).resolve().parent / "schema_sqlite.sql"
 COLUMNS = ("dedupe_key", "board", "job_id", "company", "title", "location", "department",
            "first_published", "posted_day", "updated_at", "url", "skills", "is_synthetic", "fetched_at")
 
+# What the live stream sends: the last WINDOW_DAYS days of volume, up to the
+# newest posted_day stored, and the TOP_SKILLS skills over the same days.
+WINDOW_DAYS = 30
+TOP_SKILLS = 10
+
+
+def aggregate_delta(rows: list[dict]) -> tuple[Counter, Counter]:
+    """What new postings add to volume_daily ({day: n}) and skill_daily ({(day, skill): n})."""
+    volume = Counter(r["posted_day"] for r in rows)
+    skills = Counter((r["posted_day"], s) for r in rows for s in r["skills"])
+    return volume, skills
+
+
+def snapshot_dict(volume: list[tuple], skills: list[tuple], total: int, synthetic: bool) -> dict:
+    """The live stream's message body, the same for both stores."""
+    return {
+        "dataset": "synthetic" if synthetic else "live",
+        "synthetic": synthetic,
+        "total_postings": total,
+        "window_days": WINDOW_DAYS,
+        "volume": [{"day": str(d), "postings": n} for d, n in volume],
+        "top_skills": [{"skill": s, "postings": n} for s, n in skills],
+    }
+
 
 class SQLiteStore:
     def __init__(self, path: str | Path = ":memory:"):
-        self.conn = sqlite3.connect(str(path))
+        # The API reads from a worker thread that changes between polls.
+        self.conn = sqlite3.connect(str(path), check_same_thread=False)
         self.conn.executescript(SQLITE_SCHEMA.read_text(encoding="utf-8"))
 
     def write_rows(self, rows: list[dict]) -> int:
-        """Insert rows; a dedupe_key already stored is skipped. Returns rows added."""
-        before = self.conn.total_changes
+        """Insert rows; a dedupe_key already stored is skipped. Returns rows added.
+
+        The new rows' counts are added to the aggregates in the same
+        transaction, so the aggregates can never disagree with postings.
+        """
+        insert = f"INSERT OR IGNORE INTO postings ({', '.join(COLUMNS)}) VALUES ({', '.join('?' * len(COLUMNS))})"
+        new = []
         with self.conn:
-            self.conn.executemany(
-                f"INSERT OR IGNORE INTO postings ({', '.join(COLUMNS)}) VALUES ({', '.join('?' * len(COLUMNS))})",
-                [tuple(";".join(r[c]) if c == "skills" else r[c] for c in COLUMNS) for r in rows],
-            )
-        return self.conn.total_changes - before
+            for r in rows:
+                values = tuple(";".join(r[c]) if c == "skills" else r[c] for c in COLUMNS)
+                if self.conn.execute(insert, values).rowcount:
+                    new.append(r)
+            volume, skills = aggregate_delta(new)
+            self.conn.executemany("INSERT INTO volume_daily VALUES (?, ?) ON CONFLICT (day)"
+                                  " DO UPDATE SET postings = postings + excluded.postings", volume.items())
+            self.conn.executemany("INSERT INTO skill_daily VALUES (?, ?, ?) ON CONFLICT (day, skill)"
+                                  " DO UPDATE SET postings = postings + excluded.postings",
+                                  [(d, s, n) for (d, s), n in skills.items()])
+        return len(new)
+
+    def aggregates(self, synthetic: bool = False) -> dict:
+        """The live stream's snapshot. Synthetic rows live only in ClickHouse."""
+        if synthetic:
+            raise ValueError("synthetic data is only in the ClickHouse store")
+        last = self.conn.execute("SELECT MAX(day) FROM volume_daily").fetchone()[0]
+        if last is None:
+            return snapshot_dict([], [], 0, False)
+        first = (date.fromisoformat(last) - timedelta(days=WINDOW_DAYS - 1)).isoformat()
+        volume = self.conn.execute("SELECT day, postings FROM volume_daily WHERE day >= ? ORDER BY day",
+                                   (first,)).fetchall()
+        skills = self.conn.execute("SELECT skill, SUM(postings) AS n FROM skill_daily WHERE day >= ?"
+                                   " GROUP BY skill ORDER BY n DESC, skill LIMIT ?", (first, TOP_SKILLS)).fetchall()
+        total = self.conn.execute("SELECT COALESCE(SUM(postings), 0) FROM volume_daily").fetchone()[0]
+        return snapshot_dict(volume, skills, total, False)
 
     def count(self) -> int:
         return self.conn.execute("SELECT COUNT(*) FROM postings").fetchone()[0]
@@ -114,6 +166,26 @@ class ClickHouseStore:
                 r["url"], r["skills"], r["is_synthetic"], _utc(r["fetched_at"]),
             ] for r in new], column_names=list(COLUMNS))
         return len(new)
+
+    def aggregates(self, synthetic: bool = False) -> dict:
+        """The live stream's snapshot, from the materialized views' tables.
+
+        sum() ... GROUP BY because SummingMergeTree adds rows up only when
+        parts merge, which happens in the background at no fixed time.
+        """
+        prefix = "synthetic_" if synthetic else ""
+        last = self.client.command(f"SELECT max(day) FROM {prefix}volume_daily")
+        if not self.client.command(f"SELECT count() FROM {prefix}volume_daily"):
+            return snapshot_dict([], [], 0, synthetic)
+        params = {"last": last, "days": WINDOW_DAYS - 1, "top": TOP_SKILLS}
+        volume = self.client.query(
+            f"SELECT day, sum(postings) FROM {prefix}volume_daily"
+            " WHERE day >= toDate(%(last)s) - %(days)s GROUP BY day ORDER BY day", parameters=params).result_rows
+        skills = self.client.query(
+            f"SELECT skill, sum(postings) AS n FROM {prefix}skill_daily WHERE day >= toDate(%(last)s) - %(days)s"
+            " GROUP BY skill ORDER BY n DESC, skill LIMIT %(top)s", parameters=params).result_rows
+        total = self.client.command(f"SELECT sum(postings) FROM {prefix}volume_daily")
+        return snapshot_dict(volume, skills, int(total), synthetic)
 
     def count(self) -> int:
         return self.client.command("SELECT count() FROM postings")

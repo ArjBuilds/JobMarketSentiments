@@ -101,7 +101,8 @@ def parse_board(board: str, payload: dict, fetched_at: str, synthetic: bool = Fa
     """One row per posting. The content HTML is read for skills, never stored."""
     rows = []
     for job in payload.get("jobs", []):
-        published = utc_iso(job.get("first_published") or job.get("updated_at"))
+        # Fetch time when Greenhouse gives no date, so every row lands on a day.
+        published = utc_iso(job.get("first_published") or job.get("updated_at")) or fetched_at
         rows.append({
             "dedupe_key": dedupe_key(board, job["id"]),
             "board": board,
@@ -111,7 +112,7 @@ def parse_board(board: str, payload: dict, fetched_at: str, synthetic: bool = Fa
             "location": (job.get("location") or {}).get("name") or "",
             "department": ((job.get("departments") or [{}])[0] or {}).get("name") or "",
             "first_published": published,
-            "posted_day": published[:10] if published else None,
+            "posted_day": published[:10],
             "updated_at": utc_iso(job.get("updated_at")),
             "url": job.get("absolute_url") or "",
             "skills": extract_skills(job.get("content")),

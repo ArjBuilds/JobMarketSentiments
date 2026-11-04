@@ -69,3 +69,55 @@ CREATE TABLE IF NOT EXISTS checkpoints (
 ENGINE = ReplacingMergeTree(finished_at)
 ORDER BY (run_id, board);
 
+-- Real-time aggregates (M4), kept up to date incrementally: a materialized
+-- view runs on every block inserted into its source table and adds that
+-- block's counts to a SummingMergeTree, which merges rows with the same key
+-- by adding them, in the background. Read with sum() ... GROUP BY, because
+-- unmerged parts can still hold several rows per key. Each skill counts once
+-- per posting (skills arrays hold distinct names), and a posting counts on
+-- its posted_day. Inserted rows are never updated or deleted, so adding is
+-- exact; that is why the worker inserts only keys it doesn't have yet.
+CREATE TABLE IF NOT EXISTS volume_daily (
+    day      Date,
+    postings UInt64
+)
+ENGINE = SummingMergeTree
+ORDER BY day;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS volume_daily_mv TO volume_daily AS
+SELECT posted_day AS day, count() AS postings FROM postings GROUP BY day;
+
+CREATE TABLE IF NOT EXISTS skill_daily (
+    day      Date,
+    skill    LowCardinality(String),
+    postings UInt64
+)
+ENGINE = SummingMergeTree
+ORDER BY (day, skill);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS skill_daily_mv TO skill_daily AS
+SELECT posted_day AS day, arrayJoin(skills) AS skill, count() AS postings FROM postings GROUP BY day, skill;
+
+-- The same two aggregates over SYNTHETIC rows, never mixed with the real ones.
+CREATE TABLE IF NOT EXISTS synthetic_volume_daily (
+    day      Date,
+    postings UInt64
+)
+ENGINE = SummingMergeTree
+ORDER BY day
+COMMENT 'SYNTHETIC DATA aggregate.';
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS synthetic_volume_daily_mv TO synthetic_volume_daily AS
+SELECT posted_day AS day, count() AS postings FROM synthetic_postings GROUP BY day;
+
+CREATE TABLE IF NOT EXISTS synthetic_skill_daily (
+    day      Date,
+    skill    LowCardinality(String),
+    postings UInt64
+)
+ENGINE = SummingMergeTree
+ORDER BY (day, skill)
+COMMENT 'SYNTHETIC DATA aggregate.';
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS synthetic_skill_daily_mv TO synthetic_skill_daily AS
+SELECT posted_day AS day, arrayJoin(skills) AS skill, count() AS postings FROM synthetic_postings GROUP BY day, skill;

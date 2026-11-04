@@ -62,3 +62,40 @@ def test_checkpoint_recovery_resumes_without_loss_or_duplicates(store):
     assert sorted(store.keys()) == sorted(clean.keys())
     assert store.conn.execute("SELECT COUNT(*) FROM runs").fetchone()[0] == 1
     clean.close()
+
+
+def test_incremental_aggregates_match_a_full_recount(store):
+    # Built up incrementally: a run killed part-way, the resume, a repeat
+    # pass that adds nothing, and an overlapping batch written by hand.
+    def crash(board, source):
+        if board == BOARDS[1][0]:
+            store.write_rows(fixture_rows(board)[:2])
+            raise KeyboardInterrupt("killed")
+        return fetch_board(board, source)
+
+    with pytest.raises(KeyboardInterrupt):
+        run_pass(store, BOARDS, "fixture", fetch=crash)
+    run_pass(store, BOARDS, "fixture")
+    run_pass(store, BOARDS, "fixture")
+    store.write_rows(fixture_rows(BOARDS[0][0]) + fixture_rows(BOARDS[1][0]))
+
+    conn = store.conn
+    volume = dict(conn.execute("SELECT day, postings FROM volume_daily"))
+    recount = dict(conn.execute("SELECT posted_day, COUNT(*) FROM postings GROUP BY posted_day"))
+    assert volume == recount
+    assert sum(volume.values()) == 7
+
+    skills = {(d, s): n for d, s, n in conn.execute("SELECT day, skill, postings FROM skill_daily")}
+    expected = {}
+    for day, listed in conn.execute("SELECT posted_day, skills FROM postings"):
+        for skill in filter(None, listed.split(";")):
+            expected[(day, skill)] = expected.get((day, skill), 0) + 1
+    assert skills == expected
+    # Spot checks against the fixture by hand: 2026-10-03 (UTC) has the
+    # 23:30 -02:00 Java posting, the BI Analyst and the Recruiter.
+    assert volume["2026-10-03"] == 3
+    assert skills[("2026-10-03", "SQL")] == 2
+
+    snapshot = store.aggregates()
+    assert snapshot["total_postings"] == 7 and snapshot["synthetic"] is False
+    assert snapshot["top_skills"][0] == {"skill": "SQL", "postings": 4}

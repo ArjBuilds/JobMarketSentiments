@@ -50,6 +50,7 @@ skills = st.Page(PAGES["market_skills"], title="Market skills", icon=":material/
                  url_path="market-skills")
 compare = st.Page(PAGES["compare"], title="Compare", icon=":material/compare_arrows:", url_path="compare")
 about = st.Page(PAGES["about"], title="About the data", icon=":material/info:", url_path="about")
+live = st.Page(PAGES["live"], title="Live postings", icon=":material/sensors:", url_path="live")
 
 
 # Cached results, not a connection: sqlite3 refuses to use a connection from
@@ -76,7 +77,7 @@ else:
     loaded, refreshed = database_status()
     problem = None if loaded else f"The database at `{DB_PATH}` has no companies loaded."
 
-page = st.navigation({"Shortlist": [explore, company, compare, skills, about]})
+page = st.navigation({"Shortlist": [explore, company, compare, skills, about], "Backend": [live]})
 
 with st.sidebar:
     if refreshed:
